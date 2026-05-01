@@ -1,0 +1,9 @@
+{
+  "name": "Default Stroke Pack",
+  "description": "The original sounds for the Stroke keyboard engine.",
+  "sounds": {
+    "Space": "space.wav",
+    "Enter": "enter.wav",
+    "Default": "click.wav"
+  }
+}

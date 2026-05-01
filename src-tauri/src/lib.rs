@@ -1,5 +1,5 @@
 use rdev::{listen, EventType, Key};
-use rodio::{Decoder, DeviceSinkBuilder, source::Source, source::SamplesBuffer};
+use rodio::{Decoder, DeviceSinkBuilder, source::Source, buffer::SamplesBuffer};
 use std::io::Cursor;
 use std::sync::{Arc, Mutex};
 use std::thread;
@@ -11,6 +11,7 @@ use tauri::{
     Manager,
 };
 use std::collections::HashMap;
+use std::num::NonZero;
 
 const SOUND_DATA: &[u8] = include_bytes!("../assets/sound.ogg");
 
@@ -28,7 +29,7 @@ lazy_static! {
     static ref SAMPLES: Vec<f32> = {
         let cursor = Cursor::new(SOUND_DATA);
         let source = Decoder::try_from(cursor).expect("Failed to decode sound.ogg");
-        source.convert_samples::<f32>().collect()
+        source.collect()
     };
 
     static ref SOUND_CONFIG: HashMap<&'static str, [u64; 2]> = {
@@ -215,11 +216,15 @@ pub fn run() {
                                 
                                 if end_sample <= SAMPLES.len() {
                                     let mut r = rng();
-                                    let speed: f32 = r.random_range(0.98..1.02); // Tighter range for realistic sounds
+                                    let speed: f32 = r.random_range(0.98..1.02); 
                                     let vol_var: f32 = r.random_range(0.95..1.05);
 
                                     let slice = &SAMPLES[start_sample..end_sample];
-                                    let source = SamplesBuffer::new(2, 44100, slice)
+                                    let source = SamplesBuffer::new(
+                                        NonZero::new(2).unwrap(), 
+                                        NonZero::new(44100).unwrap(), 
+                                        slice
+                                    )
                                         .amplify(state.volume * vol_var)
                                         .speed(speed);
                                     
