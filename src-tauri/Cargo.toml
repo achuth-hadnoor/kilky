@@ -27,4 +27,6 @@ rodio = "0.22.2"
 lazy_static = "1.5.0"
 rand = { version = "0.10.1", features = ["thread_rng"] }
 macos-accessibility-client = "0.0.2"
+tauri-plugin-dialog = "2.7.0"
+tauri-plugin-fs = "2.5.0"
 
