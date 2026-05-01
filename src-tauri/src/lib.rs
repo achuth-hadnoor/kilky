@@ -59,10 +59,11 @@ pub fn run() {
                             if let Ok(source) = Decoder::try_from(cursor) {
                                 let mut r = rng();
                                 let speed: f32 = r.random_range(0.95..1.05);
+                                let vol_var: f32 = r.random_range(0.9..1.1);
                                 
                                 // Apply volume and speed directly to the source
                                 let source = source
-                                    .amplify(state.volume)
+                                    .amplify(state.volume * vol_var)
                                     .speed(speed);
                                 
                                 mixer_clone.add(source);
