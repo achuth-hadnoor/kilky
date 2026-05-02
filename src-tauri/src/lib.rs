@@ -269,6 +269,24 @@ fn map_key_to_name(key: &Key) -> String {
 // --- Commands ---
 
 #[tauri::command]
+fn get_app_state() -> (bool, f32) {
+    let state = STATE.lock().unwrap();
+    (state.enabled, state.volume)
+}
+
+#[tauri::command]
+fn set_volume(volume: f32) {
+    let mut state = STATE.lock().unwrap();
+    state.volume = volume;
+}
+
+#[tauri::command]
+fn set_enabled(enabled: bool) {
+    let mut state = STATE.lock().unwrap();
+    state.enabled = enabled;
+}
+
+#[tauri::command]
 async fn load_sound_pack(path: String) -> Result<PackConfig, String> {
     let base_path = PathBuf::from(&path);
     let config_path = base_path.join("config.json");
@@ -301,8 +319,9 @@ async fn load_sound_pack(path: String) -> Result<PackConfig, String> {
 }
 
 #[tauri::command]
-async fn open_settings(app: tauri::AppHandle) -> Result<(), String> {
+fn open_settings(app: tauri::AppHandle) -> Result<(), String> {
     if let Some(window) = app.get_webview_window("settings") {
+        window.show().map_err(|e| e.to_string())?;
         window.set_focus().map_err(|e| e.to_string())?;
     } else {
         tauri::WebviewWindowBuilder::new(
@@ -314,6 +333,8 @@ async fn open_settings(app: tauri::AppHandle) -> Result<(), String> {
         .inner_size(750.0, 550.0)
         .resizable(false)
         .build()
+        .map_err(|e| e.to_string())?
+        .show()
         .map_err(|e| e.to_string())?;
     }
     Ok(())
@@ -326,11 +347,18 @@ pub fn run() {
     tauri::Builder::default()
         .plugin(tauri_plugin_dialog::init())
         .plugin(tauri_plugin_fs::init())
-        .invoke_handler(tauri::generate_handler![load_sound_pack, open_settings])
+        .invoke_handler(tauri::generate_handler![
+            load_sound_pack,
+            open_settings,
+            get_app_state,
+            set_volume,
+            set_enabled
+        ])
         .setup(|app| {
-            // macOS Permission Check
+            // macOS setup
             #[cfg(target_os = "macos")]
             {
+                app.set_activation_policy(tauri::ActivationPolicy::Accessory);
                 if !macos_accessibility_client::accessibility::application_is_trusted() {
                     macos_accessibility_client::accessibility::application_is_trusted_with_prompt();
                     if let Some(window) = app.get_webview_window("main") {
