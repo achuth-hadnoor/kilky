@@ -1,38 +1,60 @@
-use rdev::{listen, EventType, Key};
-use rodio::{Decoder, DeviceSinkBuilder, source::Source, buffer::SamplesBuffer};
-use std::io::Cursor;
-use std::sync::{Arc, Mutex};
-use std::thread;
 use lazy_static::lazy_static;
 use rand::{rng, RngExt};
+use rdev::{listen, EventType, Key};
+use rodio::{buffer::SamplesBuffer, source::Source, Decoder, DeviceSinkBuilder};
+use serde::{Deserialize, Serialize};
+use std::collections::HashMap;
+use std::fs::File;
+use std::io::{BufReader, Cursor};
+use std::num::NonZero;
+use std::path::PathBuf;
+use std::sync::{Arc, Mutex};
+use std::thread;
 use tauri::{
     menu::{MenuBuilder, MenuItem},
     tray::TrayIconBuilder,
     Manager,
 };
-use std::collections::HashMap;
-use std::num::NonZero;
 
-const SOUND_DATA: &[u8] = include_bytes!("../assets/sound.ogg");
+// --- Data Structures ---
+
+#[derive(Clone, Serialize, Deserialize)]
+pub struct PackConfig {
+    pub name: String,
+    pub description: Option<String>,
+    pub sounds: HashMap<String, String>, // Key name -> Filename
+}
+
+struct ExternalPack {
+    pub config: PackConfig,
+    pub audio_data: HashMap<String, Vec<f32>>, // Filename -> Decoded samples
+}
+
+enum ActivePack {
+    Default,
+    Custom(ExternalPack),
+}
 
 struct AppState {
     enabled: bool,
     volume: f32,
+    active_pack: ActivePack,
 }
+
+const DEFAULT_SOUND_DATA: &[u8] = include_bytes!("../assets/sound.ogg");
 
 lazy_static! {
     static ref STATE: Arc<Mutex<AppState>> = Arc::new(Mutex::new(AppState {
         enabled: true,
         volume: 0.5,
+        active_pack: ActivePack::Default,
     }));
-
-    static ref SAMPLES: Vec<f32> = {
-        let cursor = Cursor::new(SOUND_DATA);
+    static ref DEFAULT_SAMPLES: Vec<f32> = {
+        let cursor = Cursor::new(DEFAULT_SOUND_DATA);
         let source = Decoder::try_from(cursor).expect("Failed to decode sound.ogg");
         source.collect()
     };
-
-    static ref SOUND_CONFIG: HashMap<&'static str, [u64; 2]> = {
+    static ref DEFAULT_CONFIG: HashMap<&'static str, [u64; 2]> = {
         let mut m = HashMap::new();
         m.insert("1", [1754, 184]);
         m.insert("2", [10135, 199]);
@@ -152,32 +174,142 @@ lazy_static! {
     };
 }
 
+// --- Helper Functions ---
+
 fn key_to_dik(key: &Key) -> &'static str {
     use Key::*;
     match key {
         Escape => "1",
-        Num1 => "2", Num2 => "3", Num3 => "4", Num4 => "5",
-        Num5 => "6", Num6 => "7", Num7 => "8", Num8 => "9", Num9 => "10", Num0 => "11",
-        Minus => "12", Equal => "13", Backspace => "14",
-        Tab => "15", KeyQ => "16", KeyW => "17", KeyE => "18", KeyR => "19",
-        KeyT => "20", KeyY => "21", KeyU => "22", KeyI => "23", KeyO => "24", KeyP => "25",
-        LeftBracket => "26", RightBracket => "27", Return => "28",
-        ControlLeft => "29", KeyA => "30", KeyS => "31", KeyD => "32", KeyF => "33",
-        KeyG => "34", KeyH => "35", KeyJ => "36", KeyK => "37", KeyL => "38",
-        SemiColon => "39", Quote => "40", BackQuote => "41", ShiftLeft => "42",
-        BackSlash => "43", KeyZ => "44", KeyX => "45", KeyC => "46", KeyV => "47",
-        KeyB => "48", KeyN => "49", KeyM => "50", Comma => "51", Dot => "52", Slash => "53",
-        ShiftRight => "54", AltLeft => "56", Space => "57", CapsLock => "58",
-        F1 => "59", F2 => "60", F3 => "61", F4 => "62", F5 => "63", F6 => "64",
-        F7 => "65", F8 => "66", F9 => "67", F10 => "68", F11 => "87", F12 => "88",
-        UpArrow => "57416", DownArrow => "57424", LeftArrow => "57419", RightArrow => "57421",
-        _ => "30", // Default to 'A' sound
+        Num1 => "2",
+        Num2 => "3",
+        Num3 => "4",
+        Num4 => "5",
+        Num5 => "6",
+        Num6 => "7",
+        Num7 => "8",
+        Num8 => "9",
+        Num9 => "10",
+        Num0 => "11",
+        Minus => "12",
+        Equal => "13",
+        Backspace => "14",
+        Tab => "15",
+        KeyQ => "16",
+        KeyW => "17",
+        KeyE => "18",
+        KeyR => "19",
+        KeyT => "20",
+        KeyY => "21",
+        KeyU => "22",
+        KeyI => "23",
+        KeyO => "24",
+        KeyP => "25",
+        LeftBracket => "26",
+        RightBracket => "27",
+        Return => "28",
+        ControlLeft => "29",
+        KeyA => "30",
+        KeyS => "31",
+        KeyD => "32",
+        KeyF => "33",
+        KeyG => "34",
+        KeyH => "35",
+        KeyJ => "36",
+        KeyK => "37",
+        KeyL => "38",
+        SemiColon => "39",
+        Quote => "40",
+        BackQuote => "41",
+        ShiftLeft => "42",
+        BackSlash => "43",
+        KeyZ => "44",
+        KeyX => "45",
+        KeyC => "46",
+        KeyV => "47",
+        KeyB => "48",
+        KeyN => "49",
+        KeyM => "50",
+        Comma => "51",
+        Dot => "52",
+        Slash => "53",
+        ShiftRight => "54",
+        Alt => "56",
+        AltGr => "184",
+        Space => "57",
+        CapsLock => "58",
+        F1 => "59",
+        F2 => "60",
+        F3 => "61",
+        F4 => "62",
+        F5 => "63",
+        F6 => "64",
+        F7 => "65",
+        F8 => "66",
+        F9 => "67",
+        F10 => "68",
+        F11 => "87",
+        F12 => "88",
+        UpArrow => "57416",
+        DownArrow => "57424",
+        LeftArrow => "57419",
+        RightArrow => "57421",
+        _ => "30",
     }
 }
+
+fn map_key_to_name(key: &Key) -> String {
+    use Key::*;
+    match key {
+        Space => "Space".to_string(),
+        Return => "Enter".to_string(),
+        Backspace => "Backspace".to_string(),
+        Escape => "Escape".to_string(),
+        _ => "Default".to_string(),
+    }
+}
+
+// --- Commands ---
+
+#[tauri::command]
+async fn load_sound_pack(path: String) -> Result<PackConfig, String> {
+    let base_path = PathBuf::from(&path);
+    let config_path = base_path.join("config.json");
+
+    let config_file =
+        File::open(&config_path).map_err(|e| format!("Failed to open config.json: {}", e))?;
+    let reader = BufReader::new(config_file);
+    let config: PackConfig = serde_json::from_reader(reader)
+        .map_err(|e| format!("Failed to parse config.json: {}", e))?;
+
+    let mut audio_data = HashMap::new();
+    for (_key_name, filename) in &config.sounds {
+        let file_path = base_path.join(filename);
+        let file = File::open(&file_path)
+            .map_err(|e| format!("Failed to open sound file {}: {}", filename, e))?;
+        let reader = BufReader::new(file);
+        let decoder = Decoder::try_from(reader)
+            .map_err(|e| format!("Failed to decode {}: {}", filename, e))?;
+        let samples: Vec<f32> = decoder.collect();
+        audio_data.insert(filename.clone(), samples);
+    }
+
+    let mut state = STATE.lock().unwrap();
+    state.active_pack = ActivePack::Custom(ExternalPack {
+        config: config.clone(),
+        audio_data,
+    });
+
+    Ok(config)
+}
+
+// --- Main Runner ---
 
 #[cfg_attr(mobile, tauri::mobile_entry_point)]
 pub fn run() {
     tauri::Builder::default()
+        .plugin(tauri_plugin_dialog::init())
+        .plugin(tauri_plugin_fs::init())
+        .invoke_handler(tauri::generate_handler![load_sound_pack])
         .setup(|app| {
             // macOS Permission Check
             #[cfg(target_os = "macos")]
@@ -191,44 +323,68 @@ pub fn run() {
             }
 
             // Audio setup
-            let sink_handle = DeviceSinkBuilder::open_default_sink().expect("Failed to get audio output stream");
+            let sink_handle =
+                DeviceSinkBuilder::open_default_sink().expect("Failed to get audio output stream");
             let mixer = sink_handle.mixer();
             let mixer_clone = mixer.clone();
-            
-            // Warm up samples
-            let _ = &*SAMPLES;
+
+            // Warm up default samples
+            let _ = &*DEFAULT_SAMPLES;
 
             // Global Keyboard Listener
             thread::spawn(move || {
-                let _s = sink_handle; 
-                
+                let _s = sink_handle;
+
                 if let Err(error) = listen(move |event| {
                     if let EventType::KeyPress(key) = event.event_type {
                         let state = STATE.lock().unwrap();
-                        if state.enabled {
-                            if let Some(config) = SOUND_CONFIG.get(key_to_dik(&key)) {
-                                let start_ms = config[0];
-                                let duration_ms = config[1];
-                                
-                                // DIK sounds are usually 44100Hz stereo
-                                let start_sample = (start_ms * 441 * 2 / 10) as usize; 
-                                let end_sample = start_sample + (duration_ms * 441 * 2 / 10) as usize;
-                                
-                                if end_sample <= SAMPLES.len() {
-                                    let mut r = rng();
-                                    let speed: f32 = r.random_range(0.98..1.02); 
-                                    let vol_var: f32 = r.random_range(0.95..1.05);
+                        if !state.enabled {
+                            return;
+                        }
 
-                                    let slice = &SAMPLES[start_sample..end_sample];
-                                    let source = SamplesBuffer::new(
-                                        NonZero::new(2).unwrap(), 
-                                        NonZero::new(44100).unwrap(), 
-                                        slice
-                                    )
+                        let mut r = rng();
+                        let speed: f32 = r.random_range(0.98..1.02);
+                        let vol_var: f32 = r.random_range(0.95..1.05);
+
+                        match &state.active_pack {
+                            ActivePack::Default => {
+                                if let Some(config) = DEFAULT_CONFIG.get(key_to_dik(&key)) {
+                                    let start_sample = (config[0] * 441 * 2 / 10) as usize;
+                                    let end_sample =
+                                        start_sample + (config[1] * 441 * 2 / 10) as usize;
+
+                                    if end_sample <= DEFAULT_SAMPLES.len() {
+                                        let slice = &DEFAULT_SAMPLES[start_sample..end_sample];
+                                        let source = SamplesBuffer::new(
+                                            NonZero::new(2).unwrap(),
+                                            NonZero::new(44100).unwrap(),
+                                            slice,
+                                        )
                                         .amplify(state.volume * vol_var)
                                         .speed(speed);
-                                    
-                                    mixer_clone.add(source);
+                                        mixer_clone.add(source);
+                                    }
+                                }
+                            }
+                            ActivePack::Custom(pack) => {
+                                let key_name = map_key_to_name(&key);
+                                let filename = pack
+                                    .config
+                                    .sounds
+                                    .get(&key_name)
+                                    .or_else(|| pack.config.sounds.get("Default"));
+
+                                if let Some(fname) = filename {
+                                    if let Some(samples) = pack.audio_data.get(fname) {
+                                        let source = SamplesBuffer::new(
+                                            NonZero::new(2).unwrap(),
+                                            NonZero::new(44100).unwrap(),
+                                            samples.as_slice(),
+                                        )
+                                        .amplify(state.volume * vol_var)
+                                        .speed(speed);
+                                        mixer_clone.add(source);
+                                    }
                                 }
                             }
                         }
@@ -243,7 +399,7 @@ pub fn run() {
             let vol_50 = MenuItem::with_id(app, "vol_50", "Volume: 50%", true, None::<&str>)?;
             let vol_100 = MenuItem::with_id(app, "vol_100", "Volume: 100%", true, None::<&str>)?;
             let quit_i = MenuItem::with_id(app, "quit", "Quit", true, None::<&str>)?;
-            
+
             let menu = MenuBuilder::new(app)
                 .item(&toggle_i)
                 .separator()
@@ -254,27 +410,26 @@ pub fn run() {
                 .build()?;
 
             let _tray = TrayIconBuilder::new()
+                .title("clicky")
                 .menu(&menu)
                 .show_menu_on_left_click(true)
-                .on_menu_event(move |app, event| {
-                    match event.id.as_ref() {
-                        "quit" => {
-                            app.exit(0);
-                        }
-                        "toggle" => {
-                            let mut state = STATE.lock().unwrap();
-                            state.enabled = !state.enabled;
-                        }
-                        "vol_50" => {
-                            let mut state = STATE.lock().unwrap();
-                            state.volume = 0.5;
-                        }
-                        "vol_100" => {
-                            let mut state = STATE.lock().unwrap();
-                            state.volume = 1.0;
-                        }
-                        _ => {}
+                .on_menu_event(move |app, event| match event.id.as_ref() {
+                    "quit" => {
+                        app.exit(0);
                     }
+                    "toggle" => {
+                        let mut state = STATE.lock().unwrap();
+                        state.enabled = !state.enabled;
+                    }
+                    "vol_50" => {
+                        let mut state = STATE.lock().unwrap();
+                        state.volume = 0.5;
+                    }
+                    "vol_100" => {
+                        let mut state = STATE.lock().unwrap();
+                        state.volume = 1.0;
+                    }
+                    _ => {}
                 })
                 .build(app)?;
 
