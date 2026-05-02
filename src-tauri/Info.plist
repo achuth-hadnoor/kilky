@@ -4,5 +4,7 @@
 <dict>
     <key>NSAccessibilityUsageDescription</key>
     <string>This app requires accessibility permissions to listen for global keyboard events and play sounds.</string>
+    <key>LSUIElement</key>
+    <true/>
 </dict>
 </plist>

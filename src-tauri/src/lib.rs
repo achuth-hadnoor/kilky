@@ -188,7 +188,6 @@ fn key_to_dik(key: &Key) -> &'static str {
         Num6 => "7",
         Num7 => "8",
         Num8 => "9",
-        Num9 => "10",
         Num0 => "11",
         Minus => "12",
         Equal => "13",
@@ -212,7 +211,6 @@ fn key_to_dik(key: &Key) -> &'static str {
         KeyS => "31",
         KeyD => "32",
         KeyF => "33",
-        KeyG => "34",
         KeyH => "35",
         KeyJ => "36",
         KeyK => "37",
@@ -302,6 +300,25 @@ async fn load_sound_pack(path: String) -> Result<PackConfig, String> {
     Ok(config)
 }
 
+#[tauri::command]
+async fn open_settings(app: tauri::AppHandle) -> Result<(), String> {
+    if let Some(window) = app.get_webview_window("settings") {
+        window.set_focus().map_err(|e| e.to_string())?;
+    } else {
+        tauri::WebviewWindowBuilder::new(
+            &app,
+            "settings",
+            tauri::WebviewUrl::App("index.html".into()),
+        )
+        .title("Stroke Settings")
+        .inner_size(750.0, 550.0)
+        .resizable(false)
+        .build()
+        .map_err(|e| e.to_string())?;
+    }
+    Ok(())
+}
+
 // --- Main Runner ---
 
 #[cfg_attr(mobile, tauri::mobile_entry_point)]
@@ -309,7 +326,7 @@ pub fn run() {
     tauri::Builder::default()
         .plugin(tauri_plugin_dialog::init())
         .plugin(tauri_plugin_fs::init())
-        .invoke_handler(tauri::generate_handler![load_sound_pack])
+        .invoke_handler(tauri::generate_handler![load_sound_pack, open_settings])
         .setup(|app| {
             // macOS Permission Check
             #[cfg(target_os = "macos")]
@@ -395,12 +412,15 @@ pub fn run() {
             });
 
             // Tray Menu
+            let settings_i = MenuItem::with_id(app, "settings", "Settings...", true, None::<&str>)?;
             let toggle_i = MenuItem::with_id(app, "toggle", "Toggle Sound", true, None::<&str>)?;
             let vol_50 = MenuItem::with_id(app, "vol_50", "Volume: 50%", true, None::<&str>)?;
             let vol_100 = MenuItem::with_id(app, "vol_100", "Volume: 100%", true, None::<&str>)?;
             let quit_i = MenuItem::with_id(app, "quit", "Quit", true, None::<&str>)?;
 
             let menu = MenuBuilder::new(app)
+                .item(&settings_i)
+                .separator()
                 .item(&toggle_i)
                 .separator()
                 .item(&vol_50)
@@ -414,6 +434,9 @@ pub fn run() {
                 .menu(&menu)
                 .show_menu_on_left_click(true)
                 .on_menu_event(move |app, event| match event.id.as_ref() {
+                    "settings" => {
+                        let _ = open_settings(app.clone());
+                    }
                     "quit" => {
                         app.exit(0);
                     }
