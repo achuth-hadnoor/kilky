@@ -1,8 +1,8 @@
 {
   "$schema": "https://schema.tauri.app/config/2",
-  "productName": "tauri-app",
+  "productName": "Stroke",
   "version": "0.1.0",
-  "identifier": "com.achuth.tauri-app",
+  "identifier": "com.achuth.stroke",
   "build": {
     "beforeDevCommand": "yarn dev",
     "devUrl": "http://localhost:1420",
@@ -32,6 +32,8 @@
       "icons/icon.icns",
       "icons/icon.ico"
     ],
-    "macOS": {}
+    "macOS": {
+      "infoPlist": "Info.plist"
+    }
   }
 }
