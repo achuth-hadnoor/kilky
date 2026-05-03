@@ -354,9 +354,8 @@ pub fn run() {
             #[cfg(target_os = "macos")]
             {
                 app.set_activation_policy(tauri::ActivationPolicy::Accessory);
-                if !macos_accessibility_client::accessibility::application_is_trusted() {
-                    macos_accessibility_client::accessibility::application_is_trusted_with_prompt();
-                }
+                // Accessibility check is handled by the system or on-demand if needed
+                // Removed redundant application_is_trusted_with_prompt() call
             }
 
             // Audio setup
