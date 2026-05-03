@@ -1,7 +1,8 @@
-use crate::commands::set_enabled;
+use crate::commands::{set_enabled, set_volume};
 use crate::state::{TrayState, STATE};
+use std::collections::HashMap;
 use tauri::{
-    menu::{CheckMenuItem, Menu, MenuItem, PredefinedMenuItem},
+    menu::{CheckMenuItem, Menu, MenuItem, PredefinedMenuItem, Submenu},
     tray::{MouseButton, MouseButtonState, TrayIconBuilder, TrayIconEvent},
     Manager, WebviewUrl, WebviewWindowBuilder,
 };
@@ -10,8 +11,28 @@ pub fn setup_tray(app: &tauri::AppHandle) -> tauri::Result<()> {
     let toggle_i = CheckMenuItem::with_id(app, "toggle", "Enable Kliky", true, true, None::<&str>)?;
     let quit_i = MenuItem::with_id(app, "quit", "Quit", true, None::<&str>)?;
 
+    // Volume Submenu with descriptive names
+    let vol_submenu = Submenu::with_id(app, "volume", "Volume", true)?;
+    let mut vol_items = HashMap::new();
+
+    let presets = [
+        ("Louder (100%)", 100),
+        ("Loud (80%)", 80),
+        ("Balanced (50%)", 50),
+        ("Soft (30%)", 30),
+        ("Softer (10%)", 10),
+    ];
+
+    for (label, vol) in presets {
+        let id = format!("vol_{}", vol);
+        let item = CheckMenuItem::with_id(app, id.clone(), label, true, vol == 50, None::<&str>)?;
+        vol_submenu.append(&item)?;
+        vol_items.insert(vol as u32, item);
+    }
+
     let menu = Menu::new(app)?;
     menu.append(&toggle_i)?;
+    menu.append(&vol_submenu)?;
     menu.append(&PredefinedMenuItem::separator(app)?)?;
     menu.append(&quit_i)?;
 
@@ -22,13 +43,18 @@ pub fn setup_tray(app: &tauri::AppHandle) -> tauri::Result<()> {
         .on_menu_event(move |app, event| {
             let id = event.id.clone();
             let handle = app.clone();
-            let _ = app.run_on_main_thread(move || match id.as_ref() {
-                "quit" => handle.exit(0),
-                "toggle" => {
+            let _ = app.run_on_main_thread(move || {
+                let id_str = id.as_ref();
+                if id_str == "quit" {
+                    handle.exit(0);
+                } else if id_str == "toggle" {
                     let new_state = !STATE.lock().unwrap().enabled;
                     set_enabled(handle.clone(), new_state);
+                } else if id_str.starts_with("vol_") {
+                    if let Ok(vol) = id_str["vol_".len()..].parse::<u32>() {
+                        set_volume(handle.clone(), (vol as f32) / 100.0);
+                    }
                 }
-                _ => {}
             });
         })
         .on_tray_icon_event(|tray, event| {
@@ -39,18 +65,14 @@ pub fn setup_tray(app: &tauri::AppHandle) -> tauri::Result<()> {
             } = event
             {
                 let app = tray.app_handle();
-                // Use a unique label "kliky_ui" to avoid conflicts with internal "main"
                 if let Some(window) = app.get_webview_window("kliky_ui") {
                     if window.is_visible().unwrap_or(false) {
-                        println!("Hiding UI.");
                         let _ = window.hide();
                     } else {
-                        println!("Showing UI.");
                         let _ = window.show();
                         let _ = window.set_focus();
                     }
                 } else {
-                    println!("Creating new UI window.");
                     let _ = WebviewWindowBuilder::new(
                         app,
                         "kliky_ui",
@@ -61,7 +83,6 @@ pub fn setup_tray(app: &tauri::AppHandle) -> tauri::Result<()> {
                     .always_on_top(true)
                     .minimizable(false)
                     .maximizable(false)
-                    .resizable(false)
                     .build();
                 }
             }
@@ -70,6 +91,7 @@ pub fn setup_tray(app: &tauri::AppHandle) -> tauri::Result<()> {
 
     app.manage(TrayState {
         toggle: toggle_i,
+        volumes: vol_items,
         _tray: tray,
     });
 

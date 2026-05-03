@@ -32,6 +32,7 @@ pub struct AppState {
 
 pub struct TrayState {
     pub toggle: CheckMenuItem<tauri::Wry>,
+    pub volumes: HashMap<u32, CheckMenuItem<tauri::Wry>>,
     pub _tray: TrayIcon<tauri::Wry>,
 }
 
