@@ -334,27 +334,7 @@ async fn load_sound_pack(path: String) -> Result<PackConfig, String> {
     Ok(config)
 }
 
-#[tauri::command]
-fn open_settings(app: tauri::AppHandle) -> Result<(), String> {
-    if let Some(window) = app.get_webview_window("settings") {
-        window.show().map_err(|e| e.to_string())?;
-        window.set_focus().map_err(|e| e.to_string())?;
-    } else {
-        tauri::WebviewWindowBuilder::new(
-            &app,
-            "settings",
-            tauri::WebviewUrl::App("index.html".into()),
-        )
-        .title("Stroke Settings")
-        .inner_size(750.0, 550.0)
-        .resizable(false)
-        .build()
-        .map_err(|e| e.to_string())?
-        .show()
-        .map_err(|e| e.to_string())?;
-    }
-    Ok(())
-}
+
 
 // --- Main Runner ---
 
@@ -365,7 +345,6 @@ pub fn run() {
         .plugin(tauri_plugin_fs::init())
         .invoke_handler(tauri::generate_handler![
             load_sound_pack,
-            open_settings,
             get_app_state,
             set_volume,
             set_enabled
@@ -377,9 +356,6 @@ pub fn run() {
                 app.set_activation_policy(tauri::ActivationPolicy::Accessory);
                 if !macos_accessibility_client::accessibility::application_is_trusted() {
                     macos_accessibility_client::accessibility::application_is_trusted_with_prompt();
-                    if let Some(window) = app.get_webview_window("main") {
-                        let _ = window.show();
-                    }
                 }
             }
 
@@ -456,14 +432,11 @@ pub fn run() {
             });
 
             // Tray Menu
-            let settings_i = MenuItem::with_id(app, "settings", "Settings...", true, None::<&str>)?;
             let toggle_i = CheckMenuItem::with_id(app, "toggle", "Sound Enabled", true, true, None::<&str>)?;
             let quit_i = MenuItem::with_id(app, "quit", "Quit", true, None::<&str>)?;
             
             let mut volumes = std::collections::HashMap::new();
             let mut menu_builder = MenuBuilder::new(app)
-                .item(&settings_i)
-                .separator()
                 .item(&toggle_i)
                 .separator();
 
@@ -491,9 +464,7 @@ pub fn run() {
                 .menu(&menu)
                 .show_menu_on_left_click(true)
                 .on_menu_event(move |app: &tauri::AppHandle, event| match event.id.as_ref() {
-                    "settings" => {
-                        let _ = open_settings(app.clone());
-                    }
+
                     "quit" => {
                         app.exit(0);
                     }
