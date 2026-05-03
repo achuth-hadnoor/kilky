@@ -1,0 +1,150 @@
+use rdev::Key;
+use std::collections::HashMap;
+
+pub fn get_default_config() -> HashMap<&'static str, [u64; 2]> {
+    let mut m = HashMap::new();
+    m.insert("1", [1754, 184]);
+    m.insert("2", [10135, 199]);
+    m.insert("3", [10562, 185]);
+    m.insert("4", [10966, 189]);
+    m.insert("5", [11329, 199]);
+    m.insert("6", [11706, 196]);
+    m.insert("7", [12094, 180]);
+    m.insert("8", [12467, 184]);
+    m.insert("9", [12863, 190]);
+    m.insert("10", [13248, 195]);
+    m.insert("11", [13633, 170]);
+    m.insert("12", [13988, 186]);
+    m.insert("13", [14372, 180]);
+    m.insert("14", [14748, 212]);
+    m.insert("15", [16940, 179]);
+    m.insert("16", [17316, 199]);
+    m.insert("17", [17700, 172]);
+    m.insert("18", [18054, 187]);
+    m.insert("19", [18400, 184]);
+    m.insert("20", [18761, 176]);
+    m.insert("21", [19116, 188]);
+    m.insert("22", [19495, 186]);
+    m.insert("23", [19876, 174]);
+    m.insert("24", [20238, 170]);
+    m.insert("25", [20605, 158]);
+    m.insert("26", [20976, 164]);
+    m.insert("27", [21348, 158]);
+    m.insert("28", [28558, 161]);
+    m.insert("29", [35733, 190]);
+    m.insert("30", [24330, 196]);
+    m.insert("31", [24700, 202]);
+    m.insert("32", [25071, 194]);
+    m.insert("33", [25444, 206]);
+    m.insert("34", [25803, 188]);
+    m.insert("35", [26159, 185]);
+    m.insert("36", [26534, 168]);
+    m.insert("37", [26928, 190]);
+    m.insert("38", [27347, 180]);
+    m.insert("39", [27733, 183]);
+    m.insert("40", [28157, 176]);
+    m.insert("41", [9749, 195]);
+    m.insert("42", [29603, 226]);
+    m.insert("43", [21707, 182]);
+    m.insert("44", [30046, 175]);
+    m.insert("45", [30385, 177]);
+    m.insert("46", [30761, 189]);
+    m.insert("47", [31123, 191]);
+    m.insert("48", [31475, 196]);
+    m.insert("49", [31891, 169]);
+    m.insert("50", [32333, 175]);
+    m.insert("51", [33011, 186]);
+    m.insert("52", [33438, 172]);
+    m.insert("53", [33828, 178]);
+    m.insert("54", [34215, 180]);
+    m.insert("55", [7583, 193]);
+    m.insert("56", [36465, 214]);
+    m.insert("57", [36804, 240]);
+    m.insert("58", [23925, 207]);
+    m.insert("59", [2222, 186]);
+    m.insert("60", [2617, 180]);
+    m.insert("61", [3028, 189]);
+    m.insert("62", [3385, 223]);
+    m.insert("63", [3792, 193]);
+    m.insert("64", [4136, 212]);
+    m.insert("65", [4540, 188]);
+    m.insert("66", [4903, 193]);
+    m.insert("67", [5296, 193]);
+    m.insert("68", [5666, 183]);
+    m.insert("69", [6818, 167]);
+    m.insert("70", [7187, 183]);
+    m.insert("71", [15156, 180]);
+    m.insert("72", [15526, 204]);
+    m.insert("73", [15893, 157]);
+    m.insert("74", [13988, 186]);
+    m.insert("75", [22116, 179]);
+    m.insert("76", [22513, 173]);
+    m.insert("77", [22862, 158]);
+    m.insert("78", [14748, 212]);
+    m.insert("79", [39220, 169]);
+    m.insert("80", [39589, 179]);
+    m.insert("81", [39954, 183]);
+    m.insert("82", [34215, 180]);
+    m.insert("83", [34704, 159]);
+    m.insert("87", [6054, 180]);
+    m.insert("88", [6425, 182]);
+    m.insert("3612", [28558, 161]);
+    m.insert("3613", [38821, 188]);
+    m.insert("3637", [7187, 183]);
+    m.insert("3639", [6818, 167]);
+    m.insert("3640", [37730, 184]);
+    m.insert("3653", [7583, 193]);
+    m.insert("3655", [15526, 204]);
+    m.insert("3657", [15893, 157]);
+    m.insert("3663", [22513, 173]);
+    m.insert("3665", [22862, 158]);
+    m.insert("3666", [15156, 180]);
+    m.insert("3667", [22116, 179]);
+    m.insert("3675", [36115, 205]);
+    m.insert("3676", [38116, 184]);
+    m.insert("3677", [38821, 188]);
+    m.insert("57416", [34704, 159]);
+    m.insert("57419", [39220, 169]);
+    m.insert("57421", [39954, 183]);
+    m.insert("57424", [39589, 179]);
+    m.insert("60999", [15526, 204]);
+    m.insert("61000", [34704, 159]);
+    m.insert("61001", [15893, 157]);
+    m.insert("61003", [39220, 169]);
+    m.insert("61005", [39954, 183]);
+    m.insert("61007", [22513, 173]);
+    m.insert("61008", [39589, 179]);
+    m.insert("61009", [22862, 158]);
+    m.insert("61010", [15156, 180]);
+    m.insert("61011", [22116, 179]);
+    m
+}
+
+pub fn key_to_dik(key: &Key) -> &'static str {
+    use Key::*;
+    match key {
+        Escape => "1",
+        Num1 => "2", Num2 => "3", Num3 => "4", Num4 => "5", Num5 => "6", Num6 => "7", Num7 => "8", Num8 => "9", Num0 => "11",
+        Minus => "12", Equal => "13", Backspace => "14", Tab => "15",
+        KeyQ => "16", KeyW => "17", KeyE => "18", KeyR => "19", KeyT => "20", KeyY => "21", KeyU => "22", KeyI => "23", KeyO => "24", KeyP => "25",
+        LeftBracket => "26", RightBracket => "27", Return => "28", ControlLeft => "29",
+        KeyA => "30", KeyS => "31", KeyD => "32", KeyF => "33", KeyH => "35", KeyJ => "36", KeyK => "37", KeyL => "38",
+        SemiColon => "39", Quote => "40", BackQuote => "41", ShiftLeft => "42", BackSlash => "43",
+        KeyZ => "44", KeyX => "45", KeyC => "46", KeyV => "47", KeyB => "48", KeyN => "49", KeyM => "50",
+        Comma => "51", Dot => "52", Slash => "53", ShiftRight => "54", Alt => "56", AltGr => "184", Space => "57", CapsLock => "58",
+        F1 => "59", F2 => "60", F3 => "61", F4 => "62", F5 => "63", F6 => "64", F7 => "65", F8 => "66", F9 => "67", F10 => "68", F11 => "87", F12 => "88",
+        UpArrow => "57416", DownArrow => "57424", LeftArrow => "57419", RightArrow => "57421",
+        _ => "30",
+    }
+}
+
+pub fn map_key_to_name(key: &Key) -> String {
+    use Key::*;
+    match key {
+        Space => "Space".to_string(),
+        Return => "Enter".to_string(),
+        Backspace => "Backspace".to_string(),
+        Escape => "Escape".to_string(),
+        _ => "Default".to_string(),
+    }
+}
