@@ -16,15 +16,6 @@ pub fn get_app_state() -> (bool, f32) {
 pub fn set_volume(app: AppHandle, volume: f32) {
     let mut state = STATE.lock().unwrap();
     state.volume = volume;
-    if let Some(tray) = app.try_state::<TrayState>() {
-        let volumes = tray.volumes.clone();
-        let _ = app.run_on_main_thread(move || {
-            for (vol_key, item) in &volumes {
-                let target = (*vol_key as f32) / 100.0;
-                let _ = item.set_checked((volume - target).abs() < 0.01);
-            }
-        });
-    }
     let _ = app.emit("state-update", ());
 }
 
