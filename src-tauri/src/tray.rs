@@ -2,8 +2,8 @@ use crate::commands::set_enabled;
 use crate::state::{TrayState, STATE};
 use tauri::{
     menu::{CheckMenuItem, Menu, MenuItem, PredefinedMenuItem},
-    tray::TrayIconBuilder,
-    Manager,
+    tray::{MouseButton, MouseButtonState, TrayIconBuilder, TrayIconEvent},
+    Manager, WebviewUrl, WebviewWindowBuilder,
 };
 
 pub fn setup_tray(app: &tauri::AppHandle) -> tauri::Result<()> {
@@ -18,7 +18,7 @@ pub fn setup_tray(app: &tauri::AppHandle) -> tauri::Result<()> {
     let tray = TrayIconBuilder::with_id("main")
         .title("Klicky")
         .menu(&menu)
-        .show_menu_on_left_click(true)
+        .show_menu_on_left_click(false)
         .on_menu_event(move |app, event| {
             let id = event.id.clone();
             let handle = app.clone();
@@ -30,6 +30,41 @@ pub fn setup_tray(app: &tauri::AppHandle) -> tauri::Result<()> {
                 }
                 _ => {}
             });
+        })
+        .on_tray_icon_event(|tray, event| {
+            if let TrayIconEvent::Click {
+                button: MouseButton::Left,
+                button_state: MouseButtonState::Up,
+                ..
+            } = event
+            {
+                let app = tray.app_handle();
+                // Use a unique label "kliky_ui" to avoid conflicts with internal "main"
+                if let Some(window) = app.get_webview_window("kliky_ui") {
+                    if window.is_visible().unwrap_or(false) {
+                        println!("Hiding UI.");
+                        let _ = window.hide();
+                    } else {
+                        println!("Showing UI.");
+                        let _ = window.show();
+                        let _ = window.set_focus();
+                    }
+                } else {
+                    println!("Creating new UI window.");
+                    let _ = WebviewWindowBuilder::new(
+                        app,
+                        "kliky_ui",
+                        WebviewUrl::App("index.html".into()),
+                    )
+                    .title("Kliky")
+                    .inner_size(400.0, 600.0)
+                    .always_on_top(true)
+                    .minimizable(false)
+                    .maximizable(false)
+                    .resizable(false)
+                    .build();
+                }
+            }
         })
         .build(app)?;
 

@@ -1,4 +1,3 @@
-use rdev::Key;
 use std::collections::HashMap;
 
 pub fn get_default_config() -> HashMap<&'static str, [u64; 2]> {
@@ -120,31 +119,32 @@ pub fn get_default_config() -> HashMap<&'static str, [u64; 2]> {
     m
 }
 
-pub fn key_to_dik(key: &Key) -> &'static str {
-    use Key::*;
-    match key {
-        Escape => "1",
-        Num1 => "2", Num2 => "3", Num3 => "4", Num4 => "5", Num5 => "6", Num6 => "7", Num7 => "8", Num8 => "9", Num0 => "11",
-        Minus => "12", Equal => "13", Backspace => "14", Tab => "15",
-        KeyQ => "16", KeyW => "17", KeyE => "18", KeyR => "19", KeyT => "20", KeyY => "21", KeyU => "22", KeyI => "23", KeyO => "24", KeyP => "25",
-        LeftBracket => "26", RightBracket => "27", Return => "28", ControlLeft => "29",
-        KeyA => "30", KeyS => "31", KeyD => "32", KeyF => "33", KeyH => "35", KeyJ => "36", KeyK => "37", KeyL => "38",
-        SemiColon => "39", Quote => "40", BackQuote => "41", ShiftLeft => "42", BackSlash => "43",
-        KeyZ => "44", KeyX => "45", KeyC => "46", KeyV => "47", KeyB => "48", KeyN => "49", KeyM => "50",
-        Comma => "51", Dot => "52", Slash => "53", ShiftRight => "54", Alt => "56", AltGr => "184", Space => "57", CapsLock => "58",
-        F1 => "59", F2 => "60", F3 => "61", F4 => "62", F5 => "63", F6 => "64", F7 => "65", F8 => "66", F9 => "67", F10 => "68", F11 => "87", F12 => "88",
-        UpArrow => "57416", DownArrow => "57424", LeftArrow => "57419", RightArrow => "57421",
+pub fn macos_keycode_to_dik(code: u32) -> &'static str {
+    match code {
+        53 => "1", // Esc
+        18 => "2", 19 => "3", 20 => "4", 21 => "5", 23 => "6", 22 => "7", 26 => "8", 28 => "9", 25 => "11", // 1-0
+        27 => "12", 24 => "13", 51 => "14", // - = Backspace
+        48 => "15", // Tab
+        12 => "16", 13 => "17", 14 => "18", 15 => "19", 17 => "20", 16 => "21", 32 => "22", 34 => "23", 31 => "24", 35 => "25", // Q-P
+        33 => "26", 30 => "27", 36 => "28", // [ ] Enter
+        59 => "29", // Control
+        0 => "30", 1 => "31", 2 => "32", 3 => "33", 4 => "35", 38 => "36", 40 => "37", 37 => "38", // A-L
+        41 => "39", 39 => "40", 50 => "41", 56 => "42", 42 => "43", // ; ' ` Shift \
+        6 => "44", 7 => "45", 8 => "46", 9 => "47", 11 => "48", 45 => "49", 46 => "50", // Z-M
+        43 => "51", 47 => "52", 44 => "53", 60 => "54", // , . / Shift
+        58 => "56", 61 => "184", 49 => "57", 57 => "58", // Alt AltGr Space Caps
+        122 => "59", 120 => "60", 99 => "61", 118 => "62", 96 => "63", 97 => "64", 98 => "65", 100 => "66", 101 => "67", 109 => "68", 103 => "87", 111 => "88", // F1-F12
+        126 => "57416", 125 => "57424", 123 => "57419", 124 => "57421", // Arrows
         _ => "30",
     }
 }
 
-pub fn map_key_to_name(key: &Key) -> String {
-    use Key::*;
-    match key {
-        Space => "Space".to_string(),
-        Return => "Enter".to_string(),
-        Backspace => "Backspace".to_string(),
-        Escape => "Escape".to_string(),
+pub fn macos_keycode_to_name(code: u32) -> String {
+    match code {
+        49 => "Space".to_string(),
+        36 => "Enter".to_string(),
+        51 => "Backspace".to_string(),
+        53 => "Escape".to_string(),
         _ => "Default".to_string(),
     }
 }
