@@ -1,4 +1,6 @@
 import { useEffect, useState } from 'react';
+import { invoke } from '@tauri-apps/api/core';
+import { listen } from '@tauri-apps/api/event';
 import { SoundPackManager } from '../SoundPackManager';
 import './Settings.css';
 
@@ -7,6 +9,8 @@ type Tab = 'general' | 'sounds' | 'permissions' | 'about';
 export function Settings() {
   const [activeTab, setActiveTab] = useState<Tab>('general');
   const [isMac, setIsMac] = useState(false);
+  const [volume, setVolume] = useState(50);
+  const [enabled, setEnabled] = useState(true);
 
   useEffect(() => {
     // Check if running on macOS for permissions tab
@@ -15,7 +19,40 @@ export function Settings() {
       setIsMac(platform.includes('mac'));
     };
     checkOS();
+
+    // Fetch initial state
+    invoke<[boolean, number]>('get_app_state').then(([en, vol]) => {
+      setEnabled(en);
+      setVolume(Math.round(vol * 100));
+    }).catch(console.error);
+
+    // Listen to updates from backend
+    const unlisten = listen('state-update', async () => {
+      try {
+        const [en, vol] = await invoke<[boolean, number]>('get_app_state');
+        setEnabled(en);
+        setVolume(Math.round(vol * 100));
+      } catch (err) {
+        console.error(err);
+      }
+    });
+
+    return () => {
+      unlisten.then(f => f());
+    };
   }, []);
+
+  const handleVolumeChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const val = parseInt(e.target.value, 10);
+    setVolume(val);
+    await invoke('set_volume', { volume: val / 100.0 });
+  };
+
+  const handleEnabledChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const val = e.target.checked;
+    setEnabled(val);
+    await invoke('set_enabled', { enabled: val });
+  };
 
   const renderTabContent = () => {
     switch (activeTab) {
@@ -29,15 +66,27 @@ export function Settings() {
                   <label>Enable Keyboard Sounds</label>
                   <p>Toggle the sound engine on or off globally.</p>
                 </div>
-                <input type="checkbox" defaultChecked className="toggle-switch" />
+                <input
+                  type="checkbox"
+                  checked={enabled}
+                  onChange={handleEnabledChange}
+                  className="toggle-switch"
+                />
               </div>
 
               <div className="setting-item">
                 <div className="setting-info">
-                  <label>Master Volume</label>
+                  <label>Master Volume ({volume}%)</label>
                   <p>Adjust the playback volume of all key sounds.</p>
                 </div>
-                <input type="range" min="0" max="100" defaultValue="50" className="volume-slider" />
+                <input
+                  type="range"
+                  min="0"
+                  max="100"
+                  value={volume}
+                  onChange={handleVolumeChange}
+                  className="volume-slider"
+                />
               </div>
 
               <div className="setting-item">

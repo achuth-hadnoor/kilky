@@ -11,9 +11,9 @@ use std::path::PathBuf;
 use std::sync::{Arc, Mutex};
 use std::thread;
 use tauri::{
-    menu::{MenuBuilder, MenuItem},
+    menu::{MenuBuilder, MenuItem, CheckMenuItem},
     tray::TrayIconBuilder,
-    Manager,
+    Manager, Emitter,
 };
 
 // --- Data Structures ---
@@ -39,6 +39,11 @@ struct AppState {
     enabled: bool,
     volume: f32,
     active_pack: ActivePack,
+}
+
+struct TrayItems {
+    toggle: tauri::menu::CheckMenuItem<tauri::Wry>,
+    volumes: std::collections::HashMap<u32, tauri::menu::CheckMenuItem<tauri::Wry>>,
 }
 
 const DEFAULT_SOUND_DATA: &[u8] = include_bytes!("../assets/sound.ogg");
@@ -275,15 +280,26 @@ fn get_app_state() -> (bool, f32) {
 }
 
 #[tauri::command]
-fn set_volume(volume: f32) {
+fn set_volume(app: tauri::AppHandle, volume: f32) {
     let mut state = STATE.lock().unwrap();
     state.volume = volume;
+    if let Some(items) = app.try_state::<TrayItems>() {
+        for (vol_key, item) in &items.volumes {
+            let target = (*vol_key as f32) / 100.0;
+            let _ = item.set_checked((volume - target).abs() < 0.01);
+        }
+    }
+    let _ = app.emit("state-update", ());
 }
 
 #[tauri::command]
-fn set_enabled(enabled: bool) {
+fn set_enabled(app: tauri::AppHandle, enabled: bool) {
     let mut state = STATE.lock().unwrap();
     state.enabled = enabled;
+    if let Some(items) = app.try_state::<TrayItems>() {
+        let _ = items.toggle.set_checked(enabled);
+    }
+    let _ = app.emit("state-update", ());
 }
 
 #[tauri::command]
@@ -441,27 +457,40 @@ pub fn run() {
 
             // Tray Menu
             let settings_i = MenuItem::with_id(app, "settings", "Settings...", true, None::<&str>)?;
-            let toggle_i = MenuItem::with_id(app, "toggle", "Toggle Sound", true, None::<&str>)?;
-            let vol_50 = MenuItem::with_id(app, "vol_50", "Volume: 50%", true, None::<&str>)?;
-            let vol_100 = MenuItem::with_id(app, "vol_100", "Volume: 100%", true, None::<&str>)?;
+            let toggle_i = CheckMenuItem::with_id(app, "toggle", "Sound Enabled", true, true, None::<&str>)?;
             let quit_i = MenuItem::with_id(app, "quit", "Quit", true, None::<&str>)?;
-
-            let menu = MenuBuilder::new(app)
+            
+            let mut volumes = std::collections::HashMap::new();
+            let mut menu_builder = MenuBuilder::new(app)
                 .item(&settings_i)
                 .separator()
                 .item(&toggle_i)
-                .separator()
-                .item(&vol_50)
-                .item(&vol_100)
+                .separator();
+
+            for v in [10, 20, 30, 40, 50, 60, 70, 80, 90, 100] {
+                let id = format!("vol_{}", v);
+                let title = format!("Volume: {}%", v);
+                let checked = v == 50;
+                let item = CheckMenuItem::with_id(app, &id, &title, true, checked, None::<&str>)?;
+                volumes.insert(v, item.clone());
+                menu_builder = menu_builder.item(&item);
+            }
+
+            let menu = menu_builder
                 .separator()
                 .item(&quit_i)
                 .build()?;
 
-            let _tray = TrayIconBuilder::new()
+            app.manage(TrayItems {
+                toggle: toggle_i.clone(),
+                volumes,
+            });
+
+            let _tray = TrayIconBuilder::with_id("main")
                 .title("clicky")
                 .menu(&menu)
                 .show_menu_on_left_click(true)
-                .on_menu_event(move |app, event| match event.id.as_ref() {
+                .on_menu_event(move |app: &tauri::AppHandle, event| match event.id.as_ref() {
                     "settings" => {
                         let _ = open_settings(app.clone());
                     }
@@ -469,16 +498,16 @@ pub fn run() {
                         app.exit(0);
                     }
                     "toggle" => {
-                        let mut state = STATE.lock().unwrap();
-                        state.enabled = !state.enabled;
+                        let new_state = {
+                            let state = STATE.lock().unwrap();
+                            !state.enabled
+                        };
+                        set_enabled(app.clone(), new_state);
                     }
-                    "vol_50" => {
-                        let mut state = STATE.lock().unwrap();
-                        state.volume = 0.5;
-                    }
-                    "vol_100" => {
-                        let mut state = STATE.lock().unwrap();
-                        state.volume = 1.0;
+                    id if id.starts_with("vol_") => {
+                        if let Ok(vol) = id[4..].parse::<f32>() {
+                            set_volume(app.clone(), vol / 100.0);
+                        }
                     }
                     _ => {}
                 })
