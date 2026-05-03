@@ -1,6 +1,6 @@
 {
-  "name": "Default Stroke Pack",
-  "description": "The original sounds for the Stroke keyboard engine.",
+  "name": "Default kliky Pack",
+  "description": "The original sounds for the kliky keyboard engine.",
   "sounds": {
     "Space": "space.wav",
     "Enter": "enter.wav",

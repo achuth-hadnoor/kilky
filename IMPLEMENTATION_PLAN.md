@@ -6,7 +6,7 @@ Build a cross-platform Tauri (v1 or v2) desktop application that listens for glo
 Agent Instruction: Initialize a Tauri project and update Cargo.toml with the following system-level crates. [5] 
 
 * Tauri: Framework for the app shell and system tray.
-* [rdev](https://docs.rs/rdev/): To capture global keyboard events (down/up strokes).
+* [rdev](https://docs.rs/rdev/): To capture global keyboard events (down/up klikys).
 * rodio: To handle high-performance, low-latency audio playback directly in Rust.
 * [lazy_static](https://docs.rs/lazy_static/): To manage global state (e.g., active sound profile). [6, 7, 8, 9, 10] 
 

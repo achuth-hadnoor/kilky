@@ -92,7 +92,7 @@ export function Settings() {
               <div className="setting-item">
                 <div className="setting-info">
                   <label>Launch on Startup</label>
-                  <p>Start Stroke automatically when you log in.</p>
+                  <p>Start kliky automatically when you log in.</p>
                 </div>
                 <input type="checkbox" className="toggle-switch" />
               </div>
@@ -109,7 +109,7 @@ export function Settings() {
         return (
           <div className="tab-content animate-in">
             <h3>Accessibility Permissions</h3>
-            <p>On macOS, Stroke requires accessibility permissions to listen for keyboard events globally.</p>
+            <p>On macOS, kliky requires accessibility permissions to listen for keyboard events globally.</p>
             <div className="permission-status">
               <div className="status-indicator success"></div>
               <span>Permissions Granted</span>
@@ -122,7 +122,7 @@ export function Settings() {
           <div className="tab-content animate-in about-tab">
             <div className="about-header">
               <div className="app-icon-large">⌨️</div>
-              <h2>Stroke</h2>
+              <h2>kliky</h2>
               <p className="version">Version 1.0.0</p>
             </div>
             <div className="about-details">

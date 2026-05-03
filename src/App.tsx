@@ -18,7 +18,7 @@ function App() {
   return (
     <main className="container">
       <div className="status-card">
-        <h1 className="title">Stroke</h1>
+        <h1 className="title">kliky</h1>
         <p className="subtitle">Mechanical keyboard sounds, globally.</p>
 
         <SoundPackManager />

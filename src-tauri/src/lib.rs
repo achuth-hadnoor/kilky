@@ -11,9 +11,9 @@ use std::path::PathBuf;
 use std::sync::{Arc, Mutex};
 use std::thread;
 use tauri::{
-    menu::{MenuBuilder, MenuItem, CheckMenuItem},
+    menu::{CheckMenuItem, MenuBuilder, MenuItem},
     tray::TrayIconBuilder,
-    Manager, Emitter,
+    Emitter, Manager,
 };
 
 // --- Data Structures ---
@@ -334,8 +334,6 @@ async fn load_sound_pack(path: String) -> Result<PackConfig, String> {
     Ok(config)
 }
 
-
-
 // --- Main Runner ---
 
 #[cfg_attr(mobile, tauri::mobile_entry_point)]
@@ -431,13 +429,12 @@ pub fn run() {
             });
 
             // Tray Menu
-            let toggle_i = CheckMenuItem::with_id(app, "toggle", "Sound Enabled", true, true, None::<&str>)?;
+            let toggle_i =
+                CheckMenuItem::with_id(app, "toggle", "Enable Kliky", true, true, None::<&str>)?;
             let quit_i = MenuItem::with_id(app, "quit", "Quit", true, None::<&str>)?;
-            
+
             let mut volumes = std::collections::HashMap::new();
-            let mut menu_builder = MenuBuilder::new(app)
-                .item(&toggle_i)
-                .separator();
+            let mut menu_builder = MenuBuilder::new(app).item(&toggle_i).separator();
 
             for v in [10, 20, 30, 40, 50, 60, 70, 80, 90, 100] {
                 let id = format!("vol_{}", v);
@@ -448,10 +445,7 @@ pub fn run() {
                 menu_builder = menu_builder.item(&item);
             }
 
-            let menu = menu_builder
-                .separator()
-                .item(&quit_i)
-                .build()?;
+            let menu = menu_builder.separator().item(&quit_i).build()?;
 
             app.manage(TrayItems {
                 toggle: toggle_i.clone(),
@@ -462,25 +456,26 @@ pub fn run() {
                 .title("clicky")
                 .menu(&menu)
                 .show_menu_on_left_click(true)
-                .on_menu_event(move |app: &tauri::AppHandle, event| match event.id.as_ref() {
-
-                    "quit" => {
-                        app.exit(0);
-                    }
-                    "toggle" => {
-                        let new_state = {
-                            let state = STATE.lock().unwrap();
-                            !state.enabled
-                        };
-                        set_enabled(app.clone(), new_state);
-                    }
-                    id if id.starts_with("vol_") => {
-                        if let Ok(vol) = id[4..].parse::<f32>() {
-                            set_volume(app.clone(), vol / 100.0);
+                .on_menu_event(
+                    move |app: &tauri::AppHandle, event| match event.id.as_ref() {
+                        "quit" => {
+                            app.exit(0);
                         }
-                    }
-                    _ => {}
-                })
+                        "toggle" => {
+                            let new_state = {
+                                let state = STATE.lock().unwrap();
+                                !state.enabled
+                            };
+                            set_enabled(app.clone(), new_state);
+                        }
+                        id if id.starts_with("vol_") => {
+                            if let Ok(vol) = id[4..].parse::<f32>() {
+                                set_volume(app.clone(), vol / 100.0);
+                            }
+                        }
+                        _ => {}
+                    },
+                )
                 .build(app)?;
 
             Ok(())
