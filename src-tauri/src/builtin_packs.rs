@@ -52,7 +52,6 @@ pub fn get_neon_pack() -> ExternalPack {
 fn decode_wav(bytes: &'static [u8]) -> Vec<f32> {
     use std::io::Cursor;
     use rodio::Decoder;
-    use rodio::Source;
     let cursor = Cursor::new(bytes);
     let source = Decoder::try_from(cursor).expect("Failed to decode WAV");
     source.collect()

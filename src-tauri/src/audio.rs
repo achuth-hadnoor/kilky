@@ -139,12 +139,4 @@ pub fn macos_keycode_to_dik(code: u32) -> &'static str {
     }
 }
 
-pub fn macos_keycode_to_name(code: u32) -> String {
-    match code {
-        49 => "Space".to_string(),
-        36 => "Enter".to_string(),
-        51 => "Backspace".to_string(),
-        53 => "Escape".to_string(),
-        _ => "Default".to_string(),
-    }
-}
+

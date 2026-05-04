@@ -7,12 +7,12 @@ mod builtin_packs;
 
 use rodio::{buffer::SamplesBuffer, source::Source, DeviceSinkBuilder};
 use std::num::NonZero;
-use std::time::Duration;
 use std::thread;
 use std::sync::mpsc;
+use std::time::Duration;
 use rand::{rng, RngExt};
 use crate::state::{STATE, DEFAULT_SAMPLES, ActivePack};
-use crate::audio::{get_default_config, macos_keycode_to_dik, macos_keycode_to_name};
+use crate::audio::{get_default_config, macos_keycode_to_dik};
 
 #[cfg_attr(mobile, tauri::mobile_entry_point)]
 pub fn run() {
