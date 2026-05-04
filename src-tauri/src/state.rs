@@ -22,19 +22,19 @@ pub struct ExternalPack {
 #[derive(Clone, Serialize, Deserialize, PartialEq, Eq, Hash, Debug)]
 pub enum ActivePackType {
     Zenith,   // Smooth Linear
+    Velvet,   // Creamy (New)
+    Neon,     // 8-bit (New)
     Obsidian, // Crisp Tactile
     Sapphire, // Sharp Clicky
-    Lunar,    // Soft Silent
-    Vintage,  // Classic Typewriter
     Custom,
 }
 
 pub enum ActivePack {
     Zenith,
+    Velvet(ExternalPack),
+    Neon(ExternalPack),
     Obsidian,
     Sapphire,
-    Lunar,
-    Vintage,
     Custom(ExternalPack),
 }
 

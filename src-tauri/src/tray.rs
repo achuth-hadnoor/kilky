@@ -33,10 +33,10 @@ pub fn setup_tray(app: &tauri::AppHandle) -> tauri::Result<()> {
     let mut pack_items = HashMap::new();
     let pack_configs = [
         ("Zenith (Smooth Linear)", ActivePackType::Zenith),
+        ("Velvet (Creamy Linear)", ActivePackType::Velvet),
+        ("Neon (Retro 8-bit)", ActivePackType::Neon),
         ("Obsidian (Crisp Tactile)", ActivePackType::Obsidian),
         ("Sapphire (Sharp Clicky)", ActivePackType::Sapphire),
-        ("Lunar (Soft Silent)", ActivePackType::Lunar),
-        ("Vintage (Classic Typewriter)", ActivePackType::Vintage),
     ];
     for (label, pt) in pack_configs {
         let id = format!("pack_{:?}", pt);
@@ -73,10 +73,10 @@ pub fn setup_tray(app: &tauri::AppHandle) -> tauri::Result<()> {
                     let pt_str = &id_str["pack_".len()..];
                     let pt = match pt_str {
                         "Zenith" => ActivePackType::Zenith,
+                        "Velvet" => ActivePackType::Velvet,
+                        "Neon" => ActivePackType::Neon,
                         "Obsidian" => ActivePackType::Obsidian,
                         "Sapphire" => ActivePackType::Sapphire,
-                        "Lunar" => ActivePackType::Lunar,
-                        "Vintage" => ActivePackType::Vintage,
                         _ => return,
                     };
                     set_sound_pack(handle.clone(), pt);

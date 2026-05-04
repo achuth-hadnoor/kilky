@@ -21,8 +21,8 @@ pub fn set_sound_pack(app: AppHandle, pack_type: ActivePackType) {
         ActivePackType::Zenith => ActivePack::Zenith,
         ActivePackType::Obsidian => ActivePack::Obsidian,
         ActivePackType::Sapphire => ActivePack::Sapphire,
-        ActivePackType::Lunar => ActivePack::Lunar,
-        ActivePackType::Vintage => ActivePack::Vintage,
+        ActivePackType::Velvet => ActivePack::Velvet(crate::builtin_packs::get_velvet_pack()),
+        ActivePackType::Neon => ActivePack::Neon(crate::builtin_packs::get_neon_pack()),
         ActivePackType::Custom => return,
     };
 

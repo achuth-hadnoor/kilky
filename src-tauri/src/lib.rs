@@ -3,6 +3,7 @@ mod audio;
 mod tray;
 mod commands;
 mod macos_listener;
+mod builtin_packs;
 
 use rodio::{buffer::SamplesBuffer, source::Source, DeviceSinkBuilder};
 use std::num::NonZero;
@@ -68,11 +69,9 @@ pub fn run() {
 
                     let mut r = rng();
                     let speed_base: f32 = match state.active_pack {
-                        ActivePack::Zenith => 1.0,      // Smooth Linear (Standard)
-                        ActivePack::Obsidian => 0.88,    // Crisp Tactile (Lower pitch)
-                        ActivePack::Sapphire => 1.15,    // Sharp Clicky (Higher pitch)
-                        ActivePack::Lunar => 0.75,       // Soft Silent (Deep & slow)
-                        ActivePack::Vintage => 0.95,     // Classic Typewriter (Slightly lower)
+                        ActivePack::Zenith => 1.0,
+                        ActivePack::Obsidian => 0.88,
+                        ActivePack::Sapphire => 1.15,
                         _ => 1.0,
                     };
                     
@@ -80,7 +79,7 @@ pub fn run() {
                     let vol_var: f32 = r.random_range(0.95..1.05);
 
                     match &state.active_pack {
-                        ActivePack::Zenith | ActivePack::Obsidian | ActivePack::Sapphire | ActivePack::Lunar | ActivePack::Vintage => {
+                        ActivePack::Zenith | ActivePack::Obsidian | ActivePack::Sapphire => {
                             if let Some(config) = default_config.get(macos_keycode_to_dik(keycode)) {
                                 let start_sample = (config[0] * 441 * 2 / 10) as usize;
                                 let end_sample = start_sample + (config[1] * 441 * 2 / 10) as usize;
@@ -88,45 +87,25 @@ pub fn run() {
                                 if end_sample <= DEFAULT_SAMPLES.len() {
                                     let slice = &DEFAULT_SAMPLES[start_sample..end_sample];
                                     
-                                    // Custom DSP logic based on pack type
                                     match &state.active_pack {
                                         ActivePack::Sapphire => {
-                                            // Mechanical Double-Click (Layered)
                                             let s1 = SamplesBuffer::new(NonZero::new(2).unwrap(), NonZero::new(44100).unwrap(), slice)
                                                 .amplify(state.volume * vol_var)
-                                                .speed(speed * 1.6); // High pitch click
+                                                .speed(speed * 1.6);
                                             let s2 = SamplesBuffer::new(NonZero::new(2).unwrap(), NonZero::new(44100).unwrap(), slice)
                                                 .amplify(state.volume * vol_var * 0.5)
-                                                .speed(speed * 0.8) // Low pitch body
-                                                .delay(Duration::from_millis(15)); // Delayed follow-up
+                                                .speed(speed * 0.8)
+                                                .delay(Duration::from_millis(15));
                                             mixer.add(s1);
                                             mixer.add(s2);
                                         }
                                         ActivePack::Obsidian => {
-                                            // Heavy Thump
                                             let s = SamplesBuffer::new(NonZero::new(2).unwrap(), NonZero::new(44100).unwrap(), slice)
-                                                .amplify(state.volume * vol_var * 1.5) // Louder
-                                                .speed(speed * 0.65); // Much lower pitch
-                                            mixer.add(s);
-                                        }
-                                        ActivePack::Lunar => {
-                                            // Soft Silent Pop (Truncated)
-                                            let truncated_len = (slice.len() / 4).min(400); // Only the start
-                                            let s = SamplesBuffer::new(NonZero::new(2).unwrap(), NonZero::new(44100).unwrap(), &slice[..truncated_len])
-                                                .amplify(state.volume * vol_var * 0.4) // Quieter
-                                                .speed(speed * 0.9);
-                                            mixer.add(s);
-                                        }
-                                        ActivePack::Vintage => {
-                                            // Typewriter Echo
-                                            let s = SamplesBuffer::new(NonZero::new(2).unwrap(), NonZero::new(44100).unwrap(), slice)
-                                                .amplify(state.volume * vol_var)
-                                                .speed(speed * 1.1)
-                                                .fade_in(Duration::from_millis(5));
+                                                .amplify(state.volume * vol_var * 1.5)
+                                                .speed(speed * 0.65);
                                             mixer.add(s);
                                         }
                                         _ => {
-                                            // Standard Zenith (Linear)
                                             let s = SamplesBuffer::new(NonZero::new(2).unwrap(), NonZero::new(44100).unwrap(), slice)
                                                 .amplify(state.volume * vol_var)
                                                 .speed(speed);
@@ -136,9 +115,9 @@ pub fn run() {
                                 }
                             }
                         }
-                        ActivePack::Custom(pack) => {
-                            let key_name = macos_keycode_to_name(keycode);
-                            let filename = pack.config.sounds.get(&key_name).or_else(|| pack.config.sounds.get("Default"));
+                        ActivePack::Velvet(pack) | ActivePack::Neon(pack) | ActivePack::Custom(pack) => {
+                            let key_id = macos_keycode_to_dik(keycode);
+                            let filename = pack.config.sounds.get(key_id).or_else(|| pack.config.sounds.get("Default"));
 
                             if let Some(fname) = filename {
                                 if let Some(samples) = pack.audio_data.get(fname) {
@@ -157,7 +136,6 @@ pub fn run() {
                 }
             });
 
-            // Keyboard Listener Thread (macOS specific low-level tap)
             #[cfg(target_os = "macos")]
             macos_listener::start_macos_listener(tx);
 
