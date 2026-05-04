@@ -19,20 +19,32 @@ pub struct ExternalPack {
     pub audio_data: HashMap<String, Vec<f32>>,
 }
 
+#[derive(Clone, Serialize, Deserialize, PartialEq, Eq, Hash, Debug)]
+pub enum ActivePackType {
+    Default,
+    Mechanical,
+    Electric,
+    Custom,
+}
+
 pub enum ActivePack {
     Default,
+    Mechanical,
+    Electric,
     Custom(ExternalPack),
 }
 
 pub struct AppState {
     pub enabled: bool,
     pub volume: f32,
+    pub active_pack_type: ActivePackType,
     pub active_pack: ActivePack,
 }
 
 pub struct TrayState {
     pub toggle: CheckMenuItem<tauri::Wry>,
     pub volumes: HashMap<u32, CheckMenuItem<tauri::Wry>>,
+    pub packs: HashMap<ActivePackType, CheckMenuItem<tauri::Wry>>,
     pub _tray: TrayIcon<tauri::Wry>,
 }
 
@@ -42,6 +54,7 @@ lazy_static! {
     pub static ref STATE: Arc<Mutex<AppState>> = Arc::new(Mutex::new(AppState {
         enabled: true,
         volume: 0.5,
+        active_pack_type: ActivePackType::Default,
         active_pack: ActivePack::Default,
     }));
     pub static ref DEFAULT_SAMPLES: Vec<f32> = {

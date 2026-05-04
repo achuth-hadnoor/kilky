@@ -1,5 +1,5 @@
 use tauri::{AppHandle, Manager, Emitter};
-use crate::state::{STATE, TrayState, PackConfig, ActivePack, ExternalPack};
+use crate::state::{STATE, TrayState, PackConfig, ActivePack, ExternalPack, ActivePackType};
 use std::path::PathBuf;
 use std::fs::File;
 use std::io::BufReader;
@@ -7,9 +7,32 @@ use rodio::Decoder;
 use std::collections::HashMap;
 
 #[tauri::command]
-pub fn get_app_state() -> (bool, f32) {
+pub fn get_app_state() -> (bool, f32, ActivePackType) {
     let state = STATE.lock().unwrap();
-    (state.enabled, state.volume)
+    (state.enabled, state.volume, state.active_pack_type.clone())
+}
+
+#[tauri::command]
+pub fn set_sound_pack(app: AppHandle, pack_type: ActivePackType) {
+    let mut state = STATE.lock().unwrap();
+    state.active_pack_type = pack_type.clone();
+    
+    state.active_pack = match pack_type {
+        ActivePackType::Default => ActivePack::Default,
+        ActivePackType::Mechanical => ActivePack::Mechanical,
+        ActivePackType::Electric => ActivePack::Electric,
+        ActivePackType::Custom => return, // Keep current custom pack if switching to custom
+    };
+
+    if let Some(tray) = app.try_state::<TrayState>() {
+        let items = tray.packs.clone();
+        let _ = app.run_on_main_thread(move || {
+            for (pt, item) in &items {
+                let _ = item.set_checked(*pt == pack_type);
+            }
+        });
+    }
+    let _ = app.emit("state-update", ());
 }
 
 #[tauri::command]

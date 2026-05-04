@@ -1,5 +1,5 @@
-use crate::commands::{set_enabled, set_volume};
-use crate::state::{TrayState, STATE};
+use crate::commands::{set_enabled, set_volume, set_sound_pack};
+use crate::state::{TrayState, STATE, ActivePackType};
 use std::collections::HashMap;
 use tauri::{
     menu::{CheckMenuItem, Menu, MenuItem, PredefinedMenuItem, Submenu},
@@ -11,10 +11,9 @@ pub fn setup_tray(app: &tauri::AppHandle) -> tauri::Result<()> {
     let toggle_i = CheckMenuItem::with_id(app, "toggle", "Enable Kliky", true, true, None::<&str>)?;
     let quit_i = MenuItem::with_id(app, "quit", "Quit", true, None::<&str>)?;
 
-    // Volume Submenu with descriptive names
+    // Volume Submenu
     let vol_submenu = Submenu::with_id(app, "volume", "Volume", true)?;
     let mut vol_items = HashMap::new();
-
     let presets = [
         ("Louder (100%)", 100),
         ("Loud (80%)", 80),
@@ -22,7 +21,6 @@ pub fn setup_tray(app: &tauri::AppHandle) -> tauri::Result<()> {
         ("Soft (30%)", 30),
         ("Softer (10%)", 10),
     ];
-
     for (label, vol) in presets {
         let id = format!("vol_{}", vol);
         let item = CheckMenuItem::with_id(app, id.clone(), label, true, vol == 50, None::<&str>)?;
@@ -30,16 +28,31 @@ pub fn setup_tray(app: &tauri::AppHandle) -> tauri::Result<()> {
         vol_items.insert(vol as u32, item);
     }
 
+    // Sound Switches Submenu
+    let pack_submenu = Submenu::with_id(app, "packs", "Sound Switches", true)?;
+    let mut pack_items = HashMap::new();
+    let pack_configs = [
+        ("Default (Brown)", ActivePackType::Default),
+        ("Mechanical (Blue)", ActivePackType::Mechanical),
+        ("Electric (Digital)", ActivePackType::Electric),
+    ];
+    for (label, pt) in pack_configs {
+        let id = format!("pack_{:?}", pt);
+        let item = CheckMenuItem::with_id(app, id.clone(), label, true, pt == ActivePackType::Default, None::<&str>)?;
+        pack_submenu.append(&item)?;
+        pack_items.insert(pt, item);
+    }
+
     let menu = Menu::new(app)?;
     menu.append(&toggle_i)?;
     menu.append(&vol_submenu)?;
+    menu.append(&pack_submenu)?;
     menu.append(&PredefinedMenuItem::separator(app)?)?;
     menu.append(&quit_i)?;
 
     let tray = TrayIconBuilder::with_id("main")
         .title("Klicky")
         .menu(&menu)
-        .show_menu_on_left_click(false)
         .on_menu_event(move |app, event| {
             let id = event.id.clone();
             let handle = app.clone();
@@ -54,6 +67,15 @@ pub fn setup_tray(app: &tauri::AppHandle) -> tauri::Result<()> {
                     if let Ok(vol) = id_str["vol_".len()..].parse::<u32>() {
                         set_volume(handle.clone(), (vol as f32) / 100.0);
                     }
+                } else if id_str.starts_with("pack_") {
+                    let pt_str = &id_str["pack_".len()..];
+                    let pt = match pt_str {
+                        "Default" => ActivePackType::Default,
+                        "Mechanical" => ActivePackType::Mechanical,
+                        "Electric" => ActivePackType::Electric,
+                        _ => return,
+                    };
+                    set_sound_pack(handle.clone(), pt);
                 }
             });
         })
@@ -92,6 +114,7 @@ pub fn setup_tray(app: &tauri::AppHandle) -> tauri::Result<()> {
     app.manage(TrayState {
         toggle: toggle_i,
         volumes: vol_items,
+        packs: pack_items,
         _tray: tray,
     });
 

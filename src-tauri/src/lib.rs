@@ -25,7 +25,8 @@ pub fn run() {
             commands::load_sound_pack,
             commands::get_app_state,
             commands::set_volume,
-            commands::set_enabled
+            commands::set_enabled,
+            commands::set_sound_pack
         ])
         .on_window_event(|window, event| {
             if let tauri::WindowEvent::CloseRequested { api, .. } = event {
@@ -65,11 +66,18 @@ pub fn run() {
                     if !state.enabled { continue; }
 
                     let mut r = rng();
-                    let speed: f32 = r.random_range(0.98..1.02);
+                    let speed_base: f32 = match state.active_pack {
+                        ActivePack::Default => 1.0,
+                        ActivePack::Mechanical => 0.85, // Lower pitch for mechanical
+                        ActivePack::Electric => 1.25,   // Higher pitch for electric
+                        _ => 1.0,
+                    };
+                    
+                    let speed: f32 = speed_base * r.random_range(0.98..1.02);
                     let vol_var: f32 = r.random_range(0.95..1.05);
 
                     match &state.active_pack {
-                        ActivePack::Default => {
+                        ActivePack::Default | ActivePack::Mechanical | ActivePack::Electric => {
                             if let Some(config) = default_config.get(macos_keycode_to_dik(keycode)) {
                                 let start_sample = (config[0] * 441 * 2 / 10) as usize;
                                 let end_sample = start_sample + (config[1] * 441 * 2 / 10) as usize;
