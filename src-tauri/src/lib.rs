@@ -6,6 +6,7 @@ mod macos_listener;
 
 use rodio::{buffer::SamplesBuffer, source::Source, DeviceSinkBuilder};
 use std::num::NonZero;
+use std::time::Duration;
 use std::thread;
 use std::sync::mpsc;
 use rand::{rng, RngExt};
@@ -86,14 +87,52 @@ pub fn run() {
 
                                 if end_sample <= DEFAULT_SAMPLES.len() {
                                     let slice = &DEFAULT_SAMPLES[start_sample..end_sample];
-                                    let source = SamplesBuffer::new(
-                                        NonZero::new(2).unwrap(),
-                                        NonZero::new(44100).unwrap(),
-                                        slice,
-                                    )
-                                    .amplify(state.volume * vol_var)
-                                    .speed(speed);
-                                    mixer.add(source);
+                                    
+                                    // Custom DSP logic based on pack type
+                                    match &state.active_pack {
+                                        ActivePack::Sapphire => {
+                                            // Mechanical Double-Click (Layered)
+                                            let s1 = SamplesBuffer::new(NonZero::new(2).unwrap(), NonZero::new(44100).unwrap(), slice)
+                                                .amplify(state.volume * vol_var)
+                                                .speed(speed * 1.6); // High pitch click
+                                            let s2 = SamplesBuffer::new(NonZero::new(2).unwrap(), NonZero::new(44100).unwrap(), slice)
+                                                .amplify(state.volume * vol_var * 0.5)
+                                                .speed(speed * 0.8) // Low pitch body
+                                                .delay(Duration::from_millis(15)); // Delayed follow-up
+                                            mixer.add(s1);
+                                            mixer.add(s2);
+                                        }
+                                        ActivePack::Obsidian => {
+                                            // Heavy Thump
+                                            let s = SamplesBuffer::new(NonZero::new(2).unwrap(), NonZero::new(44100).unwrap(), slice)
+                                                .amplify(state.volume * vol_var * 1.5) // Louder
+                                                .speed(speed * 0.65); // Much lower pitch
+                                            mixer.add(s);
+                                        }
+                                        ActivePack::Lunar => {
+                                            // Soft Silent Pop (Truncated)
+                                            let truncated_len = (slice.len() / 4).min(400); // Only the start
+                                            let s = SamplesBuffer::new(NonZero::new(2).unwrap(), NonZero::new(44100).unwrap(), &slice[..truncated_len])
+                                                .amplify(state.volume * vol_var * 0.4) // Quieter
+                                                .speed(speed * 0.9);
+                                            mixer.add(s);
+                                        }
+                                        ActivePack::Vintage => {
+                                            // Typewriter Echo
+                                            let s = SamplesBuffer::new(NonZero::new(2).unwrap(), NonZero::new(44100).unwrap(), slice)
+                                                .amplify(state.volume * vol_var)
+                                                .speed(speed * 1.1)
+                                                .fade_in(Duration::from_millis(5));
+                                            mixer.add(s);
+                                        }
+                                        _ => {
+                                            // Standard Zenith (Linear)
+                                            let s = SamplesBuffer::new(NonZero::new(2).unwrap(), NonZero::new(44100).unwrap(), slice)
+                                                .amplify(state.volume * vol_var)
+                                                .speed(speed);
+                                            mixer.add(s);
+                                        }
+                                    }
                                 }
                             }
                         }
