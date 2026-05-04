@@ -2,7 +2,10 @@ mod state;
 mod audio;
 mod tray;
 mod commands;
+#[cfg(target_os = "macos")]
 mod macos_listener;
+#[cfg(not(target_os = "macos"))]
+mod generic_listener;
 mod builtin_packs;
 
 use rodio::{buffer::SamplesBuffer, source::Source, DeviceSinkBuilder};
@@ -140,6 +143,9 @@ pub fn run() {
 
             #[cfg(target_os = "macos")]
             macos_listener::start_macos_listener(tx);
+
+            #[cfg(not(target_os = "macos"))]
+            generic_listener::start_generic_listener(tx);
 
             tray::setup_tray(app.handle())?;
             Ok(())
