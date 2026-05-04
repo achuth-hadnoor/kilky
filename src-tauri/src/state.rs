@@ -21,16 +21,20 @@ pub struct ExternalPack {
 
 #[derive(Clone, Serialize, Deserialize, PartialEq, Eq, Hash, Debug)]
 pub enum ActivePackType {
-    Default,
-    Mechanical,
-    Electric,
+    Zenith,   // Smooth Linear
+    Obsidian, // Crisp Tactile
+    Sapphire, // Sharp Clicky
+    Lunar,    // Soft Silent
+    Vintage,  // Classic Typewriter
     Custom,
 }
 
 pub enum ActivePack {
-    Default,
-    Mechanical,
-    Electric,
+    Zenith,
+    Obsidian,
+    Sapphire,
+    Lunar,
+    Vintage,
     Custom(ExternalPack),
 }
 
@@ -54,8 +58,8 @@ lazy_static! {
     pub static ref STATE: Arc<Mutex<AppState>> = Arc::new(Mutex::new(AppState {
         enabled: true,
         volume: 0.5,
-        active_pack_type: ActivePackType::Default,
-        active_pack: ActivePack::Default,
+        active_pack_type: ActivePackType::Zenith,
+        active_pack: ActivePack::Zenith,
     }));
     pub static ref DEFAULT_SAMPLES: Vec<f32> = {
         let cursor = Cursor::new(DEFAULT_SOUND_DATA);

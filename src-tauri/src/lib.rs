@@ -67,9 +67,11 @@ pub fn run() {
 
                     let mut r = rng();
                     let speed_base: f32 = match state.active_pack {
-                        ActivePack::Default => 1.0,
-                        ActivePack::Mechanical => 0.85, // Lower pitch for mechanical
-                        ActivePack::Electric => 1.25,   // Higher pitch for electric
+                        ActivePack::Zenith => 1.0,      // Smooth Linear (Standard)
+                        ActivePack::Obsidian => 0.88,    // Crisp Tactile (Lower pitch)
+                        ActivePack::Sapphire => 1.15,    // Sharp Clicky (Higher pitch)
+                        ActivePack::Lunar => 0.75,       // Soft Silent (Deep & slow)
+                        ActivePack::Vintage => 0.95,     // Classic Typewriter (Slightly lower)
                         _ => 1.0,
                     };
                     
@@ -77,7 +79,7 @@ pub fn run() {
                     let vol_var: f32 = r.random_range(0.95..1.05);
 
                     match &state.active_pack {
-                        ActivePack::Default | ActivePack::Mechanical | ActivePack::Electric => {
+                        ActivePack::Zenith | ActivePack::Obsidian | ActivePack::Sapphire | ActivePack::Lunar | ActivePack::Vintage => {
                             if let Some(config) = default_config.get(macos_keycode_to_dik(keycode)) {
                                 let start_sample = (config[0] * 441 * 2 / 10) as usize;
                                 let end_sample = start_sample + (config[1] * 441 * 2 / 10) as usize;

@@ -18,10 +18,12 @@ pub fn set_sound_pack(app: AppHandle, pack_type: ActivePackType) {
     state.active_pack_type = pack_type.clone();
     
     state.active_pack = match pack_type {
-        ActivePackType::Default => ActivePack::Default,
-        ActivePackType::Mechanical => ActivePack::Mechanical,
-        ActivePackType::Electric => ActivePack::Electric,
-        ActivePackType::Custom => return, // Keep current custom pack if switching to custom
+        ActivePackType::Zenith => ActivePack::Zenith,
+        ActivePackType::Obsidian => ActivePack::Obsidian,
+        ActivePackType::Sapphire => ActivePack::Sapphire,
+        ActivePackType::Lunar => ActivePack::Lunar,
+        ActivePackType::Vintage => ActivePack::Vintage,
+        ActivePackType::Custom => return,
     };
 
     if let Some(tray) = app.try_state::<TrayState>() {

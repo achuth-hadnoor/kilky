@@ -28,17 +28,19 @@ pub fn setup_tray(app: &tauri::AppHandle) -> tauri::Result<()> {
         vol_items.insert(vol as u32, item);
     }
 
-    // Sound Switches Submenu
+    // Sound Switches Submenu (Copyright-Safe Rebranding)
     let pack_submenu = Submenu::with_id(app, "packs", "Sound Switches", true)?;
     let mut pack_items = HashMap::new();
     let pack_configs = [
-        ("Default (Brown)", ActivePackType::Default),
-        ("Mechanical (Blue)", ActivePackType::Mechanical),
-        ("Electric (Digital)", ActivePackType::Electric),
+        ("Zenith (Smooth Linear)", ActivePackType::Zenith),
+        ("Obsidian (Crisp Tactile)", ActivePackType::Obsidian),
+        ("Sapphire (Sharp Clicky)", ActivePackType::Sapphire),
+        ("Lunar (Soft Silent)", ActivePackType::Lunar),
+        ("Vintage (Classic Typewriter)", ActivePackType::Vintage),
     ];
     for (label, pt) in pack_configs {
         let id = format!("pack_{:?}", pt);
-        let item = CheckMenuItem::with_id(app, id.clone(), label, true, pt == ActivePackType::Default, None::<&str>)?;
+        let item = CheckMenuItem::with_id(app, id.clone(), label, true, pt == ActivePackType::Zenith, None::<&str>)?;
         pack_submenu.append(&item)?;
         pack_items.insert(pt, item);
     }
@@ -70,9 +72,11 @@ pub fn setup_tray(app: &tauri::AppHandle) -> tauri::Result<()> {
                 } else if id_str.starts_with("pack_") {
                     let pt_str = &id_str["pack_".len()..];
                     let pt = match pt_str {
-                        "Default" => ActivePackType::Default,
-                        "Mechanical" => ActivePackType::Mechanical,
-                        "Electric" => ActivePackType::Electric,
+                        "Zenith" => ActivePackType::Zenith,
+                        "Obsidian" => ActivePackType::Obsidian,
+                        "Sapphire" => ActivePackType::Sapphire,
+                        "Lunar" => ActivePackType::Lunar,
+                        "Vintage" => ActivePackType::Vintage,
                         _ => return,
                     };
                     set_sound_pack(handle.clone(), pt);
