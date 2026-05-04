@@ -1,3 +1,4 @@
+#[cfg(target_os = "windows")]
 use rdev::{listen, Event, EventType};
 use std::sync::mpsc::Sender;
 use std::thread;

@@ -4,7 +4,7 @@ mod tray;
 mod commands;
 #[cfg(target_os = "macos")]
 mod macos_listener;
-#[cfg(not(target_os = "macos"))]
+#[cfg(target_os = "windows")]
 mod generic_listener;
 mod builtin_packs;
 
@@ -144,7 +144,7 @@ pub fn run() {
             #[cfg(target_os = "macos")]
             macos_listener::start_macos_listener(tx);
 
-            #[cfg(not(target_os = "macos"))]
+            #[cfg(target_os = "windows")]
             generic_listener::start_generic_listener(tx);
 
             tray::setup_tray(app.handle())?;
