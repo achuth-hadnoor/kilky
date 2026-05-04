@@ -35,7 +35,7 @@
       "endpoints": [
         "https://github.com/achuth/cliky/releases/latest/download/latest.json"
       ],
-      "pubkey": "ADD_YOUR_PUBLIC_KEY_HERE"
+      "pubkey": "dW50cnVzdGVkIGNvbW1lbnQ6IG1pbmlzaWduIHB1YmxpYyBrZXk6IEZFMDA4M0MzNjcyRDQwNEMKUldSTVFDMW53NE1BL3RidlZxalJnRS9vSjQxVGt2SXU4dFdicXR2by9RWGp0UFVtRCtKakR5VFkK"
     }
   }
 }
