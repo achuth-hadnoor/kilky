@@ -1,0 +1,9 @@
+{
+  "name": "Default kliky Pack",
+  "description": "The original sounds for the kliky keyboard engine.",
+  "sounds": {
+    "Space": "space.wav",
+    "Enter": "enter.wav",
+    "Default": "click.wav"
+  }
+}
