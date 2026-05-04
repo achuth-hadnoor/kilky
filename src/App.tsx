@@ -1,15 +1,11 @@
-import { useEffect, useState } from "react";
+import { useState } from "react";
 import { getCurrentWindow } from "@tauri-apps/api/window";
 import "./App.css";
 import { SoundPackManager } from "./components/SoundPackManager";
 import { Settings } from "./components/Settings/Settings";
 
 function App() {
-  const [windowLabel, setWindowLabel] = useState<string>("");
-
-  useEffect(() => {
-    setWindowLabel(getCurrentWindow().label);
-  }, []);
+  const [windowLabel] = useState<string>(() => getCurrentWindow().label);
 
   if (windowLabel === "settings") {
     return <Settings />;
