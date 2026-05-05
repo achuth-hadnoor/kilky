@@ -1,9 +1,9 @@
+use lazy_static::lazy_static;
+use rodio::Decoder;
 use serde::{Deserialize, Serialize};
 use std::collections::HashMap;
-use std::sync::{Arc, Mutex};
-use lazy_static::lazy_static;
 use std::io::Cursor;
-use rodio::Decoder;
+use std::sync::{Arc, Mutex};
 use tauri::menu::CheckMenuItem;
 use tauri::tray::TrayIcon;
 
@@ -64,7 +64,7 @@ pub const DEFAULT_SOUND_DATA: &[u8] = include_bytes!("../assets/sound.ogg");
 lazy_static! {
     pub static ref STATE: Arc<Mutex<AppState>> = Arc::new(Mutex::new(AppState {
         enabled: true,
-        volume: 0.5,
+        volume: 0.1,
         active_pack_type: ActivePackType::Zenith,
         active_pack: ActivePack::Zenith,
     }));

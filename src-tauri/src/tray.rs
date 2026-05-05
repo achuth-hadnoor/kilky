@@ -37,7 +37,7 @@ pub fn setup_tray(app: &tauri::AppHandle) -> tauri::Result<()> {
     ];
     for (label, vol) in presets {
         let id = format!("vol_{}", vol);
-        let item = CheckMenuItem::with_id(app, id.clone(), label, true, vol == 50, None::<&str>)?;
+        let item = CheckMenuItem::with_id(app, id.clone(), label, true, vol == 10, None::<&str>)?;
         vol_submenu.append(&item)?;
         vol_items.insert(vol as u32, item);
     }
