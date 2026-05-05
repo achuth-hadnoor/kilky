@@ -1,0 +1,15 @@
+/* Clean slate for Settings UI */
+.settings-container {
+  width: 100vw;
+  height: 100vh;
+  display: flex;
+  flex-direction: column;
+  color: white;
+  padding: 40px;
+  background: transparent;
+}
+
+.settings-content {
+  max-width: 600px;
+  margin: 0 auto;
+}

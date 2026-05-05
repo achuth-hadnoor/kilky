@@ -3,10 +3,13 @@
   "identifier": "default",
   "description": "Capability for the main window",
   "windows": [
-    "kliky_ui"
+    "kliky_ui",
+    "settings",
+    "onboarding"
   ],
   "permissions": [
     "core:default",
+    "core:window:allow-start-dragging",
     "opener:default",
     "dialog:default",
     "dialog:allow-open",

@@ -1,5 +1,4 @@
 use tauri::{AppHandle, Manager, WebviewUrl, WebviewWindowBuilder};
-use window_vibrancy::{apply_mica, apply_vibrancy, NSVisualEffectMaterial};
 
 pub enum WindowType {
     Settings,
@@ -12,8 +11,8 @@ pub fn spawn_window(handle: &AppHandle, window_type: WindowType) {
             "settings",
             "Settings",
             WebviewUrl::App("index.html".into()),
-            400.0,
-            700.0,
+            800.0,
+            500.0,
             true,
         ),
         WindowType::Onboarding => (
@@ -30,22 +29,45 @@ pub fn spawn_window(handle: &AppHandle, window_type: WindowType) {
         let _ = window.show();
         let _ = window.set_focus();
     } else {
-        let builder = WebviewWindowBuilder::new(handle, label, url)
-            .title(title)
+        #[allow(unused_mut)]
+        let mut builder = WebviewWindowBuilder::new(handle, label, url)
+            .title("")
             .inner_size(width, height)
             .resizable(resizable)
+            .transparent(true)
+            .visible_on_all_workspaces(true)
+            .skip_taskbar(true)
+            .maximizable(false)
+            .minimizable(false)
             .always_on_top(true);
 
         #[cfg(target_os = "macos")]
-        let builder = builder.title_bar_style(tauri::TitleBarStyle::Overlay);
-
-        if let Ok(window) = builder.build() {
-            // Apply vibrancy effects
-            #[cfg(target_os = "macos")]
-            let _ = apply_vibrancy(&window, NSVisualEffectMaterial::Sidebar, None, None);
-
-            // #[cfg(target_os = "windows")]
-            // let _ = apply_mica(&window, None);
+        {
+            use tauri::window::{Effect, EffectState, EffectsBuilder};
+            builder = builder
+                .title_bar_style(tauri::TitleBarStyle::Overlay)
+                .traffic_light_position({
+                    tauri::Position::Physical(tauri::PhysicalPosition { x: 40, y: 60 })
+                })
+                .effects(
+                    EffectsBuilder::new()
+                        .effects(vec![Effect::Sidebar])
+                        .state(EffectState::Active)
+                        .build(),
+                );
         }
+
+        #[cfg(target_os = "windows")]
+        {
+            use tauri::window::{Effect, EffectState, EffectsBuilder};
+            builder = builder.effects(
+                EffectsBuilder::new()
+                    .effects(vec![Effect::Acrylic])
+                    .state(EffectState::Active)
+                    .build(),
+            );
+        }
+
+        let _ = builder.build();
     }
 }
