@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react';
 import { invoke } from '@tauri-apps/api/core';
 import { listen } from '@tauri-apps/api/event';
+import { getVersion } from '@tauri-apps/api/app';
 import { Settings as SettingsIcon, Volume2, Keyboard, Info, Rocket, Sliders, Play, Square } from 'lucide-react';
 import { Button } from "@/components/ui/button";
 import { Switch } from "@/components/ui/switch";
@@ -17,9 +18,11 @@ export function Settings() {
   const [isAutostart, setIsAutostart] = useState(false);
   const [activePack, setActivePack] = useState('Zenith');
   const [previewingPack, setPreviewingPack] = useState<string | null>(null);
+  const [appVersion, setAppVersion] = useState('0.0.0');
 
   useEffect(() => {
     fetchState();
+    getVersion().then(setAppVersion);
     const unlisten = listen('state-update', () => {
       fetchState();
     });
@@ -97,7 +100,7 @@ export function Settings() {
       <aside
         className="w-64 h-full flex flex-col bg-white/10 dark:bg-black/20 backdrop-blur-xl rounded-3xl border border-black/5 dark:border-white/10 p-4 pt-16" data-tauri-drag-region>
         <div className="px-4 mb-8" data-tauri-drag-region>
-          <h2 className="text-2xl font-bold dark:from-white dark:to-white/40 bg-clip-text text-transparent tracking-tight">
+          <h2 className="text-2xl font-bold dark:from-white dark:to-white/40 bg-clip-text tracking-tight">
             kliky
           </h2>
         </div>
@@ -129,7 +132,7 @@ export function Settings() {
       {/* Main Content */}
       <main className="flex-1 h-full bg-white/5 dark:bg-black/10 backdrop-blur-md rounded-3xl border border-black/5 dark:border-white/5 overflow-hidden flex flex-col min-h-0">
         <ScrollArea className="flex-1 overflow-y-auto">
-          <div className="max-w-xl mx-auto px-8 py-10 animate-in fade-in slide-in-from-bottom-4 duration-500">
+          <div className="max-w-xl mx-auto px-8 py-10 animate-in fade-in slide-in-from-bottom-4 duration-500 select-none">
             {activeTab === 'general' && (
               <div className="space-y-8">
                 <div>
@@ -297,7 +300,7 @@ export function Settings() {
                   </div>
                   <div>
                     <h3 className="text-3xl font-bold tracking-tight">kliky</h3>
-                    <p className="text-indigo-500 font-medium">Version 2.0.4 Platinum</p>
+                    <p className="text-indigo-500 font-medium">Version {appVersion} Platinum</p>
                   </div>
 
                   <div className="max-w-xs text-sm text-black/40 dark:text-white/40">
@@ -336,7 +339,7 @@ export function Settings() {
         </ScrollArea>
 
         <div className="p-4 bg-black/[0.02] dark:bg-white/[0.02] border-t border-black/5 dark:border-white/5 flex justify-between items-center px-8">
-          <span className="text-[10px] text-black/20 dark:text-white/20 font-medium uppercase tracking-[0.2em]">Build 2.0.4 - Premium</span>
+          <span className="text-[10px] text-black/20 dark:text-white/20 font-medium uppercase tracking-[0.2em]">Build {appVersion} - Premium</span>
           <div className="flex gap-4">
             <span className="text-[10px] text-black/40 dark:text-white/40 hover:text-black dark:hover:text-white  cursor-pointer">Documentation</span>
             <span className="text-[10px] text-black/40 dark:text-white/40 hover:text-black dark:hover:text-white  cursor-pointer">Support</span>
