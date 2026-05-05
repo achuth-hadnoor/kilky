@@ -4,7 +4,7 @@ use std::collections::HashMap;
 use tauri::{
     menu::{CheckMenuItem, Menu, MenuItem, PredefinedMenuItem, Submenu},
     tray::{MouseButton, MouseButtonState, TrayIconBuilder, TrayIconEvent},
-    Manager, WebviewUrl, WebviewWindowBuilder,
+    Emitter, Manager, WebviewUrl, WebviewWindowBuilder,
 };
 use tauri_plugin_autostart::ManagerExt;
 
@@ -16,7 +16,7 @@ pub fn setup_tray(app: &tauri::AppHandle) -> tauri::Result<()> {
 
     let is_autostart_enabled = autostart_manager.is_enabled().unwrap_or(false);
     let autostart_i = CheckMenuItem::with_id(app, "autostart", "Launch at Startup", true, is_autostart_enabled, None::<&str>)?;
-
+    let settings_i = MenuItem::with_id(app, "settings", "Settings...", true, None::<&str>)?;
     let quit_i = MenuItem::with_id(app, "quit", "Quit", true, None::<&str>)?;
 
     // Volume Submenu
@@ -59,6 +59,7 @@ pub fn setup_tray(app: &tauri::AppHandle) -> tauri::Result<()> {
     menu.append(&vol_submenu)?;
     menu.append(&pack_submenu)?;
     menu.append(&PredefinedMenuItem::separator(app)?)?;
+    menu.append(&settings_i)?;
     menu.append(&quit_i)?;
 
     let autostart_c = autostart_i.clone();
@@ -73,6 +74,21 @@ pub fn setup_tray(app: &tauri::AppHandle) -> tauri::Result<()> {
                 let id_str = id.as_ref();
                 if id_str == "quit" {
                     handle.exit(0);
+                } else if id_str == "settings" {
+                    if let Some(window) = handle.get_webview_window("settings") {
+                        let _ = window.show();
+                        let _ = window.set_focus();
+                    } else {
+                        let _ = WebviewWindowBuilder::new(
+                            &handle,
+                            "settings",
+                            WebviewUrl::App("index.html".into()),
+                        )
+                        .title("Settings")
+                        .inner_size(900.0, 700.0)
+                        .resizable(true)
+                        .build();
+                    }
                 } else if id_str == "toggle" {
                     let new_state = !STATE.lock().unwrap().enabled;
                     set_enabled(handle.clone(), new_state);
@@ -86,6 +102,7 @@ pub fn setup_tray(app: &tauri::AppHandle) -> tauri::Result<()> {
                         let _ = autostart_manager.enable();
                         let _ = autostart_c.set_checked(true);
                     }
+                    let _ = handle.emit("state-update", ());
 
                 } else if let Some(vol_str) = id_str.strip_prefix("vol_") {
                     if let Ok(vol) = vol_str.parse::<u32>() {

@@ -37,7 +37,11 @@ pub fn run() {
             commands::get_app_state,
             commands::set_volume,
             commands::set_enabled,
-            commands::set_sound_pack
+            commands::set_sound_pack,
+            commands::is_autostart_enabled,
+            commands::set_autostart_enabled,
+            commands::set_vibrancy,
+            commands::set_dock_icon_visible
         ])
         .on_window_event(|window, event| {
             if let tauri::WindowEvent::CloseRequested { api, .. } = event {

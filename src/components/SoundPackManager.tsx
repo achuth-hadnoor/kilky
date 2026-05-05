@@ -41,7 +41,7 @@ export function SoundPackManager() {
 
   const previewSound = (filename: string) => {
     if (!basePath) return;
-    
+
     const assetUrl = convertFileSrc(`${basePath}/${filename}`);
     const sound = new Howl({
       src: [assetUrl],
@@ -49,44 +49,61 @@ export function SoundPackManager() {
       volume: 0.5,
       html5: true // Needed for large files or cross-origin issues
     });
-    
+
     sound.play();
   };
 
   return (
     <div className="sound-pack-manager">
-      <div className="header">
-        <h2>Sound Packs</h2>
-        <button 
-          onClick={handleSelectPack} 
+      <div className="header" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '16px' }}>
+        <h5>Custom Packs</h5>
+        <button
+          onClick={handleSelectPack}
           disabled={loading}
-          className="btn-primary"
+          className="btn-outline"
+          style={{ padding: '6px 12px', fontSize: '0.8rem' }}
         >
-          {loading ? 'Loading...' : 'Load Custom Pack'}
+          {loading ? 'Loading...' : '+ Add Pack'}
         </button>
       </div>
 
-      {error && <p className="error-message">{error}</p>}
+      {error && <p className="error-message" style={{ color: '#ff4081', fontSize: '0.8rem', marginBottom: '12px' }}>{error}</p>}
 
       {currentPack ? (
-        <div className="pack-details animate-in">
-          <div className="pack-info">
-            <span className="pack-name">{currentPack.name}</span>
-            {currentPack.description && <p className="pack-desc">{currentPack.description}</p>}
+        <div className="settings-card animate-in">
+          <div className="setting-item" style={{ borderBottom: '1px solid var(--border-color)', background: 'rgba(255,255,255,0.02)' }}>
+            <div className="setting-info">
+              <label>{currentPack.name}</label>
+              <p>{currentPack.description || 'Custom mechanical keyboard sound pack.'}</p>
+            </div>
+            <div className="version-badge" style={{ margin: 0 }}>ACTIVE</div>
           </div>
-          
-          <div className="sound-list">
+
+          <div className="sound-list" style={{ padding: '12px', display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(100px, 1fr))', gap: '8px', maxHeight: '200px', overflowY: 'auto' }}>
             {Object.entries(currentPack.sounds).map(([key, file]) => (
-              <div key={key} className="sound-item" onClick={() => previewSound(file)}>
-                <span className="key-label">{key}</span>
-                <span className="file-name">{file}</span>
+              <div
+                key={key}
+                className="sound-item"
+                onClick={() => previewSound(file)}
+                style={{
+                  background: 'rgba(255,255,255,0.03)',
+                  padding: '8px',
+                  borderRadius: '6px',
+                  fontSize: '0.75rem',
+                  cursor: 'pointer',
+                  border: '1px solid var(--border-color)',
+                  textAlign: 'center',
+                  transition: 'all 0.2s ease'
+                }}
+              >
+                <div style={{ fontWeight: 600, color: 'var(--primary-color)' }}>{key}</div>
               </div>
             ))}
           </div>
         </div>
       ) : (
-        <div className="empty-state">
-          <p>No custom pack loaded. Using default system sounds.</p>
+        <div className="settings-card" style={{ padding: '32px', textAlign: 'center' }}>
+          <p style={{ color: 'var(--text-dim)', fontSize: '0.9rem', margin: 0 }}>No custom pack loaded. Using default system sounds.</p>
         </div>
       )}
     </div>

@@ -1,4 +1,5 @@
 use tauri::{AppHandle, Manager, Emitter};
+use tauri_plugin_autostart::ManagerExt;
 use crate::state::{STATE, TrayState, PackConfig, ActivePack, ExternalPack, ActivePackType};
 use std::path::PathBuf;
 use std::fs::File;
@@ -82,4 +83,38 @@ pub async fn load_sound_pack(path: String) -> Result<PackConfig, String> {
 
     STATE.lock().unwrap().active_pack = ActivePack::Custom(ExternalPack { config: config.clone(), audio_data });
     Ok(config)
+}
+#[tauri::command]
+pub async fn is_autostart_enabled(app: AppHandle) -> bool {
+    app.autolaunch().is_enabled().unwrap_or(false)
+}
+
+#[tauri::command]
+pub async fn set_autostart_enabled(app: AppHandle, enabled: bool) -> Result<(), String> {
+    if enabled {
+        app.autolaunch().enable().map_err(|e| e.to_string())
+    } else {
+        app.autolaunch().disable().map_err(|e| e.to_string())
+    }
+}
+
+#[tauri::command]
+pub fn set_vibrancy(_app: AppHandle, _enabled: bool) {
+    // This is a placeholder as vibrancy usually needs to be set on window creation 
+    // or via a specific plugin like window-vibrancy.
+    // For now, we'll just emit an event or log it.
+    println!("Vibrancy toggled: {}", _enabled);
+}
+
+#[tauri::command]
+pub fn set_dock_icon_visible(app: AppHandle, visible: bool) {
+    #[cfg(target_os = "macos")]
+    {
+        use tauri::ActivationPolicy;
+        if visible {
+            app.set_activation_policy(ActivationPolicy::Regular).unwrap();
+        } else {
+            app.set_activation_policy(ActivationPolicy::Accessory).unwrap();
+        }
+    }
 }
