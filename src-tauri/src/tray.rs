@@ -6,9 +6,17 @@ use tauri::{
     tray::{MouseButton, MouseButtonState, TrayIconBuilder, TrayIconEvent},
     Manager, WebviewUrl, WebviewWindowBuilder,
 };
+use tauri_plugin_autostart::ManagerExt;
+
 
 pub fn setup_tray(app: &tauri::AppHandle) -> tauri::Result<()> {
     let toggle_i = CheckMenuItem::with_id(app, "toggle", "Enable Kliky", true, true, None::<&str>)?;
+    
+    let autostart_manager = app.autolaunch();
+
+    let is_autostart_enabled = autostart_manager.is_enabled().unwrap_or(false);
+    let autostart_i = CheckMenuItem::with_id(app, "autostart", "Launch at Startup", true, is_autostart_enabled, None::<&str>)?;
+
     let quit_i = MenuItem::with_id(app, "quit", "Quit", true, None::<&str>)?;
 
     // Volume Submenu
@@ -47,17 +55,20 @@ pub fn setup_tray(app: &tauri::AppHandle) -> tauri::Result<()> {
 
     let menu = Menu::new(app)?;
     menu.append(&toggle_i)?;
+    menu.append(&autostart_i)?;
     menu.append(&vol_submenu)?;
     menu.append(&pack_submenu)?;
     menu.append(&PredefinedMenuItem::separator(app)?)?;
     menu.append(&quit_i)?;
 
+    let autostart_c = autostart_i.clone();
     let tray = TrayIconBuilder::with_id("main")
         .title("Klicky")
         .menu(&menu)
         .on_menu_event(move |app, event| {
             let id = event.id.clone();
             let handle = app.clone();
+            let autostart_c = autostart_c.clone();
             let _ = app.run_on_main_thread(move || {
                 let id_str = id.as_ref();
                 if id_str == "quit" {
@@ -65,12 +76,22 @@ pub fn setup_tray(app: &tauri::AppHandle) -> tauri::Result<()> {
                 } else if id_str == "toggle" {
                     let new_state = !STATE.lock().unwrap().enabled;
                     set_enabled(handle.clone(), new_state);
-                } else if id_str.starts_with("vol_") {
-                    if let Ok(vol) = id_str["vol_".len()..].parse::<u32>() {
+                } else if id_str == "autostart" {
+                    let autostart_manager = handle.autolaunch();
+
+                    if autostart_manager.is_enabled().unwrap_or(false) {
+                        let _ = autostart_manager.disable();
+                        let _ = autostart_c.set_checked(false);
+                    } else {
+                        let _ = autostart_manager.enable();
+                        let _ = autostart_c.set_checked(true);
+                    }
+
+                } else if let Some(vol_str) = id_str.strip_prefix("vol_") {
+                    if let Ok(vol) = vol_str.parse::<u32>() {
                         set_volume(handle.clone(), (vol as f32) / 100.0);
                     }
-                } else if id_str.starts_with("pack_") {
-                    let pt_str = &id_str["pack_".len()..];
+                } else if let Some(pt_str) = id_str.strip_prefix("pack_") {
                     let pt = match pt_str {
                         "Zenith" => ActivePackType::Zenith,
                         "Velvet" => ActivePackType::Velvet,
@@ -81,6 +102,7 @@ pub fn setup_tray(app: &tauri::AppHandle) -> tauri::Result<()> {
                     };
                     set_sound_pack(handle.clone(), pt);
                 }
+
             });
         })
         .on_tray_icon_event(|tray, event| {

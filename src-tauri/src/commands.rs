@@ -74,7 +74,7 @@ pub async fn load_sound_pack(path: String) -> Result<PackConfig, String> {
     let config: PackConfig = serde_json::from_reader(BufReader::new(config_file)).map_err(|e| e.to_string())?;
 
     let mut audio_data = HashMap::new();
-    for (_, filename) in &config.sounds {
+    for filename in config.sounds.values() {
         let file = File::open(base_path.join(filename)).map_err(|e| e.to_string())?;
         let decoder = Decoder::try_from(BufReader::new(file)).map_err(|e| e.to_string())?;
         audio_data.insert(filename.clone(), decoder.collect());

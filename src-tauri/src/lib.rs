@@ -17,6 +17,8 @@ use rand::{rng, RngExt};
 use crate::state::{STATE, DEFAULT_SAMPLES, ActivePack};
 use crate::audio::{get_default_config, macos_keycode_to_dik};
 
+
+
 #[cfg_attr(mobile, tauri::mobile_entry_point)]
 pub fn run() {
     std::panic::set_hook(Box::new(|info| {
@@ -28,6 +30,8 @@ pub fn run() {
         .plugin(tauri_plugin_fs::init())
         .plugin(tauri_plugin_updater::Builder::new().build())
         .plugin(tauri_plugin_opener::init())
+        .plugin(tauri_plugin_autostart::init(tauri_plugin_autostart::MacosLauncher::LaunchAgent, Some(vec!["--minimized"])))
+
         .invoke_handler(tauri::generate_handler![
             commands::load_sound_pack,
             commands::get_app_state,
@@ -44,16 +48,19 @@ pub fn run() {
         })
         .setup(|app| {
             println!("Starting setup...");
+
             
             #[cfg(target_os = "macos")]
             {
                 app.set_activation_policy(tauri::ActivationPolicy::Accessory);
                 if !macos_accessibility_client::accessibility::application_is_trusted() {
-                    println!("Accessibility permissions missing!");
+                    println!("Accessibility permissions missing! Prompting user...");
+                    let _ = macos_accessibility_client::accessibility::application_is_trusted_with_prompt();
                 } else {
                     println!("Accessibility permissions confirmed.");
                 }
             }
+
 
             let sink_handle = DeviceSinkBuilder::open_default_sink().expect("Failed to open audio");
             let mixer = sink_handle.mixer().clone();
