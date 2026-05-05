@@ -6,7 +6,7 @@ pub enum WindowType {
 }
 
 pub fn spawn_window(handle: &AppHandle, window_type: WindowType) {
-    let (label, title, url, width, height, resizable) = match window_type {
+    let (label, _title, url, width, height, resizable) = match window_type {
         WindowType::Settings => (
             "settings",
             "Settings",

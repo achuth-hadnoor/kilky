@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react';
 import { invoke } from '@tauri-apps/api/core';
 import { listen } from '@tauri-apps/api/event';
-import { Settings as SettingsIcon, Volume2, Keyboard, Info, Rocket, Sliders } from 'lucide-react';
+import { Settings as SettingsIcon, Volume2, Keyboard, Info, Rocket, Sliders, Play, Square } from 'lucide-react';
 import { Button } from "@/components/ui/button";
 import { Switch } from "@/components/ui/switch";
 import { Slider } from "@/components/ui/slider";
@@ -16,6 +16,7 @@ export function Settings() {
   const [enabled, setEnabled] = useState(true);
   const [isAutostart, setIsAutostart] = useState(false);
   const [activePack, setActivePack] = useState('Zenith');
+  const [previewingPack, setPreviewingPack] = useState<string | null>(null);
 
   useEffect(() => {
     fetchState();
@@ -24,6 +25,7 @@ export function Settings() {
     });
     return () => {
       unlisten.then(u => u());
+      invoke('stop_pack_preview');
     };
   }, []);
 
@@ -50,6 +52,17 @@ export function Settings() {
   const handlePackChange = async (pack: string) => {
     setActivePack(pack);
     await invoke('set_sound_pack', { packType: pack });
+  };
+
+  const handlePlayPreview = async (e: React.MouseEvent, pack: string) => {
+    e.stopPropagation();
+    if (previewingPack === pack) {
+      setPreviewingPack(null);
+      await invoke('stop_pack_preview');
+    } else {
+      setPreviewingPack(pack);
+      await invoke('play_pack_preview', { packType: pack });
+    }
   };
 
   const handleToggle = async (checked: boolean) => {
@@ -151,12 +164,28 @@ export function Settings() {
                   <p className="text-sm text-black/40 dark:text-white/40">Select the acoustic profile that matches your setup.</p>
                 </div>
 
-                <div className="grid grid-cols-1 gap-3 scroll-auto relative">
+                <div className="py-2 px-4 bg-black/5 dark:bg-white/5 rounded-2xl border border-black/5 dark:border-white/5 space-y-2">
+                  <div className="flex justify-between items-end">
+                    <Label className="text-sm text-black/40 dark:text-white/40 uppercase tracking-widest font-bold ">Volume</Label>
+                  </div>
+                  <div className='flex gap-2'>
+                    <Slider
+                      value={[volume]}
+                      max={1}
+                      step={0.01}
+                      onValueChange={handleVolumeUpdate}
+                      className="py-2 cursor-pointer"
+                    />
+                    <p className="text-lg font-mono text-indigo-600 dark:text-indigo-400">{Math.round(volume * 100)}%</p>
+                  </div>
+                </div>
+
+                <div className="grid grid-cols-2 gap-3">
                   {soundPacks.map((pack) => (
                     <button
                       key={pack.id}
                       onClick={() => handlePackChange(pack.id)}
-                      className={`flex items-center justify-between p-4 rounded-2xl border transition-all duration-200 ${activePack === pack.id
+                      className={`flex items-center justify-between p-1 rounded-2xl border transition-all duration-200 group/pack ${activePack === pack.id
                         ? 'bg-indigo-600/10 border-indigo-500/50 shadow-[0_0_20px_rgba(99,102,241,0.1)]'
                         : 'bg-black/5 dark:bg-white/5 border-black/5 dark:border-white/5 hover:bg-black/10 dark:hover:bg-white/10'
                         }`}
@@ -165,31 +194,29 @@ export function Settings() {
                         <div className={`w-10 h-10 rounded-xl ${pack.color} flex items-center justify-center text-white shadow-lg`}>
                           <Volume2 className="w-5 h-5" />
                         </div>
-                        <div className="text-left">
-                          <p className="font-semibold">{pack.name}</p>
+                        <div className="text-left flex flex-col gap-1">
+                          <p className="font-semibold text-sm">{pack.name}</p>
                           <p className="text-xs text-black/40 dark:text-white/40">{pack.desc}</p>
                         </div>
                       </div>
-                      {activePack === pack.id && (
-                        <div className="w-2 h-2 rounded-full bg-indigo-500 shadow-[0_0_8px_rgba(99,102,241,0.6)]" />
-                      )}
+                      <div className="flex items-center gap-3">
+                        <Button
+                          size="icon"
+                          variant="ghost"
+                          className={`w-8 h-8 rounded-full bg-black/5 dark:bg-white/5 transition-opacity hover:bg-indigo-500 hover:text-white ${previewingPack === pack.id ? 'opacity-100' : 'opacity-0 group-hover/pack:opacity-100'}`}
+                          onClick={(e) => handlePlayPreview(e, pack.id)}
+                        >
+                          {previewingPack === pack.id ? (
+                            <Square className="w-3 h-3 fill-current" />
+                          ) : (
+                            <Play className="w-3.5 h-3.5 fill-current" />
+                          )}
+                        </Button>
+                      </div>
                     </button>
                   ))}
                 </div>
 
-                <div className="p-6 bg-black/5 dark:bg-white/5 rounded-2xl border border-black/5 dark:border-white/5 space-y-4">
-                  <div className="flex justify-between items-end">
-                    <Label className="text-sm text-black/40 dark:text-white/40 uppercase tracking-widest font-bold">Volume</Label>
-                    <p className="text-lg font-mono text-indigo-600 dark:text-indigo-400">{Math.round(volume * 100)}%</p>
-                  </div>
-                  <Slider
-                    value={[volume]}
-                    max={1}
-                    step={0.01}
-                    onValueChange={handleVolumeUpdate}
-                    className="py-4"
-                  />
-                </div>
               </div>
             )}
 

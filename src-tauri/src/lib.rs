@@ -9,7 +9,8 @@ mod macos_listener;
 mod generic_listener;
 mod builtin_packs;
 
-use rodio::{buffer::SamplesBuffer, source::Source, DeviceSinkBuilder};
+use rodio::{buffer::SamplesBuffer, source::Source, mixer::Mixer, DeviceSinkBuilder, MixerDeviceSink};
+use tauri::Manager;
 use std::num::NonZero;
 use std::thread;
 use std::sync::mpsc;
@@ -44,7 +45,9 @@ pub fn run() {
             commands::set_vibrancy,
             commands::set_dock_icon_visible,
             commands::create_custom_pack,
-            commands::get_sample_pack_info
+            commands::get_sample_pack_info,
+            commands::play_pack_preview,
+            commands::stop_pack_preview
         ])
         .on_window_event(|window, event| {
             if let tauri::WindowEvent::CloseRequested { api, .. } = event {
@@ -76,6 +79,7 @@ pub fn run() {
             let (tx, rx) = mpsc::channel::<u32>();
 
             // Sound Worker Thread
+            let worker_mixer = mixer.clone();
             thread::spawn(move || {
                 println!("Worker thread started.");
                 let _s = sink_handle; // Keep sink alive
@@ -115,20 +119,20 @@ pub fn run() {
                                                 .amplify(state.volume * vol_var * 0.5)
                                                 .speed(speed * 0.8)
                                                 .delay(Duration::from_millis(15));
-                                            mixer.add(s1);
-                                            mixer.add(s2);
+                                            worker_mixer.add(s1);
+                                            worker_mixer.add(s2);
                                         }
                                         ActivePack::Obsidian => {
                                             let s = SamplesBuffer::new(NonZero::new(2).unwrap(), NonZero::new(44100).unwrap(), slice)
                                                 .amplify(state.volume * vol_var * 1.5)
                                                 .speed(speed * 0.65);
-                                            mixer.add(s);
+                                            worker_mixer.add(s);
                                         }
                                         _ => {
                                             let s = SamplesBuffer::new(NonZero::new(2).unwrap(), NonZero::new(44100).unwrap(), slice)
                                                 .amplify(state.volume * vol_var)
                                                 .speed(speed);
-                                            mixer.add(s);
+                                            worker_mixer.add(s);
                                         }
                                     }
                                 }
@@ -160,7 +164,7 @@ pub fn run() {
                                     )
                                     .amplify(final_vol)
                                     .speed(final_pitch);
-                                    mixer.add(source);
+                                    worker_mixer.add(source);
                                 }
                             }
                         }
@@ -175,6 +179,7 @@ pub fn run() {
             generic_listener::start_generic_listener(tx);
 
             tray::setup_tray(app.handle())?;
+            app.manage(crate::state::AudioState { mixer: mixer.clone() });
             Ok(())
         })
         .run(tauri::generate_context!())
