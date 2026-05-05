@@ -41,7 +41,9 @@ pub fn run() {
             commands::is_autostart_enabled,
             commands::set_autostart_enabled,
             commands::set_vibrancy,
-            commands::set_dock_icon_visible
+            commands::set_dock_icon_visible,
+            commands::create_custom_pack,
+            commands::get_sample_pack_info
         ])
         .on_window_event(|window, event| {
             if let tauri::WindowEvent::CloseRequested { api, .. } = event {
@@ -137,13 +139,26 @@ pub fn run() {
 
                             if let Some(fname) = filename {
                                 if let Some(samples) = pack.audio_data.get(fname) {
+                                    let mut final_vol = state.volume * vol_var;
+                                    let mut final_pitch = speed;
+
+                                    // Apply tweaks from pack config if they exist
+                                    if let Some(settings_map) = &pack.config.settings {
+                                        // Use key-specific settings, or default settings, if they exist
+                                        let settings = settings_map.get(key_id).or_else(|| settings_map.get("Default"));
+                                        if let Some(s) = settings {
+                                            final_vol *= s.volume;
+                                            final_pitch *= s.pitch;
+                                        }
+                                    }
+
                                     let source = SamplesBuffer::new(
                                         NonZero::new(2).unwrap(),
                                         NonZero::new(44100).unwrap(),
                                         samples.as_slice(),
                                     )
-                                    .amplify(state.volume * vol_var)
-                                    .speed(speed);
+                                    .amplify(final_vol)
+                                    .speed(final_pitch);
                                     mixer.add(source);
                                 }
                             }

@@ -8,10 +8,17 @@ use tauri::menu::CheckMenuItem;
 use tauri::tray::TrayIcon;
 
 #[derive(Clone, Serialize, Deserialize)]
+pub struct KeySettings {
+    pub pitch: f32,
+    pub volume: f32,
+}
+
+#[derive(Clone, Serialize, Deserialize)]
 pub struct PackConfig {
     pub name: String,
     pub description: Option<String>,
     pub sounds: HashMap<String, String>,
+    pub settings: Option<HashMap<String, KeySettings>>,
 }
 
 pub struct ExternalPack {

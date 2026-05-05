@@ -2,6 +2,7 @@ import { useEffect, useState } from 'react';
 import { invoke } from '@tauri-apps/api/core';
 import { listen } from '@tauri-apps/api/event';
 import { SoundPackManager } from '../SoundPackManager';
+import { PackCreator } from './PackCreator';
 import './Settings.css';
 
 type Tab = 'general' | 'audio' | 'shortcuts' | 'advanced' | 'about';
@@ -145,8 +146,13 @@ export function Settings() {
             </div>
 
             <div className="settings-section">
-              <h4>Sound Engine</h4>
+              <h4>Active Sound Engine</h4>
               <SoundPackManager />
+            </div>
+
+            <div className="settings-section">
+              <h4>Create Custom Pack</h4>
+              <PackCreator />
             </div>
           </div>
         );

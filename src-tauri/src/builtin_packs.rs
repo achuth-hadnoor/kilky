@@ -23,6 +23,7 @@ pub fn get_velvet_pack() -> ExternalPack {
             name: "Velvet".to_string(),
             description: Some("Smooth, creamy linear sounds.".to_string()),
             sounds,
+            settings: None,
         },
         audio_data,
     }
@@ -44,6 +45,7 @@ pub fn get_neon_pack() -> ExternalPack {
             name: "Neon".to_string(),
             description: Some("Retro 8-bit gaming sounds.".to_string()),
             sounds,
+            settings: None,
         },
         audio_data,
     }
