@@ -1,5 +1,5 @@
-use crate::commands::{set_enabled, set_volume, set_sound_pack};
-use crate::state::{TrayState, STATE, ActivePackType};
+use crate::commands::{set_enabled, set_sound_pack, set_volume};
+use crate::state::{ActivePackType, TrayState, STATE};
 use std::collections::HashMap;
 use tauri::{
     menu::{CheckMenuItem, Menu, MenuItem, PredefinedMenuItem, Submenu},
@@ -8,14 +8,20 @@ use tauri::{
 };
 use tauri_plugin_autostart::ManagerExt;
 
-
 pub fn setup_tray(app: &tauri::AppHandle) -> tauri::Result<()> {
     let toggle_i = CheckMenuItem::with_id(app, "toggle", "Enable Kliky", true, true, None::<&str>)?;
-    
+
     let autostart_manager = app.autolaunch();
 
     let is_autostart_enabled = autostart_manager.is_enabled().unwrap_or(false);
-    let autostart_i = CheckMenuItem::with_id(app, "autostart", "Launch at Startup", true, is_autostart_enabled, None::<&str>)?;
+    let autostart_i = CheckMenuItem::with_id(
+        app,
+        "autostart",
+        "Launch at Startup",
+        true,
+        is_autostart_enabled,
+        None::<&str>,
+    )?;
     let settings_i = MenuItem::with_id(app, "settings", "Settings...", true, None::<&str>)?;
     let quit_i = MenuItem::with_id(app, "quit", "Quit", true, None::<&str>)?;
 
@@ -48,7 +54,14 @@ pub fn setup_tray(app: &tauri::AppHandle) -> tauri::Result<()> {
     ];
     for (label, pt) in pack_configs {
         let id = format!("pack_{:?}", pt);
-        let item = CheckMenuItem::with_id(app, id.clone(), label, true, pt == ActivePackType::Zenith, None::<&str>)?;
+        let item = CheckMenuItem::with_id(
+            app,
+            id.clone(),
+            label,
+            true,
+            pt == ActivePackType::Zenith,
+            None::<&str>,
+        )?;
         pack_submenu.append(&item)?;
         pack_items.insert(pt, item);
     }
@@ -75,20 +88,7 @@ pub fn setup_tray(app: &tauri::AppHandle) -> tauri::Result<()> {
                 if id_str == "quit" {
                     handle.exit(0);
                 } else if id_str == "settings" {
-                    if let Some(window) = handle.get_webview_window("settings") {
-                        let _ = window.show();
-                        let _ = window.set_focus();
-                    } else {
-                        let _ = WebviewWindowBuilder::new(
-                            &handle,
-                            "settings",
-                            WebviewUrl::App("index.html".into()),
-                        )
-                        .title("Settings")
-                        .inner_size(900.0, 700.0)
-                        .resizable(true)
-                        .build();
-                    }
+                    crate::window::spawn_window(&handle, crate::window::WindowType::Settings);
                 } else if id_str == "toggle" {
                     let new_state = !STATE.lock().unwrap().enabled;
                     set_enabled(handle.clone(), new_state);
@@ -103,7 +103,6 @@ pub fn setup_tray(app: &tauri::AppHandle) -> tauri::Result<()> {
                         let _ = autostart_c.set_checked(true);
                     }
                     let _ = handle.emit("state-update", ());
-
                 } else if let Some(vol_str) = id_str.strip_prefix("vol_") {
                     if let Ok(vol) = vol_str.parse::<u32>() {
                         set_volume(handle.clone(), (vol as f32) / 100.0);
@@ -119,7 +118,6 @@ pub fn setup_tray(app: &tauri::AppHandle) -> tauri::Result<()> {
                     };
                     set_sound_pack(handle.clone(), pt);
                 }
-
             });
         })
         .on_tray_icon_event(|tray, event| {

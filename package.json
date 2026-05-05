@@ -10,9 +10,9 @@
     "type-check": "tsc",
     "preview": "vite preview",
     "tauri": "dotenv -- tauri"
-
   },
   "dependencies": {
+    "@tailwindcss/vite": "^4.2.4",
     "@tauri-apps/api": "^2.11.0",
     "@tauri-apps/plugin-dialog": "^2.7.0",
     "@tauri-apps/plugin-fs": "^2.5.0",
@@ -20,7 +20,8 @@
     "@tauri-apps/plugin-updater": "^2.10.1",
     "howler": "^2.2.4",
     "react": "^19.1.0",
-    "react-dom": "^19.1.0"
+    "react-dom": "^19.1.0",
+    "tailwindcss": "^4.2.4"
   },
   "devDependencies": {
     "@eslint/js": "^10.0.1",

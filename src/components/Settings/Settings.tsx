@@ -270,8 +270,8 @@ export function Settings() {
   };
 
   return (
-    <div className="settings-container">
-      <aside className="settings-sidebar">
+    <div className="flex h-screen w-screen ">
+      {/* <aside className="settings-sidebar">
         <div className="sidebar-header">
           <h2>kliky</h2>
         </div>
@@ -298,20 +298,20 @@ export function Settings() {
             className={activeTab === 'advanced' ? 'active' : ''}
             onClick={() => setActiveTab('advanced')}
           >
-            <span className="icon">🛠️</span> Advanced
+            <span className="icon">🚀</span> Advanced
           </button>
           <div style={{ flex: 1 }} />
           <button
             className={activeTab === 'about' ? 'active' : ''}
             onClick={() => setActiveTab('about')}
           >
-            <span className="icon">ℹ️</span> About
+            <span className="icon">✨</span> About
           </button>
         </nav>
       </aside>
       <main className="settings-main">
         {renderTabContent()}
-      </main>
+      </main> */}
     </div>
   );
 }

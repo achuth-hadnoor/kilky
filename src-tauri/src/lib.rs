@@ -2,6 +2,7 @@ mod state;
 mod audio;
 mod tray;
 mod commands;
+mod window;
 #[cfg(target_os = "macos")]
 mod macos_listener;
 #[cfg(target_os = "windows")]
