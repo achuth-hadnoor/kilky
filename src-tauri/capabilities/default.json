@@ -15,7 +15,8 @@
     "dialog:allow-open",
     "fs:default",
     "updater:default",
-    "autostart:default"
+    "autostart:default",
+    "core:event:default"
 
   ]
 }

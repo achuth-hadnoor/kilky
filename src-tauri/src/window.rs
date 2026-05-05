@@ -46,6 +46,7 @@ pub fn spawn_window(handle: &AppHandle, window_type: WindowType) {
             use tauri::window::{Effect, EffectState, EffectsBuilder};
             builder = builder
                 .title_bar_style(tauri::TitleBarStyle::Overlay)
+                .content_protected(true)
                 .traffic_light_position({
                     tauri::Position::Physical(tauri::PhysicalPosition { x: 40, y: 60 })
                 })

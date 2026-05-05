@@ -9,10 +9,21 @@ use std::collections::HashMap;
 use std::fs;
 use serde_json::json;
 
+#[derive(serde::Serialize)]
+pub struct AppStateResponse {
+    pub enabled: bool,
+    pub volume: f32,
+    pub active_pack_type: ActivePackType,
+}
+
 #[tauri::command]
-pub fn get_app_state() -> (bool, f32, ActivePackType) {
+pub fn get_app_state() -> AppStateResponse {
     let state = STATE.lock().unwrap();
-    (state.enabled, state.volume, state.active_pack_type.clone())
+    AppStateResponse {
+        enabled: state.enabled,
+        volume: state.volume,
+        active_pack_type: state.active_pack_type.clone(),
+    }
 }
 
 #[tauri::command]
@@ -94,10 +105,12 @@ pub async fn is_autostart_enabled(app: AppHandle) -> bool {
 #[tauri::command]
 pub async fn set_autostart_enabled(app: AppHandle, enabled: bool) -> Result<(), String> {
     if enabled {
-        app.autolaunch().enable().map_err(|e| e.to_string())
+        app.autolaunch().enable().map_err(|e| e.to_string())?;
     } else {
-        app.autolaunch().disable().map_err(|e| e.to_string())
+        app.autolaunch().disable().map_err(|e| e.to_string())?;
     }
+    let _ = app.emit("state-update", ());
+    Ok(())
 }
 
 #[tauri::command]
