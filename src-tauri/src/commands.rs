@@ -56,6 +56,57 @@ pub fn set_sound_pack(app: AppHandle, pack_type: ActivePackType) {
 }
 
 #[tauri::command]
+pub fn get_audio_devices() -> Vec<String> {
+    use rodio::cpal::traits::HostTrait;
+    use rodio::cpal::traits::DeviceTrait;
+    let host = rodio::cpal::default_host();
+    match host.output_devices() {
+        Ok(devices) => devices
+            .filter_map(|d| d.name().ok())
+            .collect(),
+        Err(_) => vec![],
+    }
+}
+
+#[tauri::command]
+pub fn set_audio_device(app: AppHandle, device_name: String) -> Result<(), String> {
+    use rodio::cpal::traits::{HostTrait, DeviceTrait};
+    use rodio::DeviceSinkBuilder;
+
+    let mut state = STATE.lock().unwrap();
+    state.audio_device = Some(device_name.clone());
+
+    let host = rodio::cpal::default_host();
+    let devices = host.output_devices().map_err(|e| e.to_string())?;
+    let mut target_device = None;
+
+    for device in devices {
+        if let Ok(name) = device.name() {
+            if name == device_name {
+                target_device = Some(device);
+                break;
+            }
+        }
+    }
+
+    if let Some(device) = target_device {
+        let audio_state = app.state::<crate::state::AudioState>();
+        
+        let new_sink_builder = DeviceSinkBuilder::from_device(device).map_err(|e| e.to_string())?;
+        let new_sink = new_sink_builder.open_stream().map_err(|e| e.to_string())?;
+        let new_mixer = new_sink.mixer().clone();
+
+        *audio_state.sink.lock().unwrap() = Some(new_sink);
+        *audio_state.mixer.lock().unwrap() = new_mixer;
+        
+        let _ = app.emit("state-update", ());
+        Ok(())
+    } else {
+        Err("Device not found".to_string())
+    }
+}
+
+#[tauri::command]
 pub fn stop_pack_preview() {
     let mut state = STATE.lock().unwrap();
     if let Some(signal) = state.preview_stop_signal.take() {
@@ -76,8 +127,7 @@ pub fn play_pack_preview(app: tauri::AppHandle, pack_type: ActivePackType) {
         state.preview_stop_signal = Some(stop_signal);
     }
 
-    let audio_state = app.state::<crate::state::AudioState>();
-    let mixer = audio_state.mixer.clone();
+    let audio_state = app.state::<crate::state::AudioState>().inner().clone();
 
     thread::spawn(move || {
         let sequence = vec!["30", "35", "16", "28", "14", "57"]; // Key (A),  Enter, Backspace, Space
@@ -148,7 +198,8 @@ pub fn play_pack_preview(app: tauri::AppHandle, pack_type: ActivePackType) {
                             )
                             .amplify(volume * vol_mult)
                             .speed(speed);
-                            mixer.add(s);
+                            
+                            audio_state.mixer.lock().unwrap().add(s);
 
                             if pack_type == ActivePackType::Sapphire {
                                 let s2 = SamplesBuffer::new(
@@ -159,7 +210,7 @@ pub fn play_pack_preview(app: tauri::AppHandle, pack_type: ActivePackType) {
                                 .amplify(volume * 0.5)
                                 .speed(0.8)
                                 .delay(Duration::from_millis(15));
-                                mixer.add(s2);
+                                audio_state.mixer.lock().unwrap().add(s2);
                             }
                         }
                     }
@@ -193,10 +244,10 @@ pub fn play_pack_preview(app: tauri::AppHandle, pack_type: ActivePackType) {
                                 )
                                 .amplify(final_vol)
                                 .speed(final_pitch);
-                                mixer.add(s);
-                            }
+                            audio_state.mixer.lock().unwrap().add(s);
                         }
                     }
+                }
                 }
             }
 

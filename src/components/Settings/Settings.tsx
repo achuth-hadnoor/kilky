@@ -19,9 +19,12 @@ export function Settings() {
   const [activePack, setActivePack] = useState('Zenith');
   const [previewingPack, setPreviewingPack] = useState<string | null>(null);
   const [appVersion, setAppVersion] = useState('0.0.0');
+  const [audioDevices, setAudioDevices] = useState<string[]>([]);
+  const [selectedDevice, setSelectedDevice] = useState<string>('');
 
   useEffect(() => {
     fetchState();
+    fetchDevices();
     getVersion().then(setAppVersion);
     const unlisten = listen('state-update', () => {
       fetchState();
@@ -38,9 +41,19 @@ export function Settings() {
       setVolume(state.volume);
       setEnabled(state.enabled);
       setActivePack(state.active_pack_type);
+      setSelectedDevice(state.audio_device || '');
 
       const autostart: boolean = await invoke('is_autostart_enabled');
       setIsAutostart(autostart);
+    } catch (e) {
+      console.error(e);
+    }
+  };
+
+  const fetchDevices = async () => {
+    try {
+      const devices: string[] = await invoke('get_audio_devices');
+      setAudioDevices(devices);
     } catch (e) {
       console.error(e);
     }
@@ -76,6 +89,11 @@ export function Settings() {
   const handleAutoLaunchChange = async (checked: boolean) => {
     setIsAutostart(checked);
     await invoke('set_autostart_enabled', { enabled: checked });
+  };
+
+  const handleDeviceChange = async (deviceName: string) => {
+    setSelectedDevice(deviceName);
+    await invoke('set_audio_device', { deviceName });
   };
 
   const navItems = [
@@ -155,6 +173,23 @@ export function Settings() {
                       <p className="text-xs text-black/40 dark:text-white/40">Automatically start kliky when you log in.</p>
                     </div>
                     <Switch checked={isAutostart} onCheckedChange={handleAutoLaunchChange} />
+                  </div>
+
+                  <div className="flex flex-col gap-4 p-4 bg-black/5 dark:bg-white/5 rounded-2xl border border-black/5 dark:border-white/5">
+                    <div className="space-y-1">
+                      <Label className="text-base">Audio Output Device</Label>
+                      <p className="text-xs text-black/40 dark:text-white/40">Choose where the keyboard sounds will play.</p>
+                    </div>
+                    <select 
+                      value={selectedDevice} 
+                      onChange={(e) => handleDeviceChange(e.target.value)}
+                      className="w-full p-2.5 bg-black/10 dark:bg-white/10 rounded-xl border border-black/10 dark:border-white/10 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500/50 appearance-none cursor-pointer"
+                    >
+                      <option value="">Default System Device</option>
+                      {audioDevices.map((device) => (
+                        <option key={device} value={device}>{device}</option>
+                      ))}
+                    </select>
                   </div>
                 </div>
               </div>

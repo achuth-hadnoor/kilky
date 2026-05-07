@@ -54,6 +54,7 @@ pub struct AppState {
     pub active_pack_type: ActivePackType,
     pub active_pack: ActivePack,
     pub preview_stop_signal: Option<Arc<AtomicBool>>,
+    pub audio_device: Option<String>,
 }
 
 pub struct TrayState {
@@ -63,8 +64,10 @@ pub struct TrayState {
     pub _tray: TrayIcon<tauri::Wry>,
 }
 
+#[derive(Clone)]
 pub struct AudioState {
-    pub mixer: rodio::mixer::Mixer,
+    pub mixer: Arc<Mutex<rodio::mixer::Mixer>>,
+    pub sink: Arc<Mutex<Option<rodio::MixerDeviceSink>>>,
 }
 
 pub const DEFAULT_SOUND_DATA: &[u8] = include_bytes!("../assets/sound.ogg");
@@ -76,6 +79,7 @@ lazy_static! {
         active_pack_type: ActivePackType::Zenith,
         active_pack: ActivePack::Zenith,
         preview_stop_signal: None,
+        audio_device: None,
     }));
     pub static ref DEFAULT_SAMPLES: Vec<f32> = {
         let cursor = Cursor::new(DEFAULT_SOUND_DATA);
