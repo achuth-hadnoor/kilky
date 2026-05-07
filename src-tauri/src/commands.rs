@@ -18,6 +18,8 @@ pub struct AppStateResponse {
     pub enabled: bool,
     pub volume: f32,
     pub active_pack_type: ActivePackType,
+    pub hyper_key_enabled: bool,
+    pub shortcuts: HashMap<String, crate::state::Shortcut>,
 }
 
 #[tauri::command]
@@ -27,7 +29,33 @@ pub fn get_app_state() -> AppStateResponse {
         enabled: state.enabled,
         volume: state.volume,
         active_pack_type: state.active_pack_type.clone(),
+        hyper_key_enabled: state.hyper_key_enabled,
+        shortcuts: state.shortcuts.clone(),
     }
+}
+
+#[tauri::command]
+pub fn set_hyper_key_enabled(enabled: bool) {
+    let mut state = STATE.lock().unwrap();
+    state.hyper_key_enabled = enabled;
+    state.save();
+}
+
+#[tauri::command]
+pub fn set_recording_status(recording: bool) {
+    let mut state = STATE.lock().unwrap();
+    state.is_recording = recording;
+}
+
+#[tauri::command]
+pub fn save_shortcut(action: String, shortcut: Option<crate::state::Shortcut>) {
+    let mut state = STATE.lock().unwrap();
+    if let Some(s) = shortcut {
+        state.shortcuts.insert(action, s);
+    } else {
+        state.shortcuts.remove(&action);
+    }
+    state.save();
 }
 
 #[tauri::command]
@@ -52,6 +80,7 @@ pub fn set_sound_pack(app: AppHandle, pack_type: ActivePackType) {
             }
         });
     }
+    state.save();
     let _ = app.emit("state-update", ());
 }
 
@@ -270,6 +299,7 @@ pub fn set_volume(app: AppHandle, volume: f32) {
             }
         });
     }
+    state.save();
     let _ = app.emit("state-update", ());
 }
 
@@ -277,6 +307,7 @@ pub fn set_volume(app: AppHandle, volume: f32) {
 pub fn set_enabled(app: AppHandle, enabled: bool) {
     let mut state = STATE.lock().unwrap();
     state.enabled = enabled;
+    state.save();
     if let Some(tray) = app.try_state::<TrayState>() {
         let toggle = tray.toggle.clone();
         let _ = app.run_on_main_thread(move || {

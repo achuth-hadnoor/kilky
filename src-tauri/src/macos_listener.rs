@@ -8,7 +8,14 @@ use core_graphics::event::{
 use std::sync::mpsc::Sender;
 
 #[cfg(target_os = "macos")]
-pub fn start_macos_listener(tx: Sender<u32>) {
+#[derive(serde::Serialize, Clone, Copy)]
+pub struct KeyEvent {
+    pub code: u32,
+    pub flags: u64,
+}
+
+#[cfg(target_os = "macos")]
+pub fn start_macos_listener(tx: Sender<KeyEvent>) {
     use std::thread;
 
     thread::spawn(move || {
@@ -17,11 +24,12 @@ pub fn start_macos_listener(tx: Sender<u32>) {
             CGEventTapLocation::HID,
             CGEventTapPlacement::HeadInsertEventTap,
             CGEventTapOptions::Default,
-            vec![CGEventType::KeyDown],
+            vec![CGEventType::KeyDown, CGEventType::FlagsChanged],
             move |_proxy, _etype, event| {
                 // KeyboardEventKeycode is field 9 in the CGEvent structure
                 let code = event.get_integer_value_field(9) as u32;
-                let _ = tx.send(code);
+                let flags = event.get_flags().bits();
+                let _ = tx.send(KeyEvent { code, flags });
                 None 
             },
         ) {
