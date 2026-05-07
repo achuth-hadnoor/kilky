@@ -2,7 +2,7 @@ import { useState, useEffect, useRef } from 'react';
 import { invoke } from '@tauri-apps/api/core';
 import { listen } from '@tauri-apps/api/event';
 import { getVersion } from '@tauri-apps/api/app';
-import { Settings as SettingsIcon, Volume2, Keyboard, Info, Rocket, Play, Square } from 'lucide-react';
+import { Settings as SettingsIcon, Volume2, Keyboard, Info, Rocket, Play, Square, Zap } from 'lucide-react';
 import { Button } from "@/components/ui/button";
 import { Switch } from "@/components/ui/switch";
 import { Slider } from "@/components/ui/slider";
@@ -10,6 +10,114 @@ import { Label } from "@/components/ui/label";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { Separator } from "@/components/ui/separator";
 import './Settings.css';
+
+interface Shortcut {
+  key_code: number;
+  modifiers: number;
+  display: string;
+}
+
+interface AppState {
+  enabled: boolean;
+  volume: number;
+  active_pack_type: string;
+  audio_device: string | null;
+  shortcuts: Record<string, Shortcut>;
+  hyper_key_enabled: boolean;
+}
+
+interface ShortcutRecorderProps {
+  action: string;
+  label: string;
+  description: string;
+  recordingAction: string | null;
+  shortcuts: Record<string, Shortcut>;
+  previewShortcut: string | null;
+  onRecord: (action: string, isRecording: boolean) => void;
+  onClear: (action: string) => void;
+}
+
+const ShortcutRecorder = ({
+  action,
+  label,
+  description,
+  recordingAction,
+  shortcuts,
+  previewShortcut,
+  onRecord,
+  onClear
+}: ShortcutRecorderProps) => {
+  const isRecording = recordingAction === action;
+  const shortcut = shortcuts[action];
+
+  return (
+    <div className="flex items-center justify-between p-5 bg-black/5 dark:bg-white/5 rounded-2xl border border-black/5 dark:border-white/5 transition-all hover:bg-black/[0.07] dark:hover:bg-white/[0.07]">
+      <div className="space-y-1">
+        <Label className="text-base font-semibold">{label}</Label>
+        <p className="text-xs text-black/40 dark:text-white/40">{description}</p>
+      </div>
+      <div className="flex items-center gap-2">
+        {shortcut && !isRecording && (
+          <Button
+            variant="ghost"
+            size="sm"
+            className="h-8 px-2 text-black/20 dark:text-white/20 hover:text-red-500 transition-colors"
+            onClick={() => onClear(action)}
+          >
+            Clear
+          </Button>
+        )}
+        <Button
+          variant="outline"
+          className={`min-w-[140px] h-10 font-mono text-xs transition-all relative overflow-hidden ${isRecording ? 'border-indigo-500 bg-indigo-500/10 ring-2 ring-indigo-500/20' : 'hover:border-black/20 dark:hover:border-white/20'}`}
+          onClick={() => onRecord(action, !isRecording)}
+        >
+          {isRecording ? (
+            <div className="flex items-center gap-2">
+              <span className="w-1.5 h-1.5 rounded-full bg-indigo-500 animate-pulse" />
+              <span>{previewShortcut || 'Recording...'}</span>
+            </div>
+          ) : (
+            <div className={shortcut ? 'text-indigo-600 dark:text-indigo-400 font-bold' : 'text-black/40 dark:text-white/40'}>
+              {shortcut ? (
+                shortcut.modifiers === 15 ? (
+                  <div className="flex items-center gap-1.5">
+                    <div className="flex items-center gap-1 px-1.5 py-0.5 rounded bg-indigo-500/10 border border-indigo-500/20 text-[10px] tracking-tight uppercase">
+                      <Zap className="w-2.5 h-2.5 fill-indigo-500 text-indigo-500" />
+                      {/* <span>Hyper</span> */}
+                    </div>
+                    <span>+ {getMacosKeyName(shortcut.key_code)}</span>
+                  </div>
+                ) : (
+                  <span className="w-2.5 h-2.5 fill-indigo-500 text-indigo-500" >{shortcut.display}</span>
+                )
+              ) : (
+                'Record Shortcut'
+              )}
+            </div>
+          )}
+        </Button>
+      </div>
+    </div>
+  );
+};
+
+const getMacosKeyName = (code: number) => {
+  // Modifier keys (don't return a name for them to prevent standalone modifier shortcuts)
+  if ([54, 55, 56, 57, 58, 59, 60, 61, 62, 63].includes(code)) return null;
+
+  const map: Record<number, string> = {
+    0: 'A', 1: 'S', 2: 'D', 3: 'F', 4: 'H', 5: 'G', 6: 'Z', 7: 'X', 8: 'C', 9: 'V',
+    11: 'B', 12: 'Q', 13: 'W', 14: 'E', 15: 'R', 16: 'Y', 17: 'T', 18: '1', 19: '2',
+    20: '3', 21: '4', 22: '6', 23: '5', 24: '=', 25: '9', 26: '7', 27: '-', 28: '8',
+    29: '0', 30: ']', 31: 'O', 32: 'U', 33: '[', 34: 'I', 35: 'P', 36: 'Return', 37: 'L', 38: 'J',
+    39: "'", 40: 'K', 41: ';', 42: '\\', 43: ',', 44: '/', 45: 'N', 46: 'M', 47: '.',
+    48: 'Tab', 49: 'Space', 50: '`', 51: 'Delete', 53: 'Esc', 71: 'Clear',
+    123: '←', 124: '→', 125: '↓', 126: '↑',
+    96: 'F5', 97: 'F6', 98: 'F7', 99: 'F3', 100: 'F8', 101: 'F9', 103: 'F11', 105: 'F13', 107: 'F14', 109: 'F10', 111: 'F12', 113: 'F15',
+  };
+  return map[code] || `K${code}`;
+};
 
 export function Settings() {
   const [activeTab, setActiveTab] = useState('general');
@@ -22,12 +130,42 @@ export function Settings() {
   const [audioDevices, setAudioDevices] = useState<string[]>([]);
   const [selectedDevice, setSelectedDevice] = useState<string>('');
   const [hyperKeyEnabled, setHyperKeyEnabled] = useState(false);
-  const [shortcuts, setShortcuts] = useState<Record<string, any>>({});
+  const [shortcuts, setShortcuts] = useState<Record<string, Shortcut>>({});
   const [recordingAction, setRecordingAction] = useState<string | null>(null);
   const [previewShortcut, setPreviewShortcut] = useState<string | null>(null);
 
   const recordingActionRef = useRef<string | null>(null);
   const hyperKeyEnabledRef = useRef(false);
+
+  async function fetchState() {
+    try {
+      const state = await invoke<AppState>('get_app_state');
+      setVolume(state.volume);
+      setEnabled(state.enabled);
+      setActivePack(state.active_pack_type);
+      setSelectedDevice(state.audio_device || '');
+      setHyperKeyEnabled(state.hyper_key_enabled);
+      setShortcuts(state.shortcuts);
+
+      const autostart = await invoke<boolean>('is_autostart_enabled');
+      setIsAutostart(autostart);
+    } catch (e) {
+      console.error(e);
+    }
+  }
+
+  async function fetchDevices() {
+    try {
+      const devices: string[] = await invoke('get_audio_devices');
+      setAudioDevices(devices);
+    } catch (e) {
+      console.error(e);
+    }
+  }
+
+  async function setBackendRecording(recording: boolean) {
+    await invoke('set_recording_status', { recording });
+  }
 
   useEffect(() => {
     recordingActionRef.current = recordingAction;
@@ -45,11 +183,11 @@ export function Settings() {
       fetchState();
     });
 
-    const unlistenRawKey = listen('raw-key-event', (event: any) => {
+    const unlistenRawKey = listen<{ code: number, flags: number }>('raw-key-event', (event) => {
       const currentAction = recordingActionRef.current;
       if (currentAction) {
         const { code, flags } = event.payload;
-        
+
         // Constants for macOS flags
         const CMD_MASK = 0x100000;
         const SHIFT_MASK = 0x20000;
@@ -59,12 +197,12 @@ export function Settings() {
 
         let mods = 0;
         let displayParts = [];
-        
+
         if (flags & CMD_MASK) { mods |= 1; displayParts.push('⌘'); }
         if (flags & SHIFT_MASK) { mods |= 2; displayParts.push('⇧'); }
         if (flags & OPT_MASK) { mods |= 4; displayParts.push('⌥'); }
         if (flags & CTRL_MASK) { mods |= 8; displayParts.push('⌃'); }
-        
+
         // If Hyper Key is enabled and Caps Lock is active, override modifiers
         if (hyperKeyEnabledRef.current && (flags & CAPS_MASK)) {
           mods = 1 | 2 | 4 | 8;
@@ -73,7 +211,12 @@ export function Settings() {
 
         // Basic mapping for common keys
         const keyName = getMacosKeyName(code);
-        const currentDisplay = displayParts.join(' + ') + (keyName ? (displayParts.length > 0 ? ' + ' : '') + keyName : '');
+        let currentDisplay = displayParts.join(' + ') + (keyName ? (displayParts.length > 0 ? ' + ' : '') + keyName : '');
+
+        if (mods === 15) {
+          currentDisplay = `Hyper + ${keyName || ''}`;
+        }
+
         setPreviewShortcut(currentDisplay);
 
         if (keyName) {
@@ -95,31 +238,6 @@ export function Settings() {
     };
   }, []);
 
-  const fetchState = async () => {
-    try {
-      const state: any = await invoke('get_app_state');
-      setVolume(state.volume);
-      setEnabled(state.enabled);
-      setActivePack(state.active_pack_type);
-      setSelectedDevice(state.audio_device || '');
-      setHyperKeyEnabled(state.hyper_key_enabled);
-      setShortcuts(state.shortcuts);
-
-      const autostart: boolean = await invoke('is_autostart_enabled');
-      setIsAutostart(autostart);
-    } catch (e) {
-      console.error(e);
-    }
-  };
-
-  const fetchDevices = async () => {
-    try {
-      const devices: string[] = await invoke('get_audio_devices');
-      setAudioDevices(devices);
-    } catch (e) {
-      console.error(e);
-    }
-  };
 
   const handleVolumeUpdate = async (val: number[]) => {
     const v = val[0];
@@ -163,73 +281,8 @@ export function Settings() {
     await invoke('set_hyper_key_enabled', { enabled: checked });
   };
 
-  const setBackendRecording = async (recording: boolean) => {
-    await invoke('set_recording_status', { recording });
-  };
 
-  const getMacosKeyName = (code: number) => {
-    // Modifier keys (don't return a name for them to prevent standalone modifier shortcuts)
-    if ([54, 55, 56, 57, 58, 59, 60, 61, 62, 63].includes(code)) return null;
 
-    const map: Record<number, string> = {
-      0: 'A', 1: 'S', 2: 'D', 3: 'F', 4: 'H', 5: 'G', 6: 'Z', 7: 'X', 8: 'C', 9: 'V',
-      11: 'B', 12: 'Q', 13: 'W', 14: 'E', 15: 'R', 16: 'Y', 17: 'T', 18: '1', 19: '2',
-      20: '3', 21: '4', 22: '6', 23: '5', 24: '=', 25: '9', 26: '7', 27: '-', 28: '8',
-      29: '0', 30: ']', 31: 'O', 32: 'U', 33: '[', 34: 'I', 35: 'P', 36: 'Return', 37: 'L', 38: 'J',
-      39: "'", 40: 'K', 41: ';', 42: '\\', 43: ',', 44: '/', 45: 'N', 46: 'M', 47: '.',
-      48: 'Tab', 49: 'Space', 50: '`', 51: 'Delete', 53: 'Esc', 71: 'Clear', 
-      123: '←', 124: '→', 125: '↓', 126: '↑',
-      96: 'F5', 97: 'F6', 98: 'F7', 99: 'F3', 100: 'F8', 101: 'F9', 103: 'F11', 105: 'F13', 107: 'F14', 109: 'F10', 111: 'F12', 113: 'F15',
-    };
-    return map[code] || `K${code}`;
-  };
-
-  const ShortcutRecorder = ({ action, label, description }: { action: string, label: string, description: string }) => {
-    const isRecording = recordingAction === action;
-    const shortcut = shortcuts[action];
-
-    return (
-      <div className="flex items-center justify-between p-5 bg-black/5 dark:bg-white/5 rounded-2xl border border-black/5 dark:border-white/5 transition-all hover:bg-black/[0.07] dark:hover:bg-white/[0.07]">
-        <div className="space-y-1">
-          <Label className="text-base font-semibold">{label}</Label>
-          <p className="text-xs text-black/40 dark:text-white/40">{description}</p>
-        </div>
-        <div className="flex items-center gap-2">
-          {shortcut && !isRecording && (
-            <Button 
-              variant="ghost" 
-              size="sm"
-              className="h-8 px-2 text-black/20 dark:text-white/20 hover:text-red-500 transition-colors"
-              onClick={() => handleClearShortcut(action)}
-            >
-              Clear
-            </Button>
-          )}
-          <Button 
-            variant="outline" 
-            className={`min-w-[140px] h-10 font-mono text-xs transition-all relative overflow-hidden ${isRecording ? 'border-indigo-500 bg-indigo-500/10 ring-2 ring-indigo-500/20' : 'hover:border-black/20 dark:hover:border-white/20'}`}
-            onClick={() => {
-              const nextRecording = !isRecording;
-              setRecordingAction(nextRecording ? action : null);
-              setPreviewShortcut(null);
-              setBackendRecording(nextRecording);
-            }}
-          >
-            {isRecording ? (
-              <div className="flex items-center gap-2">
-                <span className="w-1.5 h-1.5 rounded-full bg-indigo-500 animate-pulse" />
-                <span>{previewShortcut || 'Recording...'}</span>
-              </div>
-            ) : (
-              <span className={shortcut ? 'text-indigo-600 dark:text-indigo-400 font-bold' : 'text-black/40 dark:text-white/40'}>
-                {shortcut?.display || 'Record Shortcut'}
-              </span>
-            )}
-          </Button>
-        </div>
-      </div>
-    );
-  };
 
   const handleClearShortcut = async (action: string) => {
     const newShortcuts = { ...shortcuts };
@@ -323,8 +376,8 @@ export function Settings() {
                       <Label className="text-base">Audio Output Device</Label>
                       <p className="text-xs text-black/40 dark:text-white/40">Choose where the keyboard sounds will play.</p>
                     </div>
-                    <select 
-                      value={selectedDevice} 
+                    <select
+                      value={selectedDevice}
                       onChange={(e) => handleDeviceChange(e.target.value)}
                       className="w-full p-2.5 bg-black/10 dark:bg-white/10 rounded-xl border border-black/10 dark:border-white/10 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500/50 appearance-none cursor-pointer"
                     >
@@ -410,32 +463,56 @@ export function Settings() {
 
                 <div className="space-y-4">
                   <div className="flex items-center justify-between p-4 bg-indigo-500/5 dark:bg-indigo-500/10 rounded-2xl border border-indigo-500/20">
-                    <div className="space-y-1">
-                      <Label className="text-base font-semibold">Caps Lock Hyper Key</Label>
-                      <p className="text-xs text-black/40 dark:text-white/40">Hold Caps Lock to trigger ⌘ + ⌥ + ⌃ + ⇧ instantly.</p>
+                    <div className="flex items-center gap-4">
+                      <div className="w-10 h-10 rounded-xl bg-indigo-500 flex items-center justify-center text-white shadow-lg">
+                        <Zap className="w-5 h-5 fill-current" />
+                      </div>
+                      <div className="space-y-1">
+                        <Label className="text-base font-semibold">Caps Lock Hyper Key</Label>
+                        <p className="text-xs text-black/40 dark:text-white/40">Hold Caps Lock to trigger ⌘ + ⌥ + ⌃ + ⇧ instantly.</p>
+                      </div>
                     </div>
                     <Switch checked={hyperKeyEnabled} onCheckedChange={handleHyperKeyToggle} />
                   </div>
 
-                  <ShortcutRecorder 
-                    action="toggle_engine" 
-                    label="Toggle Engine" 
+                  <ShortcutRecorder
+                    action="toggle_engine"
+                    label="Toggle Engine"
                     description="Instantly enable or disable all keyboard sounds."
+                    recordingAction={recordingAction}
+                    shortcuts={shortcuts}
+                    previewShortcut={previewShortcut}
+                    onRecord={(action, next) => {
+                      setRecordingAction(next ? action : null);
+                      setPreviewShortcut(null);
+                      setBackendRecording(next);
+                    }}
+                    onClear={handleClearShortcut}
                   />
 
                   <div className="opacity-40 grayscale pointer-events-none">
-                    <ShortcutRecorder 
-                      action="volume_up" 
-                      label="Volume Up" 
+                    <ShortcutRecorder
+                      action="volume_up"
+                      label="Volume Up"
                       description="Increase engine volume by 5%."
+                      recordingAction={recordingAction}
+                      shortcuts={shortcuts}
+                      previewShortcut={previewShortcut}
+                      onRecord={() => { }}
+                      onClear={() => { }}
                     />
                   </div>
 
                   <div className="opacity-40 grayscale pointer-events-none">
-                    <ShortcutRecorder 
-                      action="volume_down" 
-                      label="Volume Down" 
+                    <ShortcutRecorder
+                      action="volume_down"
+                      label="Volume Down"
                       description="Decrease engine volume by 5%."
+                      recordingAction={recordingAction}
+                      shortcuts={shortcuts}
+                      previewShortcut={previewShortcut}
+                      onRecord={() => { }}
+                      onClear={() => { }}
                     />
                   </div>
                 </div>
