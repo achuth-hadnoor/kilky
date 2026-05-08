@@ -9,6 +9,8 @@ interface AdvancedSectionProps {
   handleBufferSizeChange: (size: number) => void;
   hardwareAcceleration: boolean;
   handleHardwareAccelerationToggle: (enabled: boolean) => void;
+  speedVolumeScaling: boolean;
+  handleSpeedScalingChange: (enabled: boolean) => void;
   handleResetSettings: () => void;
 }
 
@@ -17,6 +19,9 @@ export function AdvancedSection({
   handleBufferSizeChange,
   hardwareAcceleration,
   handleHardwareAccelerationToggle,
+  // Speed Scaling hidden for v2
+  // speedVolumeScaling,
+  // handleSpeedScalingChange,
   handleResetSettings,
 }: AdvancedSectionProps) {
   const [isChanging, setIsChanging] = useState(false);
@@ -30,6 +35,19 @@ export function AdvancedSection({
       </div>
 
       <div className="space-y-4">
+        {/* Speed-based Volume hidden for future release
+        <div className="flex items-center justify-between p-4 bg-black/5 dark:bg-white/5 rounded-2xl border border-black/5 dark:border-white/5">
+          <div className="space-y-1">
+            <Label className="text-base">Speed-based Volume</Label>
+            <p className="text-xs text-black/40 dark:text-white/40">Dynamically increase volume as you type faster.</p>
+          </div>
+          <Switch
+            checked={speedVolumeScaling}
+            onCheckedChange={handleSpeedScalingChange}
+          />
+        </div>
+        */}
+
         <div className="flex items-center justify-between p-4 bg-black/5 dark:bg-white/5 rounded-2xl border border-black/5 dark:border-white/5">
           <div className="space-y-1">
             <Label className="text-base">Hardware Acceleration</Label>

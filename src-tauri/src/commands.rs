@@ -637,3 +637,11 @@ pub fn reset_settings(app: tauri::AppHandle) {
     state.save();
     let _ = app.emit("state-update", ());
 }
+
+#[tauri::command]
+pub fn set_speed_volume_scaling(app: tauri::AppHandle, enabled: bool) {
+    let mut state = STATE.lock().unwrap();
+    state.speed_volume_scaling = enabled;
+    state.save();
+    let _ = app.emit("state-update", ());
+}

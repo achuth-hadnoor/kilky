@@ -29,6 +29,7 @@ interface AppState {
   hardware_acceleration: boolean;
   total_keystrokes: number;
   session_keystrokes: number;
+  speed_volume_scaling: boolean;
 }
 
 export function Settings() {
@@ -50,6 +51,7 @@ export function Settings() {
   const [hardwareAcceleration, setHardwareAcceleration] = useState(true);
   const [totalKeystrokes, setTotalKeystrokes] = useState(0);
   const [sessionKeystrokes, setSessionKeystrokes] = useState(0);
+  const [speedVolumeScaling, setSpeedVolumeScaling] = useState(true);
 
   const recordingActionRef = useRef<string | null>(null);
 
@@ -70,6 +72,7 @@ export function Settings() {
       setHardwareAcceleration(state.hardware_acceleration);
       setTotalKeystrokes(state.total_keystrokes);
       setSessionKeystrokes(state.session_keystrokes);
+      setSpeedVolumeScaling(state.speed_volume_scaling);
     } catch (e) {
       console.error(e);
     }
@@ -168,6 +171,11 @@ export function Settings() {
     await invoke('set_hardware_acceleration', { enabled });
   };
 
+  const handleSpeedScalingChange = async (enabled: boolean) => {
+    setSpeedVolumeScaling(enabled);
+    await invoke('set_speed_volume_scaling', { enabled });
+  };
+
   const handleResetSettings = async () => {
     await invoke('reset_settings');
     await fetchState();
@@ -264,6 +272,8 @@ export function Settings() {
                 handleBufferSizeChange={handleBufferSizeChange}
                 hardwareAcceleration={hardwareAcceleration}
                 handleHardwareAccelerationToggle={handleHardwareAccelerationToggle}
+                speedVolumeScaling={speedVolumeScaling}
+                handleSpeedScalingChange={handleSpeedScalingChange}
                 handleResetSettings={handleResetSettings}
               />
             )}

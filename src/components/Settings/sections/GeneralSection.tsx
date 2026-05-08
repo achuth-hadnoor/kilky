@@ -1,7 +1,7 @@
 import { Label } from "@/components/ui/label";
 import { Switch } from "@/components/ui/switch";
 import { Button } from "@/components/ui/button";
-import { Rocket, Activity, Keyboard } from 'lucide-react';
+import { Rocket } from 'lucide-react';
 import { invoke } from '@tauri-apps/api/core';
 
 interface GeneralSectionProps {
@@ -24,8 +24,9 @@ export function GeneralSection({
   selectedDevice,
   handleDeviceChange,
   audioDevices,
-  totalKeystrokes,
-  sessionKeystrokes,
+  // Statistics hidden for v2
+  // totalKeystrokes,
+  // sessionKeystrokes,
 }: GeneralSectionProps) {
   return (
     <div className="space-y-8">
@@ -34,6 +35,7 @@ export function GeneralSection({
         <p className="text-sm text-black/40 dark:text-white/40">Configure how kliky behaves on your system.</p>
       </div>
 
+      {/* Keystroke Mileage hidden for future release
       <div className="grid grid-cols-2 gap-4">
         <div className="p-4 bg-black/5 dark:bg-white/5 rounded-2xl border border-black/5 dark:border-white/5 space-y-1">
           <div className="flex items-center gap-2 text-black/40 dark:text-white/40 mb-1">
@@ -52,6 +54,7 @@ export function GeneralSection({
           <p className="text-[10px] text-black/30 dark:text-white/30">Keystrokes this session</p>
         </div>
       </div>
+      */}
 
       <div className="space-y-6">
         <div className="flex items-center justify-between p-4 bg-black/5 dark:bg-white/5 rounded-2xl border border-black/5 dark:border-white/5">

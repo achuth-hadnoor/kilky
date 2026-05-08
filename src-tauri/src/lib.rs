@@ -15,7 +15,7 @@ use tauri::{Manager, Emitter};
 use std::num::NonZero;
 use std::thread;
 use std::sync::{mpsc, Arc, Mutex};
-use std::time::Duration;
+use std::time::{Duration, Instant};
 use rand::{rng, RngExt};
 use crate::audio::{get_default_config, get_key_id, get_key_pan};
 use crate::state::{STATE, DEFAULT_SAMPLES, ActivePack, KeyEvent};
@@ -66,7 +66,8 @@ pub fn run() {
             commands::get_platform,
             commands::set_buffer_size,
             commands::set_hardware_acceleration,
-            commands::reset_settings
+            commands::reset_settings,
+            commands::set_speed_volume_scaling
         ])
         .on_window_event(|window, event| {
             if let tauri::WindowEvent::CloseRequested { api, .. } = event {
@@ -156,6 +157,9 @@ pub fn run() {
                 // Spatial setup: Listener at origin, ears at -1.0 and 1.0 on X axis.
                 let left_ear = [-1.0, 0.0, 0.0];
                 let right_ear = [1.0, 0.0, 0.0];
+                
+                let mut last_press_time = Instant::now();
+                let mut current_speed_factor = 1.0f32;
 
                 while let Ok(key_event) = rx.recv() {
                     let keycode_raw = key_event.code;
@@ -165,7 +169,7 @@ pub fn run() {
                     let key_id = get_key_id(keycode_raw);
                     let pan = get_key_pan(key_id);
 
-                    let (action_to_trigger, is_enabled, active_pack, volume) = {
+                    let (action_to_trigger, is_enabled, active_pack, volume, speed_scaling) = {
                         let mut state = match STATE.lock() {
                             Ok(s) => s,
                             Err(_) => continue,
@@ -175,8 +179,6 @@ pub fn run() {
                         if is_down {
                             state.total_keystrokes += 1;
                             state.session_keystrokes += 1;
-                            
-                            // Autosave every 100 keystrokes
                             if state.total_keystrokes % 100 == 0 {
                                 state.save();
                             }
@@ -184,14 +186,12 @@ pub fn run() {
 
                         #[cfg(target_os = "macos")]
                         {
-                            // Constants for macOS flags
                             const CMD_MASK: u64 = 0x100000;
                             const SHIFT_MASK: u64 = 0x20000;
                             const OPT_MASK: u64 = 0x80000;
                             const CTRL_MASK: u64 = 0x40000;
                             const CAPS_MASK: u64 = 0x10000;
 
-                            // Shortcut Detection
                             let mut current_mods = 0u32;
                             if flags & CMD_MASK != 0 { current_mods |= 1; }
                             if flags & SHIFT_MASK != 0 { current_mods |= 2; }
@@ -211,12 +211,11 @@ pub fn run() {
                                     }
                                 }
                             }
-                            (found_action, state.enabled, state.active_pack.clone(), state.volume)
+                            (found_action, state.enabled, state.active_pack.clone(), state.volume, state.speed_volume_scaling)
                         }
 
                         #[cfg(not(target_os = "macos"))]
                         {
-                             // Flags sent by generic_listener for Windows/Linux
                             const WIN_CMD_MASK: u64 = 0x1;
                             const WIN_SHIFT_MASK: u64 = 0x2;
                             const WIN_ALT_MASK: u64 = 0x4;
@@ -237,11 +236,10 @@ pub fn run() {
                                     }
                                 }
                             }
-                            (found_action, state.enabled, state.active_pack.clone(), state.volume)
+                            (found_action, state.enabled, state.active_pack.clone(), state.volume, state.speed_volume_scaling)
                         }
                     };
 
-                    // Handle Recording Mode (emitted to frontend for UI)
                     let _ = app_handle_clone.emit("raw-key-event", key_event);
 
                     if let Some(action) = action_to_trigger {
@@ -268,7 +266,6 @@ pub fn run() {
 
                     if !is_enabled { continue; }
                     
-                    // Skip modifier keys for sound playback (based on macOS codes for consistency in identifier)
                     if keycode_raw == 54 || keycode_raw == 55 || keycode_raw == 56 || keycode_raw == 57 || keycode_raw == 58 || keycode_raw == 59 || keycode_raw == 60 || keycode_raw == 61 || keycode_raw == 62 || keycode_raw == 63 {
                         continue;
                     }
@@ -284,10 +281,32 @@ pub fn run() {
                     let mut speed: f32 = speed_base * r.random_range(0.98..1.02);
                     let mut vol_var: f32 = r.random_range(0.95..1.05);
 
-                    // Adjust for KeyUp
-                    if !is_down {
-                        vol_var *= 0.45; // Quieter
-                        speed *= 1.25;  // Sharper/Shorter
+                    // Speed-based Volume Scaling
+                    if is_down && speed_scaling {
+                        let now = Instant::now();
+                        let duration = now.duration_since(last_press_time).as_millis();
+                        last_press_time = now;
+
+                        // Calculate speed factor: 1.0 (slow) up to 1.5 (fast)
+                        // If duration < 100ms, max boost. If > 500ms, no boost.
+                        let boost = if duration < 100 {
+                            0.5
+                        } else if duration > 500 {
+                            0.0
+                        } else {
+                            (500.0 - duration as f32) / 400.0 * 0.5
+                        };
+                        
+                        // Smoothly transition current_speed_factor
+                        current_speed_factor = current_speed_factor * 0.7 + (1.0 + boost) * 0.3;
+                        vol_var *= current_speed_factor;
+                    } else if !is_down {
+                        vol_var *= 0.45;
+                        speed *= 1.25;
+                        // KeyUp also benefits from current speed factor but at a reduced rate
+                        if speed_scaling {
+                            vol_var *= (current_speed_factor + 1.0) / 2.0;
+                        }
                     }
 
                     let emitter = [pan, 0.0, 0.05];

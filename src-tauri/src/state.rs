@@ -74,6 +74,7 @@ pub struct PersistentConfig {
     pub buffer_size: u32,
     pub hardware_acceleration: bool,
     pub total_keystrokes: u64,
+    pub speed_volume_scaling: bool,
 }
 
 pub struct AppState {
@@ -91,6 +92,7 @@ pub struct AppState {
     pub hardware_acceleration: bool,
     pub total_keystrokes: u64,
     pub session_keystrokes: u64,
+    pub speed_volume_scaling: bool,
 }
 
 impl AppState {
@@ -126,6 +128,7 @@ impl AppState {
             hardware_acceleration: config.hardware_acceleration,
             total_keystrokes: config.total_keystrokes,
             session_keystrokes: 0,
+            speed_volume_scaling: config.speed_volume_scaling,
         }
     }
 
@@ -148,6 +151,7 @@ impl AppState {
             buffer_size: 128,
             hardware_acceleration: true,
             total_keystrokes: 0,
+            speed_volume_scaling: true,
         }
     }
 
@@ -164,6 +168,7 @@ impl AppState {
             buffer_size: self.buffer_size,
             hardware_acceleration: self.hardware_acceleration,
             total_keystrokes: self.total_keystrokes,
+            speed_volume_scaling: self.speed_volume_scaling,
         };
         if let Ok(file) = std::fs::File::create(path) {
             let _ = serde_json::to_writer_pretty(file, &config);
