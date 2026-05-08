@@ -63,6 +63,7 @@ pub struct PersistentConfig {
     pub audio_device: Option<String>,
     pub shortcuts: HashMap<String, Shortcut>,
     pub hyper_key_enabled: bool,
+    pub has_onboarded: bool,
 }
 
 pub struct AppState {
@@ -75,6 +76,7 @@ pub struct AppState {
     pub shortcuts: HashMap<String, Shortcut>,
     pub hyper_key_enabled: bool,
     pub is_recording: bool,
+    pub has_onboarded: bool,
 }
 
 impl AppState {
@@ -105,6 +107,7 @@ impl AppState {
             shortcuts: config.shortcuts,
             hyper_key_enabled: config.hyper_key_enabled,
             is_recording: false,
+            has_onboarded: config.has_onboarded,
         }
     }
 
@@ -123,6 +126,7 @@ impl AppState {
             audio_device: None,
             shortcuts,
             hyper_key_enabled: true,
+            has_onboarded: false,
         }
     }
 
@@ -135,6 +139,7 @@ impl AppState {
             audio_device: self.audio_device.clone(),
             shortcuts: self.shortcuts.clone(),
             hyper_key_enabled: self.hyper_key_enabled,
+            has_onboarded: self.has_onboarded,
         };
         if let Ok(file) = std::fs::File::create(path) {
             let _ = serde_json::to_writer_pretty(file, &config);

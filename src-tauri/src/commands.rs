@@ -20,6 +20,7 @@ pub struct AppStateResponse {
     pub active_pack_type: ActivePackType,
     pub hyper_key_enabled: bool,
     pub shortcuts: HashMap<String, crate::state::Shortcut>,
+    pub has_onboarded: bool,
 }
 
 #[tauri::command]
@@ -31,6 +32,7 @@ pub fn get_app_state() -> AppStateResponse {
         active_pack_type: state.active_pack_type.clone(),
         hyper_key_enabled: state.hyper_key_enabled,
         shortcuts: state.shortcuts.clone(),
+        has_onboarded: state.has_onboarded,
     }
 }
 
@@ -480,4 +482,36 @@ pub async fn create_custom_pack(dest: String, config: PackConfig) -> Result<(), 
     .map_err(|e| e.to_string())?;
 
     Ok(())
+}
+
+#[tauri::command]
+pub fn request_permissions() -> bool {
+    #[cfg(target_os = "macos")]
+    {
+        macos_accessibility_client::accessibility::application_is_trusted_with_prompt()
+    }
+    #[cfg(not(target_os = "macos"))]
+    {
+        true
+    }
+}
+
+#[tauri::command]
+pub fn check_permissions() -> bool {
+    #[cfg(target_os = "macos")]
+    {
+        macos_accessibility_client::accessibility::application_is_trusted()
+    }
+    #[cfg(not(target_os = "macos"))]
+    {
+        true
+    }
+}
+
+#[tauri::command]
+pub fn complete_onboarding(app: AppHandle) {
+    let mut state = STATE.lock().unwrap();
+    state.has_onboarded = true;
+    state.save();
+    let _ = app.emit("state-update", ());
 }

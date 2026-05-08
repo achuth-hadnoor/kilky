@@ -52,7 +52,10 @@ pub fn run() {
             commands::set_audio_device,
             commands::set_hyper_key_enabled,
             commands::save_shortcut,
-            commands::set_recording_status
+            commands::set_recording_status,
+            commands::request_permissions,
+            commands::complete_onboarding,
+            commands::check_permissions
         ])
         .on_window_event(|window, event| {
             if let tauri::WindowEvent::CloseRequested { api, .. } = event {
@@ -68,11 +71,22 @@ pub fn run() {
             #[cfg(target_os = "macos")]
             {
                 app.set_activation_policy(tauri::ActivationPolicy::Accessory);
-                if !macos_accessibility_client::accessibility::application_is_trusted() {
-                    println!("Accessibility permissions missing! Prompting user...");
-                    let _ = macos_accessibility_client::accessibility::application_is_trusted_with_prompt();
+                
+                let has_onboarded = {
+                    let state = STATE.lock().unwrap();
+                    state.has_onboarded
+                };
+
+                if !has_onboarded {
+                    println!("Showing onboarding window...");
+                    crate::window::spawn_window(app.handle(), crate::window::WindowType::Onboarding);
                 } else {
-                    println!("Accessibility permissions confirmed.");
+                    if !macos_accessibility_client::accessibility::application_is_trusted() {
+                        println!("Accessibility permissions missing! Prompting user...");
+                        let _ = macos_accessibility_client::accessibility::application_is_trusted_with_prompt();
+                    } else {
+                        println!("Accessibility permissions confirmed.");
+                    }
                 }
             }
 

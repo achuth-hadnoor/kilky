@@ -19,8 +19,8 @@ pub fn spawn_window(handle: &AppHandle, window_type: WindowType) {
             "onboarding",
             "Welcome to Kliky",
             WebviewUrl::App("index.html#onboarding".into()),
+            400.0,
             600.0,
-            500.0,
             false,
         ),
     };
