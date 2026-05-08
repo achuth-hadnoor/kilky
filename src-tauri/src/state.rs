@@ -73,6 +73,7 @@ pub struct PersistentConfig {
     pub has_onboarded: bool,
     pub buffer_size: u32,
     pub hardware_acceleration: bool,
+    pub total_keystrokes: u64,
 }
 
 pub struct AppState {
@@ -88,6 +89,8 @@ pub struct AppState {
     pub has_onboarded: bool,
     pub buffer_size: u32,
     pub hardware_acceleration: bool,
+    pub total_keystrokes: u64,
+    pub session_keystrokes: u64,
 }
 
 impl AppState {
@@ -112,7 +115,7 @@ impl AppState {
             enabled: config.enabled,
             volume: config.volume,
             active_pack_type: config.active_pack_type,
-            active_pack: ActivePack::Zenith, // Will be set properly in lib.rs or via set_sound_pack
+            active_pack: ActivePack::Zenith, 
             preview_stop_signal: None,
             audio_device: config.audio_device,
             shortcuts: config.shortcuts,
@@ -121,6 +124,8 @@ impl AppState {
             has_onboarded: config.has_onboarded,
             buffer_size: config.buffer_size,
             hardware_acceleration: config.hardware_acceleration,
+            total_keystrokes: config.total_keystrokes,
+            session_keystrokes: 0,
         }
     }
 
@@ -142,6 +147,7 @@ impl AppState {
             has_onboarded: false,
             buffer_size: 128,
             hardware_acceleration: true,
+            total_keystrokes: 0,
         }
     }
 
@@ -157,6 +163,7 @@ impl AppState {
             has_onboarded: self.has_onboarded,
             buffer_size: self.buffer_size,
             hardware_acceleration: self.hardware_acceleration,
+            total_keystrokes: self.total_keystrokes,
         };
         if let Ok(file) = std::fs::File::create(path) {
             let _ = serde_json::to_writer_pretty(file, &config);

@@ -1,7 +1,7 @@
 import { Label } from "@/components/ui/label";
 import { Switch } from "@/components/ui/switch";
 import { Button } from "@/components/ui/button";
-import { Rocket } from 'lucide-react';
+import { Rocket, Activity, Keyboard } from 'lucide-react';
 import { invoke } from '@tauri-apps/api/core';
 
 interface GeneralSectionProps {
@@ -12,6 +12,8 @@ interface GeneralSectionProps {
   selectedDevice: string;
   handleDeviceChange: (device: string) => void;
   audioDevices: string[];
+  totalKeystrokes: number;
+  sessionKeystrokes: number;
 }
 
 export function GeneralSection({
@@ -22,12 +24,33 @@ export function GeneralSection({
   selectedDevice,
   handleDeviceChange,
   audioDevices,
+  totalKeystrokes,
+  sessionKeystrokes,
 }: GeneralSectionProps) {
   return (
     <div className="space-y-8">
       <div>
         <h3 className="text-2xl font-semibold mb-2">General Settings</h3>
         <p className="text-sm text-black/40 dark:text-white/40">Configure how kliky behaves on your system.</p>
+      </div>
+
+      <div className="grid grid-cols-2 gap-4">
+        <div className="p-4 bg-black/5 dark:bg-white/5 rounded-2xl border border-black/5 dark:border-white/5 space-y-1">
+          <div className="flex items-center gap-2 text-black/40 dark:text-white/40 mb-1">
+            <Activity className="w-3.5 h-3.5" />
+            <span className="text-[10px] uppercase font-bold tracking-wider">Total Mileage</span>
+          </div>
+          <p className="text-2xl font-semibold tabular-nums">{totalKeystrokes.toLocaleString()}</p>
+          <p className="text-[10px] text-black/30 dark:text-white/30">Keystrokes since install</p>
+        </div>
+        <div className="p-4 bg-black/5 dark:bg-white/5 rounded-2xl border border-black/5 dark:border-white/5 space-y-1">
+          <div className="flex items-center gap-2 text-black/40 dark:text-white/40 mb-1">
+            <Keyboard className="w-3.5 h-3.5" />
+            <span className="text-[10px] uppercase font-bold tracking-wider">Session</span>
+          </div>
+          <p className="text-2xl font-semibold tabular-nums">{sessionKeystrokes.toLocaleString()}</p>
+          <p className="text-[10px] text-black/30 dark:text-white/30">Keystrokes this session</p>
+        </div>
       </div>
 
       <div className="space-y-6">

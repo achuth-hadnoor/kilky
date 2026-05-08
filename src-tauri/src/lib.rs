@@ -166,10 +166,21 @@ pub fn run() {
                     let pan = get_key_pan(key_id);
 
                     let (action_to_trigger, is_enabled, active_pack, volume) = {
-                        let state = match STATE.lock() {
+                        let mut state = match STATE.lock() {
                             Ok(s) => s,
                             Err(_) => continue,
                         };
+
+                        // Analytics Tracking
+                        if is_down {
+                            state.total_keystrokes += 1;
+                            state.session_keystrokes += 1;
+                            
+                            // Autosave every 100 keystrokes
+                            if state.total_keystrokes % 100 == 0 {
+                                state.save();
+                            }
+                        }
 
                         #[cfg(target_os = "macos")]
                         {
@@ -293,7 +304,6 @@ pub fn run() {
                                     
                                     match &active_pack {
                                         ActivePack::Sapphire => {
-                                            // Sapphire up sounds are even more subtle
                                             let up_mult = if is_down { 1.0 } else { 0.6 };
                                             let s1 = SamplesBuffer::new(NonZero::new(1).unwrap(), NonZero::new(44100).unwrap(), slice)
                                                 .amplify(final_volume * up_mult)
@@ -320,12 +330,11 @@ pub fn run() {
                                             worker_audio_state.mixer.lock().unwrap().add(sp);
                                         }
                                         _ => {
-                                            let mut s = SamplesBuffer::new(NonZero::new(1).unwrap(), NonZero::new(44100).unwrap(), slice)
+                                            let s = SamplesBuffer::new(NonZero::new(1).unwrap(), NonZero::new(44100).unwrap(), slice)
                                                 .amplify(final_volume)
                                                 .speed(speed);
                                             
                                             if !is_down {
-                                                // Take only the first part of the sample for release
                                                 let sp = Spatial::new(s.take_duration(Duration::from_millis(40)), emitter, left_ear, right_ear);
                                                 worker_audio_state.mixer.lock().unwrap().add(sp);
                                             } else {

@@ -23,6 +23,8 @@ pub struct AppStateResponse {
     pub has_onboarded: bool,
     pub buffer_size: u32,
     pub hardware_acceleration: bool,
+    pub total_keystrokes: u64,
+    pub session_keystrokes: u64,
 }
 
 #[tauri::command]
@@ -37,6 +39,8 @@ pub fn get_app_state() -> AppStateResponse {
         has_onboarded: state.has_onboarded,
         buffer_size: state.buffer_size,
         hardware_acceleration: state.hardware_acceleration,
+        total_keystrokes: state.total_keystrokes,
+        session_keystrokes: state.session_keystrokes,
     }
 }
 

@@ -27,6 +27,8 @@ interface AppState {
   hyper_key_enabled: boolean;
   buffer_size: number;
   hardware_acceleration: boolean;
+  total_keystrokes: number;
+  session_keystrokes: number;
 }
 
 export function Settings() {
@@ -46,6 +48,8 @@ export function Settings() {
   const [platformName, setPlatformName] = useState<string>('macos');
   const [bufferSize, setBufferSize] = useState(128);
   const [hardwareAcceleration, setHardwareAcceleration] = useState(true);
+  const [totalKeystrokes, setTotalKeystrokes] = useState(0);
+  const [sessionKeystrokes, setSessionKeystrokes] = useState(0);
 
   const recordingActionRef = useRef<string | null>(null);
 
@@ -64,6 +68,8 @@ export function Settings() {
 
       setBufferSize(state.buffer_size);
       setHardwareAcceleration(state.hardware_acceleration);
+      setTotalKeystrokes(state.total_keystrokes);
+      setSessionKeystrokes(state.session_keystrokes);
     } catch (e) {
       console.error(e);
     }
@@ -223,6 +229,8 @@ export function Settings() {
                 selectedDevice={selectedDevice}
                 handleDeviceChange={handleDeviceChange}
                 audioDevices={audioDevices}
+                totalKeystrokes={totalKeystrokes}
+                sessionKeystrokes={sessionKeystrokes}
               />
             )}
 
