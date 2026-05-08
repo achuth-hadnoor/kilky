@@ -184,7 +184,13 @@ export function Settings() {
       }
     } catch (e) {
       console.error(e);
-      await message('Failed to check for updates. Please check your internet connection.', { title: 'Update Error', kind: 'error' });
+      const errorMsg = e instanceof Error ? e.message : String(e);
+      
+      if (errorMsg.includes("valid release JSON")) {
+        await message(`No updates found.\n\nNote: In development mode, this error often means that no GitHub releases have been created yet at the configured URL.`, { title: 'Check Updates', kind: 'info' });
+      } else {
+        await message(`Failed to check for updates: ${errorMsg}\n\nPlease check your internet connection or try again later.`, { title: 'Update Error', kind: 'error' });
+      }
     }
   };
 
@@ -198,17 +204,17 @@ export function Settings() {
 
   return (
     <div className="flex h-screen w-screen bg-transparent overflow-hidden p-2 gap-4 text-black dark:text-white duration-500 font-sans" data-tauri-drag-region="true">
-      <Sidebar 
-        navItems={navItems} 
-        activeTab={activeTab} 
-        setActiveTab={setActiveTab} 
+      <Sidebar
+        navItems={navItems}
+        activeTab={activeTab}
+        setActiveTab={setActiveTab}
       />
 
       <main className="flex-1 h-full bg-white/5 dark:bg-black/10 backdrop-blur-md rounded-3xl border border-black/5 dark:border-white/5 overflow-hidden flex flex-col min-h-0">
         <ScrollArea className="flex-1 overflow-y-auto">
           <div className="max-w-xl mx-auto px-8 py-10 animate-in fade-in slide-in-from-bottom-4 duration-500 select-none">
             {activeTab === 'general' && (
-              <GeneralSection 
+              <GeneralSection
                 enabled={enabled}
                 handleToggle={handleToggle}
                 isAutostart={isAutostart}
@@ -220,7 +226,7 @@ export function Settings() {
             )}
 
             {activeTab === 'audio' && (
-              <AudioSection 
+              <AudioSection
                 volume={volume}
                 handleVolumeUpdate={handleVolumeUpdate}
                 activePack={activePack}
@@ -231,7 +237,7 @@ export function Settings() {
             )}
 
             {activeTab === 'hotkeys' && (
-              <HotkeysSection 
+              <HotkeysSection
                 recordingAction={recordingAction}
                 shortcuts={shortcuts}
                 previewShortcut={previewShortcut}
@@ -244,7 +250,7 @@ export function Settings() {
             )}
 
             {activeTab === 'advanced' && (
-              <AdvancedSection 
+              <AdvancedSection
                 bufferSize={bufferSize}
                 handleBufferSizeChange={handleBufferSizeChange}
                 hardwareAcceleration={hardwareAcceleration}
@@ -254,7 +260,7 @@ export function Settings() {
             )}
 
             {activeTab === 'about' && (
-              <AboutSection 
+              <AboutSection
                 appVersion={appVersion}
                 platformName={platformName}
                 handleCheckUpdates={handleCheckUpdates}
@@ -264,7 +270,7 @@ export function Settings() {
         </ScrollArea>
 
         <div className="p-4 bg-black/[0.02] dark:bg-white/[0.02] border-t border-black/5 dark:border-white/5 flex justify-between items-center px-8">
-          <span className="text-[10px] text-black/20 dark:text-white/20 font-medium uppercase tracking-[0.2em]">Build {appVersion} - Premium</span>
+          <span className="text-[10px] text-black/20 dark:text-white/20 font-medium uppercase tracking-[0.2em]">Build {appVersion}</span>
           <div className="flex gap-4">
             <span className="text-[10px] text-black/40 dark:text-white/40 hover:text-black dark:hover:text-white cursor-pointer">Documentation</span>
             <span className="text-[10px] text-black/40 dark:text-white/40 hover:text-black dark:hover:text-white cursor-pointer">Support</span>
