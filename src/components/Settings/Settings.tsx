@@ -124,9 +124,10 @@ export function Settings() {
     await invoke('set_sound_pack', { packType });
   };
 
-  const handlePlayPreview = async (pack: any) => {
-    setPreviewingPack(pack.id);
-    await invoke('play_pack_preview', { packType: pack.id });
+  const handlePlayPreview = async (e: React.MouseEvent, id: string) => {
+    e.stopPropagation();
+    setPreviewingPack(id);
+    await invoke('play_pack_preview', { packType: id });
   };
 
   const handleDeviceChange = async (deviceName: string) => {

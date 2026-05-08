@@ -7,7 +7,7 @@ interface AudioSectionProps {
   activePack: string;
   previewingPack: string | null;
   handlePackChange: (pack: string) => void;
-  handlePlayPreview: (pack: any) => void;
+  handlePlayPreview: (e: React.MouseEvent, id: string) => void;
 }
 
 export function AudioSection({
