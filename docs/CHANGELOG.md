@@ -26,10 +26,37 @@ All notable changes to the Kliky project are documented in this file.
 - **Unified Logging**: Integrated `tauri-plugin-log` to capture and store Rust and Frontend logs in a centralized system.
 - **Tauri v2 Stability**: Resolved several compilation and runtime issues related to the Tauri v2 process and updater plugins.
 
-### 🛠️ Documentation & DX
-- **Docs Folder**: Centralized project documentation in a new `docs/` directory.
-- **Product Roadmap**: Defined a 3-phase roadmap for Kliky's evolution.
-- **State Audit**: Performed a detailed competitive analysis and feature audit.
+---
+
+## 🌳 Git Commit Tree
+```text
+* 1e10059 (HEAD -> main) docs: initialize project changelog
+* 532903b feat: integrate unified logging (tauri-plugin-log)
+* d54cab9 feat: migrate state & analytics to SQLite database
+* a070867 docs: add system audit report (v1.1)
+* 5f7b5ad feat: implement speed-based volume scaling
+* 700d0a2 feat: track and display keystroke mileage
+* 5682ab1 feat: implement KeyUp (release) sounds
+* e3eafac feat: implement Spatial Audio (Stereo Panning)
+* f108750 feat: add roadmap and audio downmixing
+* e40fcc5 feat: implement key-specific audio tuning
+* d47e7dc refactor: simplify UI layout and footer
+* 3c9294c fix: adjust onboarding window settings
+* 552c15f feat: improve update handling & settings UI
+* ffbccd1 fix: update tauri relaunch permissions
+* 78188b9 feat: add buffer size & hardware acceleration
+* 3c31a5d refactor: extract UI components and context
+* 40cae39 feat: implement modular settings UI
+* 51f48f4 feat: restrict tray events & remove hyperkey toggle
+* 7fa5400 feat: add dynamic tray icon support
+* 2422be4 feat: cross-platform keyboard listener (Windows)
+* a14966b new version
+* 782a4d3 feat: manual keyboard listener initialization
+* 1df5923 refactor: window management capabilities
+* 76e587e feat: implement 3-step onboarding flow
+* 015264d feat: add custom shortcut system
+* f1bfe82 (tag: v0.1.0) feat: initialize project structure
+```
 
 ---
 *Built with ❤️ for mechanical keyboard enthusiasts.*
