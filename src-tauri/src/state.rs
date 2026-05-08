@@ -8,6 +8,12 @@ use std::sync::atomic::AtomicBool;
 use tauri::menu::CheckMenuItem;
 use tauri::tray::TrayIcon;
 
+#[derive(Serialize, Deserialize, Clone, Copy, Debug)]
+pub struct KeyEvent {
+    pub code: u32,
+    pub flags: u64,
+}
+
 #[derive(Clone, Serialize, Deserialize)]
 pub struct KeySettings {
     pub pitch: f32,

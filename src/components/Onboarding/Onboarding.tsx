@@ -149,6 +149,7 @@ export function Onboarding() {
 
   const requestPermission = async () => {
     await invoke("request_permissions");
+    await invoke("start_keyboard_listener");
   };
 
   const handleAutoLaunchChange = async (checked: boolean) => {
@@ -242,7 +243,7 @@ export function Onboarding() {
           {[1, 2, 3].map((s) => (
             <div
               key={s}
-              className={`h-1.5 rounded-full transition-all duration-300 ${step === s ? "w-8 bg-black dark:bg-white" : "w-2 bg-black/10 dark:bg-white/10"
+              className={`h-1.5 rounded-full   duration-300 ${step === s ? "w-8 bg-black dark:bg-white" : "w-2 bg-black/10 dark:bg-white/10"
                 }`}
             />
           ))}

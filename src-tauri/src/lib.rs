@@ -16,8 +16,10 @@ use std::thread;
 use std::sync::{mpsc, Arc, Mutex};
 use std::time::Duration;
 use rand::{rng, RngExt};
-use crate::state::{STATE, DEFAULT_SAMPLES, ActivePack};
 use crate::audio::{get_default_config, macos_keycode_to_dik};
+use crate::state::{STATE, DEFAULT_SAMPLES, ActivePack, KeyEvent};
+
+pub struct KeySender(pub Mutex<Option<mpsc::Sender<KeyEvent>>>);
 
 
 
@@ -56,7 +58,8 @@ pub fn run() {
             commands::request_permissions,
             commands::complete_onboarding,
             commands::show_onboarding,
-            commands::check_permissions
+            commands::check_permissions,
+            commands::start_keyboard_listener
         ])
         .on_window_event(|window, event| {
             if let tauri::WindowEvent::CloseRequested { api, .. } = event {
@@ -87,15 +90,15 @@ pub fn run() {
             println!("Starting setup...");
 
             
+            let has_onboarded = {
+                let state = STATE.lock().unwrap();
+                state.has_onboarded
+            };
+
             #[cfg(target_os = "macos")]
             {
                 app.set_activation_policy(tauri::ActivationPolicy::Accessory);
                 
-                let has_onboarded = {
-                    let state = STATE.lock().unwrap();
-                    state.has_onboarded
-                };
-
                 if !has_onboarded {
                     println!("Showing onboarding window...");
                     crate::window::spawn_window(app.handle(), crate::window::WindowType::Onboarding);
@@ -122,7 +125,8 @@ pub fn run() {
             
             let default_config = get_default_config();
 
-            let (tx, rx) = mpsc::channel::<macos_listener::KeyEvent>();
+            let (tx, rx) = mpsc::channel::<KeyEvent>();
+            app.manage(KeySender(Mutex::new(Some(tx.clone()))));
 
             // Sound Worker Thread
             let worker_audio_state = audio_state.clone();
@@ -286,11 +290,20 @@ pub fn run() {
 
             });
 
-            #[cfg(target_os = "macos")]
-            macos_listener::start_macos_listener(tx);
+            if has_onboarded {
+                println!("User has onboarded, starting keyboard listener...");
+                let sender_state = app.state::<KeySender>();
+                let mut sender_opt = sender_state.0.lock().unwrap();
+                if let Some(tx_to_use) = sender_opt.take() {
+                    #[cfg(target_os = "macos")]
+                    macos_listener::start_macos_listener(tx_to_use);
 
-            #[cfg(target_os = "windows")]
-            generic_listener::start_generic_listener(tx);
+                    #[cfg(target_os = "windows")]
+                    generic_listener::start_generic_listener(tx_to_use);
+                }
+            } else {
+                println!("User has not onboarded, delaying keyboard listener...");
+            }
 
             Ok(())
         })

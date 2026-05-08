@@ -297,7 +297,7 @@ export function Settings() {
                       </div>
                       <Button
                         variant="outline"
-                        className="w-full h-11 rounded-xl border-dashed hover:border-indigo-500/50 hover:bg-indigo-500/5 transition-all flex items-center gap-2 group"
+                        className="w-full h-11 rounded-xl border-dashed hover:border-indigo-500/50 hover:bg-indigo-500/5   flex items-center gap-2 group"
                         onClick={() => invoke('show_onboarding')}
                       >
                         <Rocket className="w-4 h-4 text-black/40 dark:text-white/40 group-hover:text-indigo-500 transition-colors" />

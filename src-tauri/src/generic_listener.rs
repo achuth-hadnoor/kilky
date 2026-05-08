@@ -1,9 +1,10 @@
 #[cfg(target_os = "windows")]
 use rdev::{listen, Event, EventType};
+use crate::state::KeyEvent;
 use std::sync::mpsc::Sender;
 use std::thread;
 
-pub fn start_generic_listener(tx: Sender<u32>) {
+pub fn start_generic_listener(tx: Sender<KeyEvent>) {
     thread::spawn(move || {
         println!("Starting generic keyboard listener (rdev)...");
         if let Err(error) = listen(move |event: Event| {
@@ -14,7 +15,7 @@ pub fn start_generic_listener(tx: Sender<u32>) {
                 // However, we can map common keys.
                 let code = rdev_key_to_code(key);
                 if code != 0 {
-                    let _ = tx.send(code);
+                    let _ = tx.send(KeyEvent { code, flags: 0 });
                 }
             }
         }) {

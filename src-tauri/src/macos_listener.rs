@@ -6,13 +6,7 @@ use core_graphics::event::{
 };
 #[cfg(target_os = "macos")]
 use std::sync::mpsc::Sender;
-
-#[cfg(target_os = "macos")]
-#[derive(serde::Serialize, Clone, Copy)]
-pub struct KeyEvent {
-    pub code: u32,
-    pub flags: u64,
-}
+use crate::state::KeyEvent;
 
 #[cfg(target_os = "macos")]
 pub fn start_macos_listener(tx: Sender<KeyEvent>) {

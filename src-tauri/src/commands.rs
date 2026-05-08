@@ -509,6 +509,23 @@ pub fn check_permissions() -> bool {
 }
 
 #[tauri::command]
+pub fn start_keyboard_listener(app: tauri::AppHandle) {
+    let sender_state = app.state::<crate::KeySender>();
+    let mut sender_opt = sender_state.0.lock().unwrap();
+    if let Some(tx) = sender_opt.take() {
+        #[cfg(target_os = "macos")]
+        crate::macos_listener::start_macos_listener(tx);
+
+        #[cfg(target_os = "windows")]
+        crate::generic_listener::start_generic_listener(tx);
+        
+        println!("Keyboard listener started manually.");
+    } else {
+        println!("Keyboard listener already started or sender missing.");
+    }
+}
+
+#[tauri::command]
 pub fn complete_onboarding(app: AppHandle) {
     let mut state = STATE.lock().unwrap();
     state.has_onboarded = true;

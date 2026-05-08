@@ -71,7 +71,7 @@ export function LaunchSettingsStep({
       </div>
 
       <Button
-        className="w-full h-14 rounded-2xl bg-white text-black font-bold text-lg hover:bg-zinc-200 transition-all shadow-2xl"
+        className="w-full h-14 rounded-2xl bg-white text-black font-bold text-lg hover:bg-zinc-200   shadow-2xl"
         onClick={onFinish}
       >
         Get Started
