@@ -55,13 +55,30 @@ pub fn run() {
             commands::set_recording_status,
             commands::request_permissions,
             commands::complete_onboarding,
+            commands::show_onboarding,
             commands::check_permissions
         ])
         .on_window_event(|window, event| {
             if let tauri::WindowEvent::CloseRequested { api, .. } = event {
-                println!("Window close requested, hiding instead.");
-                let _ = window.hide();
-                api.prevent_close();
+                if window.label() == "onboarding" {
+                    let has_onboarded = {
+                        let state = STATE.lock().unwrap();
+                        state.has_onboarded
+                    };
+
+                    let tray_exists = window.app_handle().tray_by_id("main").is_some();
+
+                    if !has_onboarded && !tray_exists {
+                        println!("Onboarding window closed manually and no tray exists, exiting app.");
+                        window.app_handle().exit(0);
+                    } else {
+                        println!("Onboarding closed, keeping app alive (tray exists or finished).");
+                    }
+                } else {
+                    println!("Window close requested, hiding instead.");
+                    let _ = window.hide();
+                    api.prevent_close();
+                }
             }
         })
         .setup(|app| {
@@ -87,6 +104,7 @@ pub fn run() {
                     } else {
                         println!("Accessibility permissions confirmed.");
                     }
+                    tray::setup_tray(app.handle())?;
                 }
             }
 
@@ -272,7 +290,6 @@ pub fn run() {
             #[cfg(target_os = "windows")]
             generic_listener::start_generic_listener(tx);
 
-            tray::setup_tray(app.handle())?;
             Ok(())
         })
         .run(tauri::generate_context!())

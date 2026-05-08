@@ -514,4 +514,10 @@ pub fn complete_onboarding(app: AppHandle) {
     state.has_onboarded = true;
     state.save();
     let _ = app.emit("state-update", ());
+    let _ = crate::tray::setup_tray(&app);
+}
+
+#[tauri::command]
+pub fn show_onboarding(app: AppHandle) {
+    crate::window::spawn_window(&app, crate::window::WindowType::Onboarding);
 }
