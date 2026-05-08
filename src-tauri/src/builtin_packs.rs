@@ -1,5 +1,6 @@
 use crate::state::ExternalPack;
 use std::collections::HashMap;
+use rodio::Source;
 
 pub fn get_velvet_pack() -> ExternalPack {
     let mut sounds = HashMap::new();
@@ -103,5 +104,19 @@ fn decode_wav(bytes: &'static [u8]) -> Vec<f32> {
     use rodio::Decoder;
     let cursor = Cursor::new(bytes);
     let source = Decoder::try_from(cursor).expect("Failed to decode WAV");
-    source.collect()
+    let channels = source.channels().get();
+    if channels == 1 {
+        source.collect()
+    } else {
+        let samples: Vec<f32> = source.collect();
+        let mut mono = Vec::with_capacity(samples.len() / channels as usize);
+        for i in (0..samples.len()).step_by(channels as usize) {
+            let mut avg = 0.0;
+            for j in 0..channels as usize {
+                avg += samples[i + j];
+            }
+            mono.push(avg / channels as f32);
+        }
+        mono
+    }
 }

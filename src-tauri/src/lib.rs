@@ -10,13 +10,14 @@ mod generic_listener;
 mod builtin_packs;
 
 use rodio::{buffer::SamplesBuffer, source::Source, DeviceSinkBuilder};
+use rodio::source::Spatial;
 use tauri::{Manager, Emitter};
 use std::num::NonZero;
 use std::thread;
 use std::sync::{mpsc, Arc, Mutex};
 use std::time::Duration;
 use rand::{rng, RngExt};
-use crate::audio::{get_default_config, get_key_id};
+use crate::audio::{get_default_config, get_key_id, get_key_pan};
 use crate::state::{STATE, DEFAULT_SAMPLES, ActivePack, KeyEvent};
 
 pub struct KeySender {
@@ -151,13 +152,17 @@ pub fn run() {
             let app_handle_clone = app.handle().clone();
             thread::spawn(move || {
                 println!("Worker thread started.");
-                // Note: We don't lock the sink here to avoid deadlocks during device switching.
-                // The sink is kept alive by the AudioState managed by Tauri.
+                
+                // Spatial setup: Listener at origin, ears at -1.0 and 1.0 on X axis.
+                let left_ear = [-1.0, 0.0, 0.0];
+                let right_ear = [1.0, 0.0, 0.0];
+
                 while let Ok(key_event) = rx.recv() {
                     let keycode_raw = key_event.code;
                     let flags = key_event.flags;
 
                     let key_id = get_key_id(keycode_raw);
+                    let pan = get_key_pan(key_id);
 
                     let (action_to_trigger, is_enabled, active_pack, volume) = {
                         let state = match STATE.lock() {
@@ -267,40 +272,52 @@ pub fn run() {
                     let speed: f32 = speed_base * r.random_range(0.98..1.02);
                     let vol_var: f32 = r.random_range(0.95..1.05);
 
+                    // Emitter position for this key
+                    // Z is small to minimize distance-based attenuation
+                    let emitter = [pan, 0.0, 0.05];
+                    let final_volume = volume * vol_var;
+
                     match &active_pack {
                         ActivePack::Zenith | ActivePack::Obsidian | ActivePack::Sapphire => {
                             if let Some(config) = default_config.get(key_id) {
-                                let start_sample = (config[0] * 441 * 2 / 10) as usize;
-                                let end_sample = start_sample + (config[1] * 441 * 2 / 10) as usize;
+                                // Since we downmixed DEFAULT_SAMPLES to mono, we remove the '* 2' multiplier 
+                                // that was used for stereo interleaved indexing.
+                                let start_sample = (config[0] * 441 / 10) as usize;
+                                let end_sample = start_sample + (config[1] * 441 / 10) as usize;
 
                                 if end_sample <= DEFAULT_SAMPLES.len() {
                                     let slice = &DEFAULT_SAMPLES[start_sample..end_sample];
                                     
                                     match &active_pack {
                                         ActivePack::Sapphire => {
-                                            let s1 = SamplesBuffer::new(NonZero::new(2).unwrap(), NonZero::new(44100).unwrap(), slice)
-                                                .amplify(volume * vol_var)
+                                            let s1 = SamplesBuffer::new(NonZero::new(1).unwrap(), NonZero::new(44100).unwrap(), slice)
+                                                .amplify(final_volume)
                                                 .speed(speed * 1.6);
-                                            let s2 = SamplesBuffer::new(NonZero::new(2).unwrap(), NonZero::new(44100).unwrap(), slice)
-                                                .amplify(volume * vol_var * 0.5)
+                                            let s2 = SamplesBuffer::new(NonZero::new(1).unwrap(), NonZero::new(44100).unwrap(), slice)
+                                                .amplify(final_volume * 0.5)
                                                 .speed(speed * 0.8)
                                                 .delay(Duration::from_millis(15));
                                             
+                                            let sp1 = Spatial::new(s1, emitter, left_ear, right_ear);
+                                            let sp2 = Spatial::new(s2, emitter, left_ear, right_ear);
+
                                             let m = worker_audio_state.mixer.lock().unwrap();
-                                            m.add(s1);
-                                            m.add(s2);
+                                            m.add(sp1);
+                                            m.add(sp2);
                                         }
                                         ActivePack::Obsidian => {
-                                            let s = SamplesBuffer::new(NonZero::new(2).unwrap(), NonZero::new(44100).unwrap(), slice)
-                                                .amplify(volume * vol_var * 1.5)
+                                            let s = SamplesBuffer::new(NonZero::new(1).unwrap(), NonZero::new(44100).unwrap(), slice)
+                                                .amplify(final_volume * 1.5)
                                                 .speed(speed * 0.65);
-                                            worker_audio_state.mixer.lock().unwrap().add(s);
+                                            let sp = Spatial::new(s, emitter, left_ear, right_ear);
+                                            worker_audio_state.mixer.lock().unwrap().add(sp);
                                         }
                                         _ => {
-                                            let s = SamplesBuffer::new(NonZero::new(2).unwrap(), NonZero::new(44100).unwrap(), slice)
-                                                .amplify(volume * vol_var)
+                                            let s = SamplesBuffer::new(NonZero::new(1).unwrap(), NonZero::new(44100).unwrap(), slice)
+                                                .amplify(final_volume)
                                                 .speed(speed);
-                                            worker_audio_state.mixer.lock().unwrap().add(s);
+                                            let sp = Spatial::new(s, emitter, left_ear, right_ear);
+                                            worker_audio_state.mixer.lock().unwrap().add(sp);
                                         }
                                     }
                                 }
@@ -311,27 +328,27 @@ pub fn run() {
 
                             if let Some(fname) = filename {
                                 if let Some(samples) = pack.audio_data.get(fname) {
-                                    let mut final_vol = volume * vol_var;
-                                    let mut final_pitch = speed;
+                                    let mut p_vol = final_volume;
+                                    let mut p_pitch = speed;
 
-                                    // Apply tweaks from pack config if they exist
                                     if let Some(settings_map) = &pack.config.settings {
-                                        // Use key-specific settings, or default settings, if they exist
                                         let settings = settings_map.get(key_id).or_else(|| settings_map.get("Default"));
                                         if let Some(s) = settings {
-                                            final_vol *= s.volume;
-                                            final_pitch *= s.pitch;
+                                            p_vol *= s.volume;
+                                            p_pitch *= s.pitch;
                                         }
                                     }
 
                                     let source = SamplesBuffer::new(
-                                        NonZero::new(2).unwrap(),
+                                        NonZero::new(1).unwrap(),
                                         NonZero::new(44100).unwrap(),
                                         samples.as_slice(),
                                     )
-                                    .amplify(final_vol)
-                                    .speed(final_pitch);
-                                    worker_audio_state.mixer.lock().unwrap().add(source);
+                                    .amplify(p_vol)
+                                    .speed(p_pitch);
+                                    
+                                    let spatial_source = Spatial::new(source, emitter, left_ear, right_ear);
+                                    worker_audio_state.mixer.lock().unwrap().add(spatial_source);
                                 }
                             }
                         }

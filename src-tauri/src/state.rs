@@ -1,5 +1,5 @@
 use lazy_static::lazy_static;
-use rodio::Decoder;
+use rodio::{Decoder, Source};
 use serde::{Deserialize, Serialize};
 use std::collections::HashMap;
 use std::io::Cursor;
@@ -133,7 +133,7 @@ impl AppState {
 
         PersistentConfig {
             enabled: true,
-            volume: 0.1,
+            volume: 0.5,
             active_pack_type: ActivePackType::Zenith,
             audio_device: None,
             shortcuts,
@@ -183,6 +183,20 @@ lazy_static! {
     pub static ref DEFAULT_SAMPLES: Vec<f32> = {
         let cursor = Cursor::new(DEFAULT_SOUND_DATA);
         let source = Decoder::try_from(cursor).expect("Failed to decode sound.ogg");
-        source.collect()
+        let channels = source.channels().get();
+        if channels == 1 {
+            source.collect()
+        } else {
+            let samples: Vec<f32> = source.collect();
+            let mut mono = Vec::with_capacity(samples.len() / channels as usize);
+            for i in (0..samples.len()).step_by(channels as usize) {
+                let mut avg = 0.0;
+                for j in 0..channels as usize {
+                    avg += samples[i + j];
+                }
+                mono.push(avg / channels as f32);
+            }
+            mono
+        }
     };
 }

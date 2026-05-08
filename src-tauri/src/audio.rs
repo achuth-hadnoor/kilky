@@ -126,13 +126,6 @@ pub fn get_key_id(code: u32) -> &'static str {
     }
     #[cfg(target_os = "windows")]
     {
-        // On Windows, we expect the code to already be a DIK code or 
-        // we've mapped it in generic_listener.
-        // For now, let's just return it as a string if it's within a reasonable range,
-        // but it's better to have a dedicated mapping.
-        // Since generic_listener currently maps to macos codes, 
-        // we'll keep using macos_keycode_to_dik for now to maintain compatibility 
-        // with the current hack, but we'll improve it later.
         macos_keycode_to_dik(code)
     }
     #[cfg(not(any(target_os = "macos", target_os = "windows")))]
@@ -161,4 +154,27 @@ pub fn macos_keycode_to_dik(code: u32) -> &'static str {
     }
 }
 
-
+pub fn get_key_pan(key_id: &str) -> f32 {
+    match key_id {
+        "1" => -0.95, // Esc
+        "2" => -0.9, "3" => -0.8, "4" => -0.7, "5" => -0.6, "6" => -0.5, "7" => -0.4, "8" => -0.3, "9" => -0.2, "10" => -0.1, "11" => 0.0,
+        "12" => 0.1, "13" => 0.2, "14" => 0.5, // Backspace
+        "15" => -0.85, // Tab
+        "16" => -0.8, "17" => -0.7, "18" => -0.6, "19" => -0.5, "20" => -0.4, "21" => -0.3, "22" => -0.2, "23" => -0.1, "24" => 0.0, "25" => 0.1,
+        "26" => 0.2, "27" => 0.3, "28" => 0.6, // Enter
+        "29" => -0.95, // Ctrl
+        "30" => -0.75, "31" => -0.65, "32" => -0.55, "33" => -0.45, "34" => -0.35, "35" => -0.25, "36" => -0.15, "37" => -0.05, "38" => 0.05,
+        "39" => 0.15, "40" => 0.25, "41" => 0.35,
+        "42" => -0.9, // Left Shift
+        "44" => -0.7, "45" => -0.6, "46" => -0.5, "47" => -0.4, "48" => -0.3, "49" => -0.2, "50" => -0.1,
+        "51" => 0.0, "52" => 0.1, "53" => 0.2, "54" => 0.5, // Right Shift
+        "56" => -0.8, // Alt
+        "57" => 0.0, // Space
+        "184" => 0.2, // AltGr
+        "57416" => 0.7, // Up
+        "57424" => 0.7, // Down
+        "57419" => 0.6, // Left
+        "57421" => 0.8, // Right
+        _ => 0.0,
+    }
+}
