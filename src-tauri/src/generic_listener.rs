@@ -30,12 +30,11 @@ pub fn start_generic_listener(tx: Sender<KeyEvent>, is_running: std::sync::Arc<s
                         rdev::Key::ShiftLeft | rdev::Key::ShiftRight => *mods |= WIN_SHIFT_MASK,
                         rdev::Key::Alt | rdev::Key::AltGr => *mods |= WIN_ALT_MASK,
                         rdev::Key::ControlLeft | rdev::Key::ControlRight => *mods |= WIN_CTRL_MASK,
-                        _ => {
-                            let code = rdev_key_to_code(key);
-                            if code != 0 {
-                                let _ = tx.send(KeyEvent { code, flags: *mods });
-                            }
-                        }
+                        _ => {}
+                    }
+                    let code = rdev_key_to_code(key);
+                    if code != 0 {
+                        let _ = tx.send(KeyEvent { code, flags: *mods, is_down: true });
                     }
                 }
                 EventType::KeyRelease(key) => {
@@ -46,6 +45,10 @@ pub fn start_generic_listener(tx: Sender<KeyEvent>, is_running: std::sync::Arc<s
                         rdev::Key::Alt | rdev::Key::AltGr => *mods &= !WIN_ALT_MASK,
                         rdev::Key::ControlLeft | rdev::Key::ControlRight => *mods &= !WIN_CTRL_MASK,
                         _ => {}
+                    }
+                    let code = rdev_key_to_code(key);
+                    if code != 0 {
+                        let _ = tx.send(KeyEvent { code, flags: *mods, is_down: false });
                     }
                 }
                 _ => {}

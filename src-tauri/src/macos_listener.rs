@@ -7,6 +7,7 @@ use core_graphics::event::{
 #[cfg(target_os = "macos")]
 use std::sync::mpsc::Sender;
 use crate::state::KeyEvent;
+use std::sync::atomic::{AtomicU64, Ordering};
 
 #[cfg(target_os = "macos")]
 pub fn start_macos_listener(tx: Sender<KeyEvent>, is_running: std::sync::Arc<std::sync::Mutex<bool>>) {
@@ -14,16 +15,32 @@ pub fn start_macos_listener(tx: Sender<KeyEvent>, is_running: std::sync::Arc<std
 
     thread::spawn(move || {
         println!("Starting low-level macOS event tap...");
+        let last_flags = AtomicU64::new(0);
+
         let tap = match CGEventTap::new(
             CGEventTapLocation::HID,
             CGEventTapPlacement::HeadInsertEventTap,
             CGEventTapOptions::Default,
-            vec![CGEventType::KeyDown, CGEventType::FlagsChanged],
-            move |_proxy, _etype, event| {
-                // KeyboardEventKeycode is field 9 in the CGEvent structure
+            vec![CGEventType::KeyDown, CGEventType::KeyUp, CGEventType::FlagsChanged],
+            move |_proxy, etype, event| {
                 let code = event.get_integer_value_field(9) as u32;
                 let flags = event.get_flags().bits();
-                let _ = tx.send(KeyEvent { code, flags });
+                
+                match etype {
+                    CGEventType::KeyDown => {
+                        let _ = tx.send(KeyEvent { code, flags, is_down: true });
+                    }
+                    CGEventType::KeyUp => {
+                        let _ = tx.send(KeyEvent { code, flags, is_down: false });
+                    }
+                    CGEventType::FlagsChanged => {
+                        let prev = last_flags.load(Ordering::SeqCst);
+                        let is_down = flags > prev;
+                        last_flags.store(flags, Ordering::SeqCst);
+                        let _ = tx.send(KeyEvent { code, flags, is_down });
+                    }
+                    _ => {}
+                }
                 None 
             },
         ) {
@@ -45,7 +62,6 @@ pub fn start_macos_listener(tx: Sender<KeyEvent>, is_running: std::sync::Arc<std
             CFRunLoopRun();
         }
         
-        // If we exit the run loop for some reason, reset running flag
         let mut running = is_running.lock().unwrap();
         *running = false;
     });

@@ -12,6 +12,7 @@ use tauri::tray::TrayIcon;
 pub struct KeyEvent {
     pub code: u32,
     pub flags: u64,
+    pub is_down: bool,
 }
 
 #[derive(Clone, Serialize, Deserialize)]

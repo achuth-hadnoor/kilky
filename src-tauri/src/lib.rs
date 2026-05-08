@@ -160,6 +160,7 @@ pub fn run() {
                 while let Ok(key_event) = rx.recv() {
                     let keycode_raw = key_event.code;
                     let flags = key_event.flags;
+                    let is_down = key_event.is_down;
 
                     let key_id = get_key_id(keycode_raw);
                     let pan = get_key_pan(key_id);
@@ -191,7 +192,7 @@ pub fn run() {
                             }
 
                             let mut found_action = None;
-                            if !state.is_recording {
+                            if !state.is_recording && is_down {
                                 for (action, shortcut) in &state.shortcuts {
                                     if shortcut.key_code == keycode_raw && shortcut.modifiers == current_mods {
                                         found_action = Some(action.clone());
@@ -217,7 +218,7 @@ pub fn run() {
                             if flags & WIN_CTRL_MASK != 0 { current_mods |= 8; }
                             
                             let mut found_action = None;
-                            if !state.is_recording {
+                            if !state.is_recording && is_down {
                                 for (action, shortcut) in &state.shortcuts {
                                     if shortcut.key_code == keycode_raw && shortcut.modifiers == current_mods {
                                         found_action = Some(action.clone());
@@ -269,19 +270,21 @@ pub fn run() {
                         _ => 1.0,
                     };
                     
-                    let speed: f32 = speed_base * r.random_range(0.98..1.02);
-                    let vol_var: f32 = r.random_range(0.95..1.05);
+                    let mut speed: f32 = speed_base * r.random_range(0.98..1.02);
+                    let mut vol_var: f32 = r.random_range(0.95..1.05);
 
-                    // Emitter position for this key
-                    // Z is small to minimize distance-based attenuation
+                    // Adjust for KeyUp
+                    if !is_down {
+                        vol_var *= 0.45; // Quieter
+                        speed *= 1.25;  // Sharper/Shorter
+                    }
+
                     let emitter = [pan, 0.0, 0.05];
                     let final_volume = volume * vol_var;
 
                     match &active_pack {
                         ActivePack::Zenith | ActivePack::Obsidian | ActivePack::Sapphire => {
                             if let Some(config) = default_config.get(key_id) {
-                                // Since we downmixed DEFAULT_SAMPLES to mono, we remove the '* 2' multiplier 
-                                // that was used for stereo interleaved indexing.
                                 let start_sample = (config[0] * 441 / 10) as usize;
                                 let end_sample = start_sample + (config[1] * 441 / 10) as usize;
 
@@ -290,20 +293,24 @@ pub fn run() {
                                     
                                     match &active_pack {
                                         ActivePack::Sapphire => {
+                                            // Sapphire up sounds are even more subtle
+                                            let up_mult = if is_down { 1.0 } else { 0.6 };
                                             let s1 = SamplesBuffer::new(NonZero::new(1).unwrap(), NonZero::new(44100).unwrap(), slice)
-                                                .amplify(final_volume)
+                                                .amplify(final_volume * up_mult)
                                                 .speed(speed * 1.6);
-                                            let s2 = SamplesBuffer::new(NonZero::new(1).unwrap(), NonZero::new(44100).unwrap(), slice)
-                                                .amplify(final_volume * 0.5)
-                                                .speed(speed * 0.8)
-                                                .delay(Duration::from_millis(15));
                                             
                                             let sp1 = Spatial::new(s1, emitter, left_ear, right_ear);
-                                            let sp2 = Spatial::new(s2, emitter, left_ear, right_ear);
-
                                             let m = worker_audio_state.mixer.lock().unwrap();
                                             m.add(sp1);
-                                            m.add(sp2);
+
+                                            if is_down {
+                                                let s2 = SamplesBuffer::new(NonZero::new(1).unwrap(), NonZero::new(44100).unwrap(), slice)
+                                                    .amplify(final_volume * 0.5)
+                                                    .speed(speed * 0.8)
+                                                    .delay(Duration::from_millis(15));
+                                                let sp2 = Spatial::new(s2, emitter, left_ear, right_ear);
+                                                m.add(sp2);
+                                            }
                                         }
                                         ActivePack::Obsidian => {
                                             let s = SamplesBuffer::new(NonZero::new(1).unwrap(), NonZero::new(44100).unwrap(), slice)
@@ -313,11 +320,18 @@ pub fn run() {
                                             worker_audio_state.mixer.lock().unwrap().add(sp);
                                         }
                                         _ => {
-                                            let s = SamplesBuffer::new(NonZero::new(1).unwrap(), NonZero::new(44100).unwrap(), slice)
+                                            let mut s = SamplesBuffer::new(NonZero::new(1).unwrap(), NonZero::new(44100).unwrap(), slice)
                                                 .amplify(final_volume)
                                                 .speed(speed);
-                                            let sp = Spatial::new(s, emitter, left_ear, right_ear);
-                                            worker_audio_state.mixer.lock().unwrap().add(sp);
+                                            
+                                            if !is_down {
+                                                // Take only the first part of the sample for release
+                                                let sp = Spatial::new(s.take_duration(Duration::from_millis(40)), emitter, left_ear, right_ear);
+                                                worker_audio_state.mixer.lock().unwrap().add(sp);
+                                            } else {
+                                                let sp = Spatial::new(s, emitter, left_ear, right_ear);
+                                                worker_audio_state.mixer.lock().unwrap().add(sp);
+                                            }
                                         }
                                     }
                                 }
@@ -347,8 +361,13 @@ pub fn run() {
                                     .amplify(p_vol)
                                     .speed(p_pitch);
                                     
-                                    let spatial_source = Spatial::new(source, emitter, left_ear, right_ear);
-                                    worker_audio_state.mixer.lock().unwrap().add(spatial_source);
+                                    if !is_down {
+                                        let sp = Spatial::new(source.take_duration(Duration::from_millis(35)), emitter, left_ear, right_ear);
+                                        worker_audio_state.mixer.lock().unwrap().add(sp);
+                                    } else {
+                                        let spatial_source = Spatial::new(source, emitter, left_ear, right_ear);
+                                        worker_audio_state.mixer.lock().unwrap().add(spatial_source);
+                                    }
                                 }
                             }
                         }
