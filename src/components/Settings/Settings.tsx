@@ -22,6 +22,8 @@ interface AppState {
   audio_device: string | null;
   shortcuts: Record<string, Shortcut>;
   hyper_key_enabled: boolean;
+  buffer_size: number;
+  hardware_acceleration: boolean;
 }
 
 export function Settings() {
@@ -39,6 +41,8 @@ export function Settings() {
   const [recordingAction, setRecordingAction] = useState<string | null>(null);
   const [previewShortcut, setPreviewShortcut] = useState<string | null>(null);
   const [platformName, setPlatformName] = useState<string>('macos');
+  const [bufferSize, setBufferSize] = useState(128);
+  const [hardwareAcceleration, setHardwareAcceleration] = useState(true);
 
   const recordingActionRef = useRef<string | null>(null);
 
@@ -54,6 +58,9 @@ export function Settings() {
 
       const autostart = await invoke<boolean>('is_autostart_enabled');
       setIsAutostart(autostart);
+
+      setBufferSize(state.buffer_size);
+      setHardwareAcceleration(state.hardware_acceleration);
     } catch (e) {
       console.error(e);
     }
@@ -142,6 +149,21 @@ export function Settings() {
     await invoke('save_shortcut', { action, shortcut: null });
   };
 
+  const handleBufferSizeChange = async (size: number) => {
+    setBufferSize(size);
+    await invoke('set_buffer_size', { bufferSize: size });
+  };
+
+  const handleHardwareAccelerationToggle = async (enabled: boolean) => {
+    setHardwareAcceleration(enabled);
+    await invoke('set_hardware_acceleration', { enabled });
+  };
+
+  const handleResetSettings = async () => {
+    await invoke('reset_settings');
+    await fetchState();
+  };
+
   const navItems = [
     { id: 'general', label: 'General', icon: SettingsIcon },
     { id: 'audio', label: 'Sounds', icon: Volume2 },
@@ -197,7 +219,15 @@ export function Settings() {
               />
             )}
 
-            {activeTab === 'advanced' && <AdvancedSection />}
+            {activeTab === 'advanced' && (
+              <AdvancedSection 
+                bufferSize={bufferSize}
+                handleBufferSizeChange={handleBufferSizeChange}
+                hardwareAcceleration={hardwareAcceleration}
+                handleHardwareAccelerationToggle={handleHardwareAccelerationToggle}
+                handleResetSettings={handleResetSettings}
+              />
+            )}
 
             {activeTab === 'about' && (
               <AboutSection 

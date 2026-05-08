@@ -70,6 +70,8 @@ pub struct PersistentConfig {
     pub shortcuts: HashMap<String, Shortcut>,
     pub hyper_key_enabled: bool,
     pub has_onboarded: bool,
+    pub buffer_size: u32,
+    pub hardware_acceleration: bool,
 }
 
 pub struct AppState {
@@ -83,6 +85,8 @@ pub struct AppState {
     pub hyper_key_enabled: bool,
     pub is_recording: bool,
     pub has_onboarded: bool,
+    pub buffer_size: u32,
+    pub hardware_acceleration: bool,
 }
 
 impl AppState {
@@ -114,6 +118,8 @@ impl AppState {
             hyper_key_enabled: config.hyper_key_enabled,
             is_recording: false,
             has_onboarded: config.has_onboarded,
+            buffer_size: config.buffer_size,
+            hardware_acceleration: config.hardware_acceleration,
         }
     }
 
@@ -133,6 +139,8 @@ impl AppState {
             shortcuts,
             hyper_key_enabled: true,
             has_onboarded: false,
+            buffer_size: 128,
+            hardware_acceleration: true,
         }
     }
 
@@ -146,6 +154,8 @@ impl AppState {
             shortcuts: self.shortcuts.clone(),
             hyper_key_enabled: self.hyper_key_enabled,
             has_onboarded: self.has_onboarded,
+            buffer_size: self.buffer_size,
+            hardware_acceleration: self.hardware_acceleration,
         };
         if let Ok(file) = std::fs::File::create(path) {
             let _ = serde_json::to_writer_pretty(file, &config);

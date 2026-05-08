@@ -21,6 +21,8 @@ pub struct AppStateResponse {
     pub hyper_key_enabled: bool,
     pub shortcuts: HashMap<String, crate::state::Shortcut>,
     pub has_onboarded: bool,
+    pub buffer_size: u32,
+    pub hardware_acceleration: bool,
 }
 
 #[tauri::command]
@@ -33,6 +35,8 @@ pub fn get_app_state() -> AppStateResponse {
         hyper_key_enabled: state.hyper_key_enabled,
         shortcuts: state.shortcuts.clone(),
         has_onboarded: state.has_onboarded,
+        buffer_size: state.buffer_size,
+        hardware_acceleration: state.hardware_acceleration,
     }
 }
 
@@ -552,4 +556,50 @@ pub fn get_platform() -> String {
     } else {
         "linux".to_string()
     }
+}
+
+#[tauri::command]
+pub fn set_buffer_size(app: tauri::AppHandle, buffer_size: u32) {
+    let mut state = STATE.lock().unwrap();
+    state.buffer_size = buffer_size;
+    state.save();
+    let _ = app.emit("state-update", ());
+}
+
+#[tauri::command]
+pub fn set_hardware_acceleration(app: tauri::AppHandle, enabled: bool) {
+    let mut state = STATE.lock().unwrap();
+    state.hardware_acceleration = enabled;
+    state.save();
+    let _ = app.emit("state-update", ());
+}
+
+#[tauri::command]
+pub fn reset_settings(app: tauri::AppHandle) {
+    let mut state = STATE.lock().unwrap();
+    
+    // We want to keep has_onboarded so they don't see the tutorial again
+    let has_onboarded = state.has_onboarded;
+    
+    // Create a default config
+    let mut shortcuts = std::collections::HashMap::new();
+    shortcuts.insert("toggle_engine".to_string(), crate::state::Shortcut {
+        key_code: 40,
+        modifiers: 15,
+        display: "⌘ + ⌥ + ⌃ + ⇧ + K".to_string(),
+    });
+
+    state.enabled = true;
+    state.volume = 0.1;
+    state.active_pack_type = ActivePackType::Zenith;
+    state.active_pack = ActivePack::Zenith;
+    state.audio_device = None;
+    state.shortcuts = shortcuts;
+    state.hyper_key_enabled = true;
+    state.buffer_size = 128;
+    state.hardware_acceleration = true;
+    state.has_onboarded = has_onboarded;
+
+    state.save();
+    let _ = app.emit("state-update", ());
 }

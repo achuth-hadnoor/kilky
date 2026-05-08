@@ -58,7 +58,10 @@ pub fn run() {
             commands::show_onboarding,
             commands::check_permissions,
             commands::start_keyboard_listener,
-            commands::get_platform
+            commands::get_platform,
+            commands::set_buffer_size,
+            commands::set_hardware_acceleration,
+            commands::reset_settings
         ])
         .on_window_event(|window, event| {
             if let tauri::WindowEvent::CloseRequested { api, .. } = event {
