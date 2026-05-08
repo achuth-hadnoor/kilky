@@ -151,7 +151,8 @@ pub fn run() {
             let app_handle_clone = app.handle().clone();
             thread::spawn(move || {
                 println!("Worker thread started.");
-                let _s = worker_audio_state.sink.lock().unwrap(); // Keep sink alive
+                // Note: We don't lock the sink here to avoid deadlocks during device switching.
+                // The sink is kept alive by the AudioState managed by Tauri.
                 while let Ok(key_event) = rx.recv() {
                     let keycode_raw = key_event.code;
                     let flags = key_event.flags;

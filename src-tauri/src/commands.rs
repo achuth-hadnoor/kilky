@@ -127,16 +127,34 @@ pub fn set_audio_device(app: AppHandle, device_name: String) -> Result<(), Strin
     if let Some(device) = target_device {
         let audio_state = app.state::<crate::state::AudioState>();
         
-        let new_sink_builder = DeviceSinkBuilder::from_device(device).map_err(|e| e.to_string())?;
-        let new_sink = new_sink_builder.open_stream().map_err(|e| e.to_string())?;
+        println!("Switching to audio device: {}", device_name);
+        
+        let new_sink_builder = DeviceSinkBuilder::from_device(device).map_err(|e| {
+            println!("Failed to create sink builder: {}", e);
+            e.to_string()
+        })?;
+        
+        let new_sink = new_sink_builder.open_stream().map_err(|e| {
+            println!("Failed to open audio stream on {}: {}", device_name, e);
+            format!("Failed to open stream: {}", e)
+        })?;
+        
         let new_mixer = new_sink.mixer().clone();
 
-        *audio_state.sink.lock().unwrap() = Some(new_sink);
-        *audio_state.mixer.lock().unwrap() = new_mixer;
+        {
+            let mut sink_lock = audio_state.sink.lock().unwrap();
+            *sink_lock = Some(new_sink);
+        }
+        {
+            let mut mixer_lock = audio_state.mixer.lock().unwrap();
+            *mixer_lock = new_mixer;
+        }
         
+        println!("Audio device switched successfully.");
         let _ = app.emit("state-update", ());
         Ok(())
     } else {
+        println!("Audio device not found: {}", device_name);
         Err("Device not found".to_string())
     }
 }
