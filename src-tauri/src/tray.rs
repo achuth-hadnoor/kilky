@@ -125,7 +125,6 @@ pub fn setup_tray(app: &tauri::AppHandle) -> tauri::Result<()> {
             });
         })
         .on_tray_icon_event(|tray, event| {
-            #[cfg(target_os = "macos")]
             if let TrayIconEvent::Click {
                 button: MouseButton::Left,
                 button_state: MouseButtonState::Up,
@@ -133,26 +132,7 @@ pub fn setup_tray(app: &tauri::AppHandle) -> tauri::Result<()> {
             } = event
             {
                 let app = tray.app_handle();
-                if let Some(window) = app.get_webview_window("kliky_ui") {
-                    if window.is_visible().unwrap_or(false) {
-                        let _ = window.hide();
-                    } else {
-                        let _ = window.show();
-                        let _ = window.set_focus();
-                    }
-                } else {
-                    let _ = WebviewWindowBuilder::new(
-                        app,
-                        "kliky_ui",
-                        WebviewUrl::App("index.html".into()),
-                    )
-                    .title("Kliky")
-                    .inner_size(400.0, 600.0)
-                    .always_on_top(true)
-                    .minimizable(false)
-                    .maximizable(false)
-                    .build();
-                }
+                crate::window::spawn_window(app, crate::window::WindowType::Settings);
             }
         })
         .build(app)?;

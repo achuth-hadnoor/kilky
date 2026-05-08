@@ -104,14 +104,24 @@ impl AppState {
         path
     }
 
-    pub fn load() -> Self {
+    pub fn load_from_json() -> PersistentConfig {
         let path = Self::config_path();
-        let config: PersistentConfig = if path.exists() {
+        if path.exists() {
             let file = std::fs::File::open(path).unwrap();
             serde_json::from_reader(file).unwrap_or_else(|_| Self::default_config())
         } else {
             Self::default_config()
-        };
+        }
+    }
+
+    pub fn load() -> Self {
+        // Initialize DB first
+        let _ = crate::db::init_db();
+        
+        let config = crate::db::load_config().unwrap_or_else(|_| {
+            // If DB load fails, try legacy JSON or default
+            Self::load_from_json()
+        });
 
         Self {
             enabled: config.enabled,
@@ -132,7 +142,7 @@ impl AppState {
         }
     }
 
-    fn default_config() -> PersistentConfig {
+    pub fn default_config() -> PersistentConfig {
         let mut shortcuts = HashMap::new();
         shortcuts.insert("toggle_engine".to_string(), Shortcut {
             key_code: 40,
@@ -156,7 +166,6 @@ impl AppState {
     }
 
     pub fn save(&self) {
-        let path = Self::config_path();
         let config = PersistentConfig {
             enabled: self.enabled,
             volume: self.volume,
@@ -170,9 +179,13 @@ impl AppState {
             total_keystrokes: self.total_keystrokes,
             speed_volume_scaling: self.speed_volume_scaling,
         };
-        if let Ok(file) = std::fs::File::create(path) {
-            let _ = serde_json::to_writer_pretty(file, &config);
-        }
+        
+        // Save to SQLite
+        let _ = crate::db::save_config(&config);
+    }
+
+    pub fn sync_keystrokes(&self, count: u64) {
+        let _ = crate::db::update_keystrokes(count);
     }
 }
 

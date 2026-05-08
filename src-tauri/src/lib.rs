@@ -8,6 +8,7 @@ mod macos_listener;
 #[cfg(target_os = "windows")]
 mod generic_listener;
 mod builtin_packs;
+mod db;
 
 use rodio::{buffer::SamplesBuffer, source::Source, DeviceSinkBuilder};
 use rodio::source::Spatial;
@@ -180,6 +181,7 @@ pub fn run() {
                             state.total_keystrokes += 1;
                             state.session_keystrokes += 1;
                             if state.total_keystrokes % 100 == 0 {
+                                state.sync_keystrokes(100);
                                 state.save();
                             }
                         }
@@ -426,6 +428,17 @@ pub fn run() {
 
             Ok(())
         })
-        .run(tauri::generate_context!())
-        .expect("error while running tauri application");
+        .build(tauri::generate_context!())
+        .expect("error while building tauri application")
+        .run(|_app_handle, event| {
+            if let tauri::RunEvent::ExitRequested { .. } = event {
+                let state = crate::state::STATE.lock().unwrap();
+                state.save();
+                // Sync remaining keystrokes to daily analytics
+                let remaining = state.total_keystrokes % 100;
+                if remaining > 0 {
+                    state.sync_keystrokes(remaining);
+                }
+            }
+        });
 }
