@@ -125,6 +125,7 @@ pub fn setup_tray(app: &tauri::AppHandle) -> tauri::Result<()> {
             });
         })
         .on_tray_icon_event(|tray, event| {
+            #[cfg(target_os = "macos")]
             if let TrayIconEvent::Click {
                 button: MouseButton::Left,
                 button_state: MouseButtonState::Up,

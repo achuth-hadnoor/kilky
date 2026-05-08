@@ -188,14 +188,6 @@ export function Settings() {
     await invoke('set_audio_device', { deviceName });
   };
 
-  const handleHyperKeyToggle = async (checked: boolean) => {
-    setHyperKeyEnabled(checked);
-    await invoke('set_hyper_key_enabled', { enabled: checked });
-  };
-
-
-
-
   const handleClearShortcut = async (action: string) => {
     const newShortcuts = { ...shortcuts };
     delete newShortcuts[action];
@@ -354,7 +346,6 @@ export function Settings() {
                         <p className="text-xs text-black/40 dark:text-white/40">Hold Caps Lock to trigger ⌘ + ⌥ + ⌃ + ⇧ instantly.</p>
                       </div>
                     </div>
-                    <Switch checked={hyperKeyEnabled} onCheckedChange={handleHyperKeyToggle} />
                   </div>
 
                   <ShortcutRecorder
