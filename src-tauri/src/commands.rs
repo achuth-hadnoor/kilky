@@ -489,13 +489,17 @@ pub async fn create_custom_pack(dest: String, config: PackConfig) -> Result<(), 
 }
 
 #[tauri::command]
-pub fn request_permissions() -> bool {
+pub fn request_permissions(app: tauri::AppHandle) -> bool {
     #[cfg(target_os = "macos")]
     {
+        if let Some(window) = app.get_webview_window("onboarding") {
+            let _ = window.set_always_on_top(false);
+        }
         macos_accessibility_client::accessibility::application_is_trusted_with_prompt()
     }
     #[cfg(not(target_os = "macos"))]
     {
+        let _ = app;
         true
     }
 }

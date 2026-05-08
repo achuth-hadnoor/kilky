@@ -39,7 +39,7 @@ pub fn spawn_window(handle: &AppHandle, window_type: WindowType) {
             .skip_taskbar(true)
             .maximizable(false)
             .minimizable(false)
-            .always_on_top(true);
+            .always_on_top(matches!(window_type, WindowType::Settings));
 
         #[cfg(target_os = "macos")]
         {
