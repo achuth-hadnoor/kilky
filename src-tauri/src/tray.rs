@@ -76,9 +76,13 @@ pub fn setup_tray(app: &tauri::AppHandle) -> tauri::Result<()> {
     menu.append(&quit_i)?;
 
     let autostart_c = autostart_i.clone();
-    let tray = TrayIconBuilder::with_id("main")
-        .title("Klicky")
-        .menu(&menu)
+    let mut tray_builder = TrayIconBuilder::with_id("main").menu(&menu);
+
+    if let Some(icon) = app.default_window_icon() {
+        tray_builder = tray_builder.icon(icon.clone());
+    }
+
+    let tray = tray_builder
         .on_menu_event(move |app, event| {
             let id = event.id.clone();
             let handle = app.clone();
