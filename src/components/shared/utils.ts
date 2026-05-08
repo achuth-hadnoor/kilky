@@ -1,8 +1,24 @@
+import { invoke } from '@tauri-apps/api/core';
+
 export interface Shortcut {
   key_code: number;
   modifiers: number;
   display: string;
 }
+
+let currentPlatform: string = 'macos';
+invoke<string>('get_platform').then((p: string) => {
+  currentPlatform = p;
+});
+
+export const getModifierSymbol = (mod: number) => {
+  const isMac = currentPlatform === 'macos';
+  if (mod === 1) return isMac ? '⌘' : 'Win';
+  if (mod === 2) return isMac ? '⇧' : 'Shift';
+  if (mod === 4) return isMac ? '⌥' : 'Alt';
+  if (mod === 8) return isMac ? '⌃' : 'Ctrl';
+  return '';
+};
 
 export const getMacosKeyName = (code: number) => {
   // Modifier keys (don't return a name for them to prevent standalone modifier shortcuts)
@@ -19,4 +35,16 @@ export const getMacosKeyName = (code: number) => {
     96: 'F5', 97: 'F6', 98: 'F7', 99: 'F3', 100: 'F8', 101: 'F9', 103: 'F11', 105: 'F13', 107: 'F14', 109: 'F10', 111: 'F12', 113: 'F15',
   };
   return map[code] || `K${code}`;
+};
+
+export const getWindowsKeyName = (code: number) => {
+  // Map Windows Virtual Key Codes if needed, 
+  // but since the backend currently maps Windows keys to macOS codes in generic_listener,
+  // we can just reuse getMacosKeyName for now.
+  return getMacosKeyName(code);
+};
+
+export const getKeyName = (code: number) => {
+  if (currentPlatform === 'macos') return getMacosKeyName(code);
+  return getWindowsKeyName(code);
 };

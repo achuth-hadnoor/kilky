@@ -16,12 +16,10 @@ use std::thread;
 use std::sync::{mpsc, Arc, Mutex};
 use std::time::Duration;
 use rand::{rng, RngExt};
-use crate::audio::{get_default_config, macos_keycode_to_dik};
+use crate::audio::{get_default_config, get_key_id};
 use crate::state::{STATE, DEFAULT_SAMPLES, ActivePack, KeyEvent};
 
 pub struct KeySender(pub Mutex<Option<mpsc::Sender<KeyEvent>>>);
-
-
 
 #[cfg_attr(mobile, tauri::mobile_entry_point)]
 pub fn run() {
@@ -59,7 +57,8 @@ pub fn run() {
             commands::complete_onboarding,
             commands::show_onboarding,
             commands::check_permissions,
-            commands::start_keyboard_listener
+            commands::start_keyboard_listener,
+            commands::get_platform
         ])
         .on_window_event(|window, event| {
             if let tauri::WindowEvent::CloseRequested { api, .. } = event {
@@ -89,7 +88,6 @@ pub fn run() {
         .setup(|app| {
             println!("Starting setup...");
 
-            
             let has_onboarded = {
                 let state = STATE.lock().unwrap();
                 state.has_onboarded
@@ -109,6 +107,16 @@ pub fn run() {
                     } else {
                         println!("Accessibility permissions confirmed.");
                     }
+                    tray::setup_tray(app.handle())?;
+                }
+            }
+            
+            #[cfg(not(target_os = "macos"))]
+            {
+                if !has_onboarded {
+                    println!("Showing onboarding window...");
+                    crate::window::spawn_window(app.handle(), crate::window::WindowType::Onboarding);
+                } else {
                     tray::setup_tray(app.handle())?;
                 }
             }
@@ -135,8 +143,10 @@ pub fn run() {
                 println!("Worker thread started.");
                 let _s = worker_audio_state.sink.lock().unwrap(); // Keep sink alive
                 while let Ok(key_event) = rx.recv() {
-                    let keycode = key_event.code;
+                    let keycode_raw = key_event.code;
                     let flags = key_event.flags;
+
+                    let key_id = get_key_id(keycode_raw);
 
                     let (action_to_trigger, is_enabled, active_pack, volume) = {
                         let state = match STATE.lock() {
@@ -144,34 +154,63 @@ pub fn run() {
                             Err(_) => continue,
                         };
 
-                        // Constants for macOS flags
-                        const CMD_MASK: u64 = 0x100000;
-                        const SHIFT_MASK: u64 = 0x20000;
-                        const OPT_MASK: u64 = 0x80000;
-                        const CTRL_MASK: u64 = 0x40000;
-                        const CAPS_MASK: u64 = 0x10000;
+                        #[cfg(target_os = "macos")]
+                        {
+                            // Constants for macOS flags
+                            const CMD_MASK: u64 = 0x100000;
+                            const SHIFT_MASK: u64 = 0x20000;
+                            const OPT_MASK: u64 = 0x80000;
+                            const CTRL_MASK: u64 = 0x40000;
+                            const CAPS_MASK: u64 = 0x10000;
 
-                        // Shortcut Detection
-                        let mut current_mods = 0u32;
-                        if flags & CMD_MASK != 0 { current_mods |= 1; }
-                        if flags & SHIFT_MASK != 0 { current_mods |= 2; }
-                        if flags & OPT_MASK != 0 { current_mods |= 4; }
-                        if flags & CTRL_MASK != 0 { current_mods |= 8; }
-                        
-                        if state.hyper_key_enabled && (flags & CAPS_MASK != 0 || keycode == 57) {
-                            current_mods |= 1 | 2 | 4 | 8;
-                        }
+                            // Shortcut Detection
+                            let mut current_mods = 0u32;
+                            if flags & CMD_MASK != 0 { current_mods |= 1; }
+                            if flags & SHIFT_MASK != 0 { current_mods |= 2; }
+                            if flags & OPT_MASK != 0 { current_mods |= 4; }
+                            if flags & CTRL_MASK != 0 { current_mods |= 8; }
+                            
+                            if state.hyper_key_enabled && (flags & CAPS_MASK != 0 || keycode_raw == 57) {
+                                current_mods = 1 | 2 | 4 | 8;
+                            }
 
-                        let mut found_action = None;
-                        if !state.is_recording {
-                            for (action, shortcut) in &state.shortcuts {
-                                if shortcut.key_code == keycode && shortcut.modifiers == current_mods {
-                                    found_action = Some(action.clone());
-                                    break;
+                            let mut found_action = None;
+                            if !state.is_recording {
+                                for (action, shortcut) in &state.shortcuts {
+                                    if shortcut.key_code == keycode_raw && shortcut.modifiers == current_mods {
+                                        found_action = Some(action.clone());
+                                        break;
+                                    }
                                 }
                             }
+                            (found_action, state.enabled, state.active_pack.clone(), state.volume)
                         }
-                        (found_action, state.enabled, state.active_pack.clone(), state.volume)
+
+                        #[cfg(not(target_os = "macos"))]
+                        {
+                             // Flags sent by generic_listener for Windows/Linux
+                            const WIN_CMD_MASK: u64 = 0x1;
+                            const WIN_SHIFT_MASK: u64 = 0x2;
+                            const WIN_ALT_MASK: u64 = 0x4;
+                            const WIN_CTRL_MASK: u64 = 0x8;
+
+                            let mut current_mods = 0u32;
+                            if flags & WIN_CMD_MASK != 0 { current_mods |= 1; }
+                            if flags & WIN_SHIFT_MASK != 0 { current_mods |= 2; }
+                            if flags & WIN_ALT_MASK != 0 { current_mods |= 4; }
+                            if flags & WIN_CTRL_MASK != 0 { current_mods |= 8; }
+                            
+                            let mut found_action = None;
+                            if !state.is_recording {
+                                for (action, shortcut) in &state.shortcuts {
+                                    if shortcut.key_code == keycode_raw && shortcut.modifiers == current_mods {
+                                        found_action = Some(action.clone());
+                                        break;
+                                    }
+                                }
+                            }
+                            (found_action, state.enabled, state.active_pack.clone(), state.volume)
+                        }
                     };
 
                     // Handle Recording Mode (emitted to frontend for UI)
@@ -201,7 +240,8 @@ pub fn run() {
 
                     if !is_enabled { continue; }
                     
-                    if keycode == 54 || keycode == 55 || keycode == 56 || keycode == 57 || keycode == 58 || keycode == 59 || keycode == 60 || keycode == 61 || keycode == 62 || keycode == 63 {
+                    // Skip modifier keys for sound playback (based on macOS codes for consistency in identifier)
+                    if keycode_raw == 54 || keycode_raw == 55 || keycode_raw == 56 || keycode_raw == 57 || keycode_raw == 58 || keycode_raw == 59 || keycode_raw == 60 || keycode_raw == 61 || keycode_raw == 62 || keycode_raw == 63 {
                         continue;
                     }
 
@@ -218,7 +258,7 @@ pub fn run() {
 
                     match &active_pack {
                         ActivePack::Zenith | ActivePack::Obsidian | ActivePack::Sapphire => {
-                            if let Some(config) = default_config.get(macos_keycode_to_dik(keycode)) {
+                            if let Some(config) = default_config.get(key_id) {
                                 let start_sample = (config[0] * 441 * 2 / 10) as usize;
                                 let end_sample = start_sample + (config[1] * 441 * 2 / 10) as usize;
 
@@ -256,7 +296,6 @@ pub fn run() {
                             }
                         }
                         ActivePack::Velvet(pack) | ActivePack::Neon(pack) | ActivePack::Custom(pack) => {
-                            let key_id = macos_keycode_to_dik(keycode);
                             let filename = pack.config.sounds.get(key_id).or_else(|| pack.config.sounds.get("Default"));
 
                             if let Some(fname) = filename {

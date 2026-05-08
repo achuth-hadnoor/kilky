@@ -4,7 +4,7 @@ import { listen } from "@tauri-apps/api/event";
 import { getCurrentWebviewWindow } from "@tauri-apps/api/webviewWindow";
 import { ChevronLeft } from "lucide-react";
 import { Button } from "@/components/ui/button";
-import { Shortcut, getMacosKeyName } from "../shared/utils";
+import { Shortcut, getKeyName, getModifierSymbol } from "../shared/utils";
 
 interface AppState {
   enabled: boolean;
@@ -32,6 +32,7 @@ export function Onboarding() {
   const [recordingAction, setRecordingAction] = useState<string | null>(null);
   const [previewShortcut, setPreviewShortcut] = useState<string | null>(null);
   const [hyperKeyEnabled, setHyperKeyEnabled] = useState(false);
+  const [platformName, setPlatformName] = useState<string>("macos");
 
   const recordingActionRef = useRef<string | null>(null);
   const hyperKeyEnabledRef = useRef(false);
@@ -73,6 +74,8 @@ export function Onboarding() {
   useEffect(() => {
     const init = async () => {
       await fetchState();
+      const p = await invoke<string>("get_platform");
+      setPlatformName(p);
     };
     init();
     const interval = setInterval(async () => {
@@ -94,17 +97,17 @@ export function Onboarding() {
         let mods = 0;
         let displayParts = [];
 
-        if (flags & CMD_MASK) { mods |= 1; displayParts.push("⌘"); }
-        if (flags & SHIFT_MASK) { mods |= 2; displayParts.push("⇧"); }
-        if (flags & OPT_MASK) { mods |= 4; displayParts.push("⌥"); }
-        if (flags & CTRL_MASK) { mods |= 8; displayParts.push("⌃"); }
+        if (flags & CMD_MASK) { mods |= 1; displayParts.push(getModifierSymbol(1)); }
+        if (flags & SHIFT_MASK) { mods |= 2; displayParts.push(getModifierSymbol(2)); }
+        if (flags & OPT_MASK) { mods |= 4; displayParts.push(getModifierSymbol(4)); }
+        if (flags & CTRL_MASK) { mods |= 8; displayParts.push(getModifierSymbol(8)); }
 
         if (hyperKeyEnabledRef.current && (flags & CAPS_MASK)) {
           mods = 1 | 2 | 4 | 8;
-          displayParts = ["⌘", "⇧", "⌥", "⌃"];
+          displayParts = [1, 2, 4, 8].map(getModifierSymbol);
         }
 
-        const keyName = getMacosKeyName(code);
+        const keyName = getKeyName(code);
         let currentDisplay = displayParts.join(" + ") + (keyName ? (displayParts.length > 0 ? " + " : "") + keyName : "");
 
         if (mods === 15) {
@@ -217,6 +220,7 @@ export function Onboarding() {
             onDeviceChange={handleDeviceChange}
             onRequestPermission={requestPermission}
             onNext={() => setStep(3)}
+            platformName={platformName}
           />
         )}
 

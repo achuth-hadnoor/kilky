@@ -119,6 +119,28 @@ pub fn get_default_config() -> HashMap<&'static str, [u64; 2]> {
     m
 }
 
+pub fn get_key_id(code: u32) -> &'static str {
+    #[cfg(target_os = "macos")]
+    {
+        macos_keycode_to_dik(code)
+    }
+    #[cfg(target_os = "windows")]
+    {
+        // On Windows, we expect the code to already be a DIK code or 
+        // we've mapped it in generic_listener.
+        // For now, let's just return it as a string if it's within a reasonable range,
+        // but it's better to have a dedicated mapping.
+        // Since generic_listener currently maps to macos codes, 
+        // we'll keep using macos_keycode_to_dik for now to maintain compatibility 
+        // with the current hack, but we'll improve it later.
+        macos_keycode_to_dik(code)
+    }
+    #[cfg(not(any(target_os = "macos", target_os = "windows")))]
+    {
+        "30" // Default to 'A'
+    }
+}
+
 pub fn macos_keycode_to_dik(code: u32) -> &'static str {
     match code {
         53 => "1", // Esc

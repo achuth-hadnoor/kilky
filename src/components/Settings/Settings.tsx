@@ -11,7 +11,7 @@ import { Separator } from "@/components/ui/separator";
 import { VolumeControl } from "../Sound/VolumeControl";
 import { SoundPackPicker } from "../Sound/SoundPackPicker";
 import { ShortcutRecorder } from "../shared/ShortcutRecorder";
-import { Shortcut, getMacosKeyName } from "../shared/utils";
+import { Shortcut, getKeyName, getModifierSymbol } from "../shared/utils";
 import './Settings.css';
 
 interface AppState {
@@ -38,6 +38,7 @@ export function Settings() {
   const [shortcuts, setShortcuts] = useState<Record<string, Shortcut>>({});
   const [recordingAction, setRecordingAction] = useState<string | null>(null);
   const [previewShortcut, setPreviewShortcut] = useState<string | null>(null);
+  const [platformName, setPlatformName] = useState<string>('macos');
 
   const recordingActionRef = useRef<string | null>(null);
   const hyperKeyEnabledRef = useRef(false);
@@ -86,6 +87,8 @@ export function Settings() {
       await fetchDevices();
       const version = await getVersion();
       setAppVersion(version);
+      const p = await invoke<string>('get_platform');
+      setPlatformName(p);
     };
     init();
     const unlisten = listen('state-update', () => {
@@ -107,19 +110,19 @@ export function Settings() {
         let mods = 0;
         let displayParts = [];
 
-        if (flags & CMD_MASK) { mods |= 1; displayParts.push('⌘'); }
-        if (flags & SHIFT_MASK) { mods |= 2; displayParts.push('⇧'); }
-        if (flags & OPT_MASK) { mods |= 4; displayParts.push('⌥'); }
-        if (flags & CTRL_MASK) { mods |= 8; displayParts.push('⌃'); }
+        if (flags & CMD_MASK) { mods |= 1; displayParts.push(getModifierSymbol(1)); }
+        if (flags & SHIFT_MASK) { mods |= 2; displayParts.push(getModifierSymbol(2)); }
+        if (flags & OPT_MASK) { mods |= 4; displayParts.push(getModifierSymbol(4)); }
+        if (flags & CTRL_MASK) { mods |= 8; displayParts.push(getModifierSymbol(8)); }
 
         // If Hyper Key is enabled and Caps Lock is active, override modifiers
         if (hyperKeyEnabledRef.current && (flags & CAPS_MASK)) {
           mods = 1 | 2 | 4 | 8;
-          displayParts = ['⌘', '⇧', '⌥', '⌃'];
+          displayParts = [1, 2, 4, 8].map(getModifierSymbol);
         }
 
         // Basic mapping for common keys
-        const keyName = getMacosKeyName(code);
+        const keyName = getKeyName(code);
         let currentDisplay = displayParts.join(' + ') + (keyName ? (displayParts.length > 0 ? ' + ' : '') + keyName : '');
 
         if (mods === 15) {
@@ -474,7 +477,7 @@ export function Settings() {
                     </div>
                     <div className="flex justify-between">
                       <span className="text-black/40 dark:text-white/40">Platform</span>
-                      <span className="font-mono">macOS Darwin 23.4.0</span>
+                      <span className="font-mono">{platformName}</span>
                     </div>
                     <div className="flex justify-between">
                       <span className="text-black/40 dark:text-white/40">License</span>

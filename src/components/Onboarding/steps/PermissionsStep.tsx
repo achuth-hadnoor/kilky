@@ -11,6 +11,7 @@ interface PermissionsStepProps {
   onDeviceChange: (device: string) => void;
   onRequestPermission: () => void;
   onNext: () => void;
+  platformName: string;
 }
 
 export function PermissionsStep({
@@ -20,7 +21,10 @@ export function PermissionsStep({
   onDeviceChange,
   onRequestPermission,
   onNext,
+  platformName,
 }: PermissionsStepProps) {
+  const isMac = platformName === "macos";
+
   return (
     <StepContainer>
       <StepHeader
@@ -38,7 +42,9 @@ export function PermissionsStep({
             <span className="text-[10px] uppercase tracking-widest font-bold text-zinc-500 dark:text-zinc-400">Permissions</span>
           </div>
           <p className="text-xs text-neutral-500 dark:text-zinc-500">
-            Kliky needs accessibility access to detect key presses and play sounds.
+            {isMac 
+              ? "Kliky needs accessibility access to detect key presses and play sounds."
+              : "Kliky needs to hook into system events to detect key presses and play sounds."}
           </p>
           <Button
             size="lg"
@@ -50,7 +56,9 @@ export function PermissionsStep({
               : "bg-white text-black hover:bg-zinc-200 shadow-xl"
               }`}
           >
-            {hasPermission ? "Permission Granted ✓" : "Grant Accessibility Access"}
+            {hasPermission 
+              ? "System Access Granted ✓" 
+              : isMac ? "Grant Accessibility Access" : "Grant System Access"}
           </Button>
         </OnboardingCard>
 

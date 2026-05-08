@@ -4,19 +4,51 @@ use crate::state::KeyEvent;
 use std::sync::mpsc::Sender;
 use std::thread;
 
+use std::sync::Mutex;
+use lazy_static::lazy_static;
+
+lazy_static! {
+    static ref MODIFIERS: Mutex<u64> = Mutex::new(0);
+}
+
 pub fn start_generic_listener(tx: Sender<KeyEvent>) {
     thread::spawn(move || {
         println!("Starting generic keyboard listener (rdev)...");
+        
+        // Constants for our unified flags (matching what we expect in lib.rs)
+        const WIN_CMD_MASK: u64 = 0x1;
+        const WIN_SHIFT_MASK: u64 = 0x2;
+        const WIN_ALT_MASK: u64 = 0x4;
+        const WIN_CTRL_MASK: u64 = 0x8;
+
         if let Err(error) = listen(move |event: Event| {
-            if let EventType::KeyPress(key) = event.event_type {
-                // We use a dummy keycode mapping here or map rdev::Key to our DIK strings
-                // For simplicity, we can try to get the raw scan code if rdev provides it,
-                // but rdev 0.5.3 might not expose it easily in a cross-platform way.
-                // However, we can map common keys.
-                let code = rdev_key_to_code(key);
-                if code != 0 {
-                    let _ = tx.send(KeyEvent { code, flags: 0 });
+            match event.event_type {
+                EventType::KeyPress(key) => {
+                    let mut mods = MODIFIERS.lock().unwrap();
+                    match key {
+                        rdev::Key::MetaLeft | rdev::Key::MetaRight => *mods |= WIN_CMD_MASK,
+                        rdev::Key::ShiftLeft | rdev::Key::ShiftRight => *mods |= WIN_SHIFT_MASK,
+                        rdev::Key::Alt | rdev::Key::AltGr => *mods |= WIN_ALT_MASK,
+                        rdev::Key::ControlLeft | rdev::Key::ControlRight => *mods |= WIN_CTRL_MASK,
+                        _ => {
+                            let code = rdev_key_to_code(key);
+                            if code != 0 {
+                                let _ = tx.send(KeyEvent { code, flags: *mods });
+                            }
+                        }
+                    }
                 }
+                EventType::KeyRelease(key) => {
+                    let mut mods = MODIFIERS.lock().unwrap();
+                    match key {
+                        rdev::Key::MetaLeft | rdev::Key::MetaRight => *mods &= !WIN_CMD_MASK,
+                        rdev::Key::ShiftLeft | rdev::Key::ShiftRight => *mods &= !WIN_SHIFT_MASK,
+                        rdev::Key::Alt | rdev::Key::AltGr => *mods &= !WIN_ALT_MASK,
+                        rdev::Key::ControlLeft | rdev::Key::ControlRight => *mods &= !WIN_CTRL_MASK,
+                        _ => {}
+                    }
+                }
+                _ => {}
             }
         }) {
             println!("Failed to start generic listener: {:?}", error);
@@ -37,7 +69,7 @@ fn rdev_key_to_code(key: rdev::Key) -> u32 {
         Key::Num7 => 26,
         Key::Num8 => 28,
         Key::Num9 => 25,
-        Key::Num0 => 29, // Wait, I should check the mappings in audio.rs
+        Key::Num0 => 29,
         Key::Minus => 27,
         Key::Equal => 24,
         Key::Backspace => 51,
