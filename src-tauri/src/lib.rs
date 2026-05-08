@@ -13,6 +13,7 @@ mod db;
 use rodio::{buffer::SamplesBuffer, source::Source, DeviceSinkBuilder};
 use rodio::source::Spatial;
 use tauri::{Manager, Emitter};
+use log::{info, error};
 use std::num::NonZero;
 use std::thread;
 use std::sync::{mpsc, Arc, Mutex};
@@ -29,7 +30,7 @@ pub struct KeySender {
 #[cfg_attr(mobile, tauri::mobile_entry_point)]
 pub fn run() {
     std::panic::set_hook(Box::new(|info| {
-        println!("Panic occurred: {:?}", info);
+        error!("Panic occurred: {:?}", info);
     }));
 
     tauri::Builder::default()
@@ -39,6 +40,14 @@ pub fn run() {
         .plugin(tauri_plugin_opener::init())
         .plugin(tauri_plugin_process::init())
         .plugin(tauri_plugin_autostart::init(tauri_plugin_autostart::MacosLauncher::LaunchAgent, Some(vec!["--minimized"])))
+        .plugin(tauri_plugin_log::Builder::new()
+            .targets([
+                tauri_plugin_log::Target::new(tauri_plugin_log::TargetKind::Stdout),
+                tauri_plugin_log::Target::new(tauri_plugin_log::TargetKind::LogDir { file_name: None }),
+                tauri_plugin_log::Target::new(tauri_plugin_log::TargetKind::Webview),
+            ])
+            .level(log::LevelFilter::Info)
+            .build())
 
         .invoke_handler(tauri::generate_handler![
             commands::load_sound_pack,
@@ -89,14 +98,14 @@ pub fn run() {
                         api.prevent_close();
                     }
                 } else {
-                    println!("Window close requested, hiding instead.");
+                    info!("Window close requested, hiding instead.");
                     let _ = window.hide();
                     api.prevent_close();
                 }
             }
         })
         .setup(|app| {
-            println!("Starting setup...");
+            info!("Starting setup...");
 
             let has_onboarded = {
                 let state = STATE.lock().unwrap();
@@ -108,14 +117,14 @@ pub fn run() {
                 app.set_activation_policy(tauri::ActivationPolicy::Accessory);
                 
                 if !has_onboarded {
-                    println!("Showing onboarding window...");
+                    info!("Showing onboarding window...");
                     crate::window::spawn_window(app.handle(), crate::window::WindowType::Onboarding);
                 } else {
                     if !macos_accessibility_client::accessibility::application_is_trusted() {
-                        println!("Accessibility permissions missing! Prompting user...");
+                        info!("Accessibility permissions missing! Prompting user...");
                         let _ = macos_accessibility_client::accessibility::application_is_trusted_with_prompt();
                     } else {
-                        println!("Accessibility permissions confirmed.");
+                        info!("Accessibility permissions confirmed.");
                     }
                     tray::setup_tray(app.handle())?;
                 }
@@ -124,7 +133,7 @@ pub fn run() {
             #[cfg(not(target_os = "macos"))]
             {
                 if !has_onboarded {
-                    println!("Showing onboarding window...");
+                    info!("Showing onboarding window...");
                     crate::window::spawn_window(app.handle(), crate::window::WindowType::Onboarding);
                 } else {
                     tray::setup_tray(app.handle())?;
@@ -153,7 +162,7 @@ pub fn run() {
             let worker_audio_state = audio_state.clone();
             let app_handle_clone = app.handle().clone();
             thread::spawn(move || {
-                println!("Worker thread started.");
+                info!("Worker thread started.");
                 
                 // Spatial setup: Listener at origin, ears at -1.0 and 1.0 on X axis.
                 let left_ear = [-1.0, 0.0, 0.0];
@@ -407,7 +416,7 @@ pub fn run() {
             });
 
             if has_onboarded {
-                println!("User has onboarded, starting keyboard listener...");
+                info!("User has onboarded, starting keyboard listener...");
                 let sender_state = app.state::<KeySender>();
                 let mut running = sender_state.is_running.lock().unwrap();
                 if !*running {
@@ -423,7 +432,7 @@ pub fn run() {
                     *running = true;
                 }
             } else {
-                println!("User has not onboarded, delaying keyboard listener...");
+                info!("User has not onboarded, delaying keyboard listener...");
             }
 
             Ok(())
