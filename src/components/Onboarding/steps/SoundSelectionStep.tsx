@@ -27,16 +27,16 @@ export function SoundSelectionStep({
 }: SoundSelectionStepProps) {
   return (
     <StepContainer>
-      <StepHeader 
-        title="kliky" 
-        description="Select your typing sound profile" 
+      <StepHeader
+        title="kliky"
+        description="Select your typing sound profile"
       />
 
       <div className="space-y-4">
         <OnboardingCard className="py-2 px-4">
-          <VolumeControl 
-            volume={volume} 
-            onVolumeUpdate={onVolumeUpdate} 
+          <VolumeControl
+            volume={volume}
+            onVolumeUpdate={onVolumeUpdate}
           />
         </OnboardingCard>
 
@@ -45,12 +45,11 @@ export function SoundSelectionStep({
           previewingPack={previewingPack}
           onPackChange={onPackChange}
           onPlayPreview={onPlayPreview}
-          layout="list"
         />
       </div>
 
       <Button
-        className="w-full h-14 rounded-2xl bg-white text-black font-bold text-lg hover:bg-zinc-200 transition-all shadow-2xl"
+        className="w-full h-14 rounded-2xl bg-white text-black font-bold text-lg hover:bg-zinc-200 "
         onClick={onNext}
       >
         Continue

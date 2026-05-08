@@ -4,7 +4,16 @@ import { listen } from "@tauri-apps/api/event";
 import { getCurrentWebviewWindow } from "@tauri-apps/api/webviewWindow";
 import { ChevronLeft } from "lucide-react";
 import { Button } from "@/components/ui/button";
-import { getMacosKeyName, Shortcut } from "../shared/ShortcutRecorder";
+import { Shortcut, getMacosKeyName } from "../shared/utils";
+
+interface AppState {
+  enabled: boolean;
+  volume: number;
+  active_pack_type: string;
+  audio_device: string | null;
+  shortcuts: Record<string, Shortcut>;
+  hyper_key_enabled: boolean;
+}
 
 import { SoundSelectionStep } from "./steps/SoundSelectionStep";
 import { PermissionsStep } from "./steps/PermissionsStep";
@@ -46,7 +55,7 @@ export function Onboarding() {
       setAudioDevices(devices);
 
       // Get active pack from app state
-      const state = await invoke<any>("get_app_state");
+      const state = await invoke<AppState>("get_app_state");
       setActivePack(state.active_pack_type);
       setVolume(state.volume);
       setSelectedDevice(state.audio_device || "");
@@ -62,7 +71,10 @@ export function Onboarding() {
   };
 
   useEffect(() => {
-    fetchState();
+    const init = async () => {
+      await fetchState();
+    };
+    init();
     const interval = setInterval(async () => {
       const trusted = await invoke<boolean>("check_permissions");
       setHasPermission(trusted);
@@ -167,15 +179,15 @@ export function Onboarding() {
   };
 
   return (
-    <div className="w-screen h-screen flex flex-col py-4 text-white font-sans overflow-hidden " data-tauri-drag-region>
+    <div className="w-screen h-screen flex flex-col py-4 text-white font-sans overflow-hidden select-none" data-tauri-drag-region>
 
       {/* Top Navigation */}
-      <div className="absolute z-10 top-10 left-4 h-10 w-10 flex items-center justify-center">
+      <div className="absolute z-10 top-10 left-4 h-10 w-10 flex items-center justify-center" data-tauri-drag-region>
         {step > 1 && (
           <Button
             variant="ghost"
             size="icon"
-            className="rounded-full bg-white/5 hover:bg-white/10 text-white transition-all"
+            className="rounded-full bg-zinc-300 dark:bg-zinc-700 hover:bg-zinc-400 text-zinc-900 dark:text-white/60 "
             onClick={() => setStep(step - 1)}
           >
             <ChevronLeft className="w-5 h-5" />
@@ -230,12 +242,11 @@ export function Onboarding() {
           {[1, 2, 3].map((s) => (
             <div
               key={s}
-              className={`h-1.5 rounded-full transition-all duration-300 ${step === s ? "w-8 bg-white" : "w-2 bg-white/10"
+              className={`h-1.5 rounded-full transition-all duration-300 ${step === s ? "w-8 bg-black dark:bg-white" : "w-2 bg-black/10 dark:bg-white/10"
                 }`}
             />
           ))}
         </div>
-
       </div>
     </div>
   );

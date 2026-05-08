@@ -9,7 +9,7 @@ mod macos_listener;
 mod generic_listener;
 mod builtin_packs;
 
-use rodio::{buffer::SamplesBuffer, source::Source, mixer::Mixer, DeviceSinkBuilder, MixerDeviceSink};
+use rodio::{buffer::SamplesBuffer, source::Source, DeviceSinkBuilder};
 use tauri::{Manager, Emitter};
 use std::num::NonZero;
 use std::thread;
@@ -72,7 +72,9 @@ pub fn run() {
                         println!("Onboarding window closed manually and no tray exists, exiting app.");
                         window.app_handle().exit(0);
                     } else {
-                        println!("Onboarding closed, keeping app alive (tray exists or finished).");
+                        println!("Onboarding closed, hiding window (tray exists or finished).");
+                        let _ = window.hide();
+                        api.prevent_close();
                     }
                 } else {
                     println!("Window close requested, hiding instead.");

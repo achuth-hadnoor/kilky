@@ -93,7 +93,7 @@ pub fn get_audio_devices() -> Vec<String> {
     let host = rodio::cpal::default_host();
     match host.output_devices() {
         Ok(devices) => devices
-            .filter_map(|d| d.name().ok())
+            .filter_map(|d| d.description().ok().map(|desc| desc.name().to_string()))
             .collect(),
         Err(_) => vec![],
     }
@@ -112,8 +112,8 @@ pub fn set_audio_device(app: AppHandle, device_name: String) -> Result<(), Strin
     let mut target_device = None;
 
     for device in devices {
-        if let Ok(name) = device.name() {
-            if name == device_name {
+        if let Ok(desc) = device.description() {
+            if desc.name() == device_name {
                 target_device = Some(device);
                 break;
             }
@@ -515,6 +515,10 @@ pub fn complete_onboarding(app: AppHandle) {
     state.save();
     let _ = app.emit("state-update", ());
     let _ = crate::tray::setup_tray(&app);
+
+    if let Some(window) = app.get_webview_window("onboarding") {
+        let _ = window.hide();
+    }
 }
 
 #[tauri::command]

@@ -10,7 +10,8 @@ import { ScrollArea } from "@/components/ui/scroll-area";
 import { Separator } from "@/components/ui/separator";
 import { VolumeControl } from "../Sound/VolumeControl";
 import { SoundPackPicker } from "../Sound/SoundPackPicker";
-import { ShortcutRecorder, getMacosKeyName, Shortcut } from "../shared/ShortcutRecorder";
+import { ShortcutRecorder } from "../shared/ShortcutRecorder";
+import { Shortcut, getMacosKeyName } from "../shared/utils";
 import './Settings.css';
 
 interface AppState {
@@ -80,9 +81,13 @@ export function Settings() {
   }, [hyperKeyEnabled]);
 
   useEffect(() => {
-    fetchState();
-    fetchDevices();
-    getVersion().then(setAppVersion);
+    const init = async () => {
+      await fetchState();
+      await fetchDevices();
+      const version = await getVersion();
+      setAppVersion(version);
+    };
+    init();
     const unlisten = listen('state-update', () => {
       fetchState();
     });
@@ -272,22 +277,34 @@ export function Settings() {
                       <Label className="text-base">Audio Output Device</Label>
                       <p className="text-xs text-black/40 dark:text-white/40">Choose where the keyboard sounds will play.</p>
                     </div>
+                    <select
+                      value={selectedDevice}
+                      onChange={(e) => handleDeviceChange(e.target.value)}
+                      className="w-full p-2.5 bg-black/10 dark:bg-white/10 rounded-xl border border-black/10 dark:border-white/10 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500/50 appearance-none cursor-pointer"
+                    >
+                      <option value="">Default System Device</option>
+                      {audioDevices.map((device) => (
+                        <option key={device} value={device}>{device}</option>
+                      ))}
+                    </select>
                   </div>
 
-                  <div className="p-4 bg-black/5 dark:bg-white/5 rounded-2xl border border-black/5 dark:border-white/5 space-y-4">
-                    <div className="space-y-1">
-                      <Label className="text-base font-semibold">Welcome Experience</Label>
-                      <p className="text-xs text-black/40 dark:text-white/40">Re-run the setup guide to configure your sounds and permissions.</p>
+                  {import.meta.env.DEV && (
+                    <div className="p-4 bg-black/5 dark:bg-white/5 rounded-2xl border border-black/5 dark:border-white/5 space-y-4">
+                      <div className="space-y-1">
+                        <Label className="text-base font-semibold">Welcome Experience (Dev)</Label>
+                        <p className="text-xs text-black/40 dark:text-white/40">Re-run the setup guide to configure your sounds and permissions.</p>
+                      </div>
+                      <Button
+                        variant="outline"
+                        className="w-full h-11 rounded-xl border-dashed hover:border-indigo-500/50 hover:bg-indigo-500/5 transition-all flex items-center gap-2 group"
+                        onClick={() => invoke('show_onboarding')}
+                      >
+                        <Rocket className="w-4 h-4 text-black/40 dark:text-white/40 group-hover:text-indigo-500 transition-colors" />
+                        <span>Launch Onboarding Flow</span>
+                      </Button>
                     </div>
-                    <Button
-                      variant="outline"
-                      className="w-full h-11 rounded-xl border-dashed hover:border-indigo-500/50 hover:bg-indigo-500/5 transition-all flex items-center gap-2 group"
-                      onClick={() => invoke('show_onboarding')}
-                    >
-                      <Rocket className="w-4 h-4 text-black/40 dark:text-white/40 group-hover:text-indigo-500 transition-colors" />
-                      <span>Launch Onboarding Flow</span>
-                    </Button>
-                  </div>
+                  )}
                 </div>
               </div>
             )}
@@ -311,7 +328,6 @@ export function Settings() {
                   previewingPack={previewingPack}
                   onPackChange={handlePackChange}
                   onPlayPreview={handlePlayPreview}
-                  layout="grid"
                 />
 
               </div>
@@ -335,6 +351,7 @@ export function Settings() {
                         <p className="text-xs text-black/40 dark:text-white/40">Hold Caps Lock to trigger ⌘ + ⌥ + ⌃ + ⇧ instantly.</p>
                       </div>
                     </div>
+                    <Switch checked={hyperKeyEnabled} onCheckedChange={handleHyperKeyToggle} />
                   </div>
 
                   <ShortcutRecorder

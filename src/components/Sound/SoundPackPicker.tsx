@@ -7,7 +7,6 @@ interface SoundPackPickerProps {
   previewingPack: string | null;
   onPackChange: (id: string) => void;
   onPlayPreview: (e: React.MouseEvent, id: string) => void;
-  layout?: "list" | "grid";
 }
 
 export function SoundPackPicker({
@@ -15,14 +14,10 @@ export function SoundPackPicker({
   previewingPack,
   onPackChange,
   onPlayPreview,
-  layout = "list"
 }: SoundPackPickerProps) {
-  const containerClass = layout === "grid"
-    ? "grid grid-cols-2 gap-3"
-    : "space-y-2";
 
   return (
-    <div className={"grid grid-cols-2 gap-3"}>
+    <div className="grid grid-cols-2 gap-3">
       {SOUND_PACKS.map((pack) => (
         <button
           key={pack.id}
@@ -57,17 +52,16 @@ export function SoundPackPicker({
         </button>
       ))}
       <button
-        className="flex items-center justify-between w-full p-1 rounded-2xl border transition-all duration-200 group border-dotted  border-indigo-500/50  dark:border-white/20 shadow-xl cursor-not-allowed">
+        className="flex items-center justify-between w-full p-1 rounded-2xl border transition-all duration-200 group border-dotted  border-black/20  dark:border-white/20 cursor-not-allowed">
         <div className="flex items-center gap-3">
-          <div className="w-10 h-10 rounded-xl bg-greay-600/10 flex items-center justify-center text-white/30 shadow-lg bg-white/30">
+          <div className="w-10 h-10 rounded-xl dark:bg-grey-600/10 bg-black/10 flex items-center justify-center text-black/40 dark:text-white/30 ">
             <Volume2 className="w-5 h-5" />
           </div>
           <div className="text-left">
-            <p className="font-bold text-sm text-black dark:text-white/40">More packs</p>
-            <p className="text-[10px] text-zinc-500">coming soon</p>
+            <p className="font-bold text-sm text-black/30 dark:text-white/40">More packs</p>
+            <p className="text-[10px] text-zinc-500/50">coming soon</p>
           </div>
         </div>
-
       </button>
     </div>
   );

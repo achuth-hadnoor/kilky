@@ -4,7 +4,8 @@ import { Switch } from "@/components/ui/switch";
 import { StepHeader } from "../shared/StepHeader";
 import { OnboardingCard } from "../shared/OnboardingCard";
 import { StepContainer } from "../shared/StepContainer";
-import { ShortcutRecorder, Shortcut } from "../../shared/ShortcutRecorder";
+import { ShortcutRecorder } from "../../shared/ShortcutRecorder";
+import { Shortcut } from "../../shared/utils";
 
 interface LaunchSettingsStepProps {
   isAutostart: boolean;
@@ -30,7 +31,7 @@ export function LaunchSettingsStep({
   onFinish,
 }: LaunchSettingsStepProps) {
   return (
-    <StepContainer animation="slide-right">
+    <StepContainer>
       <StepHeader
         title="Final Step"
         description="Configure how Kliky starts"
@@ -42,7 +43,7 @@ export function LaunchSettingsStep({
         {/* Startup Setting */}
         <OnboardingCard className="flex items-center justify-between p-6">
           <div className="space-y-1">
-            <p className="text-sm font-bold">Launch at Startup</p>
+            <p className="text-sm font-bold text-black dark:text-white">Launch at Startup</p>
             <p className="text-[10px] text-zinc-500 text-left">Automatically start when you log in</p>
           </div>
           <Switch checked={isAutostart} onCheckedChange={onAutoLaunchChange} />

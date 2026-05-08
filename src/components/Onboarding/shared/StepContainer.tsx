@@ -2,16 +2,12 @@ import { ReactNode } from "react";
 
 interface StepContainerProps {
   children: ReactNode;
-  animation?: "slide-up" | "slide-right";
 }
 
-export function StepContainer({ children, animation = "slide-up" }: StepContainerProps) {
-  const animationClass = animation === "slide-up"
-    ? "animate-in fade-in slide-in-from-bottom-5"
-    : "animate-in fade-in slide-in-from-right-5";
+export function StepContainer({ children }: StepContainerProps) {
 
   return (
-    <div className={`space-y-8 flex flex-col justify-between p-10 flex-1 ${animationClass} duration-700 overflow-y-auto w-screen`}>
+    <div className={`space-y-8 flex flex-col justify-between py-10 px-5 flex-1  duration-700 overflow-y-auto w-screen`}>
       {children}
     </div>
   );

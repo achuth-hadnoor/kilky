@@ -16,7 +16,7 @@ export function VolumeControl({
   return (
     <div className={`space-y-2 ${className}`}>
       <div className="flex justify-between items-center">
-        <span className="text-[10px] uppercase tracking-widest font-bold text-zinc-500 dark:text-zinc-500">Volume</span>
+        <span className="text-[10px] uppercase tracking-widest font-bold text-zinc-900 dark:text-white/60">Volume</span>
         {showPercentage && (
           <span className="text-sm font-mono text-zinc-600 dark:text-white/60">
             {Math.round(volume * 100)}%
