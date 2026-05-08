@@ -2,6 +2,9 @@ import { useState, useEffect, useRef } from 'react';
 import { invoke } from '@tauri-apps/api/core';
 import { listen } from '@tauri-apps/api/event';
 import { getVersion } from '@tauri-apps/api/app';
+import { check } from '@tauri-apps/plugin-updater';
+import { relaunch } from '@tauri-apps/plugin-process';
+import { message, ask } from '@tauri-apps/plugin-dialog';
 import { Settings as SettingsIcon, Volume2, Keyboard, Info, Rocket } from 'lucide-react';
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { Shortcut } from "../shared/utils";
@@ -164,6 +167,27 @@ export function Settings() {
     await fetchState();
   };
 
+  const handleCheckUpdates = async () => {
+    try {
+      const update = await check();
+      if (update) {
+        const yes = await ask(
+          `Update to ${update.version} is available!\n\n${update.body || 'No release notes provided.'}\n\nWould you like to install it now?`,
+          { title: 'Update Available', kind: 'info' }
+        );
+        if (yes) {
+          await update.downloadAndInstall();
+          await relaunch();
+        }
+      } else {
+        await message('You are running the latest version of Kliky.', { title: 'Up to Date', kind: 'info' });
+      }
+    } catch (e) {
+      console.error(e);
+      await message('Failed to check for updates. Please check your internet connection.', { title: 'Update Error', kind: 'error' });
+    }
+  };
+
   const navItems = [
     { id: 'general', label: 'General', icon: SettingsIcon },
     { id: 'audio', label: 'Sounds', icon: Volume2 },
@@ -233,6 +257,7 @@ export function Settings() {
               <AboutSection 
                 appVersion={appVersion}
                 platformName={platformName}
+                handleCheckUpdates={handleCheckUpdates}
               />
             )}
           </div>

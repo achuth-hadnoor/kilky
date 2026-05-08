@@ -11,7 +11,7 @@ lazy_static! {
     static ref MODIFIERS: Mutex<u64> = Mutex::new(0);
 }
 
-pub fn start_generic_listener(tx: Sender<KeyEvent>) {
+pub fn start_generic_listener(tx: Sender<KeyEvent>, is_running: std::sync::Arc<std::sync::Mutex<bool>>) {
     thread::spawn(move || {
         println!("Starting generic keyboard listener (rdev)...");
         
@@ -53,6 +53,9 @@ pub fn start_generic_listener(tx: Sender<KeyEvent>) {
         }) {
             println!("Failed to start generic listener: {:?}", error);
         }
+
+        let mut running = is_running.lock().unwrap();
+        *running = false;
     });
 }
 

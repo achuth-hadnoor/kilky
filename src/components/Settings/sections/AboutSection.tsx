@@ -1,12 +1,22 @@
+import { useState } from "react";
 import { Button } from "@/components/ui/button";
-import { Rocket } from 'lucide-react';
+import { Rocket, Loader2 } from 'lucide-react';
 
 interface AboutSectionProps {
   appVersion: string;
   platformName: string;
+  handleCheckUpdates: () => Promise<void>;
 }
 
-export function AboutSection({ appVersion, platformName }: AboutSectionProps) {
+export function AboutSection({ appVersion, platformName, handleCheckUpdates }: AboutSectionProps) {
+  const [isChecking, setIsChecking] = useState(false);
+
+  const onCheck = async () => {
+    setIsChecking(true);
+    await handleCheckUpdates();
+    setIsChecking(false);
+  };
+
   return (
     <div className="space-y-8">
       <div className="flex flex-col items-center py-8 text-center space-y-6">
@@ -24,7 +34,21 @@ export function AboutSection({ appVersion, platformName }: AboutSectionProps) {
 
         <div className="flex gap-4">
           <Button variant="outline" className="rounded-xl border-black/10 dark:border-white/10 px-6">Release Notes</Button>
-          <Button variant="outline" className="rounded-xl border-black/10 dark:border-white/10 px-6">Check for Updates</Button>
+          <Button 
+            variant="outline" 
+            className="rounded-xl border-black/10 dark:border-white/10 px-6 min-w-[160px]"
+            onClick={onCheck}
+            disabled={isChecking}
+          >
+            {isChecking ? (
+              <>
+                <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                Checking...
+              </>
+            ) : (
+              "Check for Updates"
+            )}
+          </Button>
         </div>
       </div>
 

@@ -19,7 +19,10 @@ use rand::{rng, RngExt};
 use crate::audio::{get_default_config, get_key_id};
 use crate::state::{STATE, DEFAULT_SAMPLES, ActivePack, KeyEvent};
 
-pub struct KeySender(pub Mutex<Option<mpsc::Sender<KeyEvent>>>);
+pub struct KeySender {
+    pub tx: mpsc::Sender<KeyEvent>,
+    pub is_running: Arc<Mutex<bool>>,
+}
 
 #[cfg_attr(mobile, tauri::mobile_entry_point)]
 pub fn run() {
@@ -32,6 +35,7 @@ pub fn run() {
         .plugin(tauri_plugin_fs::init())
         .plugin(tauri_plugin_updater::Builder::new().build())
         .plugin(tauri_plugin_opener::init())
+        .plugin(tauri_plugin_process::init())
         .plugin(tauri_plugin_autostart::init(tauri_plugin_autostart::MacosLauncher::LaunchAgent, Some(vec!["--minimized"])))
 
         .invoke_handler(tauri::generate_handler![
@@ -137,7 +141,10 @@ pub fn run() {
             let default_config = get_default_config();
 
             let (tx, rx) = mpsc::channel::<KeyEvent>();
-            app.manage(KeySender(Mutex::new(Some(tx.clone()))));
+            app.manage(KeySender { 
+                tx: tx.clone(), 
+                is_running: Arc::new(Mutex::new(false)) 
+            });
 
             // Sound Worker Thread
             let worker_audio_state = audio_state.clone();
@@ -335,13 +342,18 @@ pub fn run() {
             if has_onboarded {
                 println!("User has onboarded, starting keyboard listener...");
                 let sender_state = app.state::<KeySender>();
-                let mut sender_opt = sender_state.0.lock().unwrap();
-                if let Some(tx_to_use) = sender_opt.take() {
+                let mut running = sender_state.is_running.lock().unwrap();
+                if !*running {
+                    let tx_clone = sender_state.tx.clone();
+                    let running_clone = sender_state.is_running.clone();
+                    
                     #[cfg(target_os = "macos")]
-                    macos_listener::start_macos_listener(tx_to_use);
+                    crate::macos_listener::start_macos_listener(tx_clone, running_clone);
 
                     #[cfg(target_os = "windows")]
-                    generic_listener::start_generic_listener(tx_to_use);
+                    crate::generic_listener::start_generic_listener(tx_clone, running_clone);
+                    
+                    *running = true;
                 }
             } else {
                 println!("User has not onboarded, delaying keyboard listener...");

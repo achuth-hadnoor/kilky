@@ -9,7 +9,7 @@ use std::sync::mpsc::Sender;
 use crate::state::KeyEvent;
 
 #[cfg(target_os = "macos")]
-pub fn start_macos_listener(tx: Sender<KeyEvent>) {
+pub fn start_macos_listener(tx: Sender<KeyEvent>, is_running: std::sync::Arc<std::sync::Mutex<bool>>) {
     use std::thread;
 
     thread::spawn(move || {
@@ -30,6 +30,8 @@ pub fn start_macos_listener(tx: Sender<KeyEvent>) {
             Ok(tap) => tap,
             Err(e) => {
                 println!("Failed to create event tap: {:?}", e);
+                let mut running = is_running.lock().unwrap();
+                *running = false;
                 return;
             }
         };
@@ -42,5 +44,9 @@ pub fn start_macos_listener(tx: Sender<KeyEvent>) {
             println!("macOS event tap active.");
             CFRunLoopRun();
         }
+        
+        // If we exit the run loop for some reason, reset running flag
+        let mut running = is_running.lock().unwrap();
+        *running = false;
     });
 }
