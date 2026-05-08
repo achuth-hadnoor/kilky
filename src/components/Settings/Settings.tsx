@@ -185,9 +185,10 @@ export function Settings() {
     } catch (e) {
       console.error(e);
       const errorMsg = e instanceof Error ? e.message : String(e);
-      
+
       if (errorMsg.includes("valid release JSON")) {
-        await message(`No updates found.\n\nNote: In development mode, this error often means that no GitHub releases have been created yet at the configured URL.`, { title: 'Check Updates', kind: 'info' });
+        const note = import.meta.env.DEV ? "\n\nNote: In development, this usually means no GitHub releases exist yet." : "";
+        await message(`No updates found at this time.${note}`, { title: 'Check Updates', kind: 'info' });
       } else {
         await message(`Failed to check for updates: ${errorMsg}\n\nPlease check your internet connection or try again later.`, { title: 'Update Error', kind: 'error' });
       }
@@ -269,13 +270,13 @@ export function Settings() {
           </div>
         </ScrollArea>
 
-        <div className="p-4 bg-black/[0.02] dark:bg-white/[0.02] border-t border-black/5 dark:border-white/5 flex justify-between items-center px-8">
+        {/* <div className="p-4 bg-black/[0.02] dark:bg-white/[0.02] border-t border-black/5 dark:border-white/5 flex justify-between items-center px-8">
           <span className="text-[10px] text-black/20 dark:text-white/20 font-medium uppercase tracking-[0.2em]">Build {appVersion}</span>
           <div className="flex gap-4">
             <span className="text-[10px] text-black/40 dark:text-white/40 hover:text-black dark:hover:text-white cursor-pointer">Documentation</span>
             <span className="text-[10px] text-black/40 dark:text-white/40 hover:text-black dark:hover:text-white cursor-pointer">Support</span>
           </div>
-        </div>
+        </div> */}
       </main>
     </div>
   );
