@@ -4,12 +4,21 @@ use std::collections::HashMap;
 use tauri::{
     menu::{CheckMenuItem, Menu, MenuItem, PredefinedMenuItem, Submenu},
     tray::{MouseButton, MouseButtonState, TrayIconBuilder, TrayIconEvent},
-    Emitter, Manager, WebviewUrl, WebviewWindowBuilder,
+    Emitter, Manager,
 };
 use tauri_plugin_autostart::ManagerExt;
 
 pub fn setup_tray(app: &tauri::AppHandle) -> tauri::Result<()> {
-    let toggle_i = CheckMenuItem::with_id(app, "toggle", "Enable Kliky", true, true, None::<&str>)?;
+    let (initial_volume, initial_pack, initial_enabled) = {
+        let state = STATE.lock().unwrap();
+        (
+            (state.volume * 100.0).round() as u32,
+            state.active_pack_type.clone(),
+            state.enabled,
+        )
+    };
+
+    let toggle_i = CheckMenuItem::with_id(app, "toggle", "Enable Kliky", true, initial_enabled, None::<&str>)?;
 
     let autostart_manager = app.autolaunch();
 
@@ -37,7 +46,14 @@ pub fn setup_tray(app: &tauri::AppHandle) -> tauri::Result<()> {
     ];
     for (label, vol) in presets {
         let id = format!("vol_{}", vol);
-        let item = CheckMenuItem::with_id(app, id.clone(), label, true, vol == 10, None::<&str>)?;
+        let item = CheckMenuItem::with_id(
+            app,
+            id.clone(),
+            label,
+            true,
+            vol == initial_volume,
+            None::<&str>,
+        )?;
         vol_submenu.append(&item)?;
         vol_items.insert(vol as u32, item);
     }
@@ -59,7 +75,7 @@ pub fn setup_tray(app: &tauri::AppHandle) -> tauri::Result<()> {
             id.clone(),
             label,
             true,
-            pt == ActivePackType::Zenith,
+            pt == initial_pack,
             None::<&str>,
         )?;
         pack_submenu.append(&item)?;
