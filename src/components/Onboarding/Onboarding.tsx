@@ -208,6 +208,9 @@ export function Onboarding() {
             onPackChange={handlePackChange}
             onPlayPreview={handlePlayPreview}
             onVolumeUpdate={handleVolumeUpdate}
+            hasPermission={hasPermission}
+            onRequestPermission={requestPermission}
+            platformName={platformName}
             onNext={() => setStep(2)}
           />
         )}
@@ -218,9 +221,7 @@ export function Onboarding() {
             audioDevices={audioDevices}
             selectedDevice={selectedDevice}
             onDeviceChange={handleDeviceChange}
-            onRequestPermission={requestPermission}
             onNext={() => setStep(3)}
-            platformName={platformName}
           />
         )}
 

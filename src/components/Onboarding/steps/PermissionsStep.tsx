@@ -1,4 +1,4 @@
-import { Shield, ChevronRight, Speaker, AlertCircle } from "lucide-react";
+import { ChevronRight, Speaker } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { StepHeader } from "../shared/StepHeader";
 import { OnboardingCard } from "../shared/OnboardingCard";
@@ -9,9 +9,7 @@ interface PermissionsStepProps {
   audioDevices: string[];
   selectedDevice: string;
   onDeviceChange: (device: string) => void;
-  onRequestPermission: () => void;
   onNext: () => void;
-  platformName: string;
 }
 
 export function PermissionsStep({
@@ -19,49 +17,19 @@ export function PermissionsStep({
   audioDevices,
   selectedDevice,
   onDeviceChange,
-  onRequestPermission,
   onNext,
-  platformName,
 }: PermissionsStepProps) {
-  const isMac = platformName === "macos";
 
   return (
     <StepContainer>
       <StepHeader
-        title="System Access"
-        description="Configure permissions and audio output"
-        icon={<Shield className="w-10 h-10 text-emerald-200 dark:text-emerald-500" />}
+        title="Audio Output"
+        description="Select where you want to hear your typing sounds"
+        icon={<Speaker className="w-10 h-10 text-emerald-200 dark:text-emerald-500" />}
         iconBgColor="bg-emerald-500 dark:bg-emerald-500/10"
       />
 
       <div className="space-y-4 ">
-        {/* Permission Section */}
-        <OnboardingCard className="space-y-4">
-          <div className="flex items-center gap-2 mb-2">
-            <AlertCircle className="w-4 h-4 text-zinc-400 dark:text-zinc-500" />
-            <span className="text-[10px] uppercase tracking-widest font-bold text-zinc-500 dark:text-zinc-400">Permissions</span>
-          </div>
-          <p className="text-xs text-neutral-500 dark:text-zinc-500">
-            {isMac 
-              ? "Kliky needs accessibility access to detect key presses and play sounds."
-              : "Kliky needs to hook into system events to detect key presses and play sounds."}
-          </p>
-          <Button
-            size="lg"
-            variant={hasPermission ? "outline" : "default"}
-            disabled={hasPermission}
-            onClick={onRequestPermission}
-            className={`w-full h-12 rounded-xl font-bold ${hasPermission
-              ? "dark:bg-emerald-500/20 text-green-200 bg-green-700 cursor-not-allowed"
-              : "bg-white text-black hover:bg-zinc-200 shadow-xl"
-              }`}
-          >
-            {hasPermission 
-              ? "System Access Granted ✓" 
-              : isMac ? "Grant Accessibility Access" : "Grant System Access"}
-          </Button>
-        </OnboardingCard>
-
         {/* Audio Device Section */}
         <OnboardingCard className="space-y-3">
           <div className="flex items-center gap-2 mb-2">
