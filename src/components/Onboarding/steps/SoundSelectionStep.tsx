@@ -8,6 +8,8 @@ import { SoundPackPicker } from "../../Sound/SoundPackPicker";
 import { Switch } from "@/components/ui/switch";
 
 interface SoundSelectionStepProps {
+  enabled: boolean;
+  enableKliky: () => void;
   activePack: string;
   previewingPack: string | null;
   volume: number;
@@ -21,6 +23,8 @@ interface SoundSelectionStepProps {
 }
 
 export function SoundSelectionStep({
+  enabled,
+  enableKliky,
   activePack,
   previewingPack,
   volume,
@@ -44,11 +48,11 @@ export function SoundSelectionStep({
       <div className="space-y-4">
         {/* Permission Section */}
         {isMac
-          && <OnboardingCard className="space-y-4">
+          && <OnboardingCard className="space-y-4 bg-lime-300/10">
             <div className="flex items-center justify-between">
               <div className="flex flex-col gap-1">
                 <div className="flex items-center gap-2">
-                  {hasPermission ? <Shield className="w-4 h-4 text-green-400 dark:text-green-500" /> : <AlertCircle className="w-4 h-4 text-zinc-400 dark:text-zinc-500" />}
+                  {hasPermission ? <Shield className="w-4 h-4 text-lime-600 dark:text-green-400" /> : <AlertCircle className="w-4 h-4 text-zinc-400 dark:text-zinc-500" />}
                   <span className="text-[10px] uppercase tracking-widest font-bold text-zinc-500 dark:text-zinc-400"> {hasPermission ? "Accessibility Access Enabled" : "Enable Accessibility Access"}</span>
                 </div>
                 {/* <div className="flex flex-col">
@@ -69,7 +73,19 @@ export function SoundSelectionStep({
               />
             </div>
           </OnboardingCard>}
-
+        <OnboardingCard className="space-y-4 bg-black/5 dark:bg-white/5">
+          <div className="flex items-center justify-between">
+            <div className="flex flex-col gap-1">
+              <div className="flex items-center gap-2">
+                <span className="text-[10px] uppercase tracking-widest font-bold text-zinc-500 dark:text-zinc-400"> Enable Kliky</span>
+              </div>
+            </div>
+            <Switch
+              checked={enabled}
+              onCheckedChange={enableKliky}
+            />
+          </div>
+        </OnboardingCard>
         <OnboardingCard className="py-2 px-4">
           <VolumeControl
             volume={volume}

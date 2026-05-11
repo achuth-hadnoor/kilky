@@ -21,6 +21,7 @@ import { LaunchSettingsStep } from "./steps/LaunchSettingsStep";
 
 export function Onboarding() {
   const [step, setStep] = useState(1);
+  const [enabled, setEnabled] = useState(false);
   const [hasPermission, setHasPermission] = useState(false);
   const [activePack, setActivePack] = useState("Zenith");
   const [previewingPack, setPreviewingPack] = useState<string | null>(null);
@@ -59,6 +60,7 @@ export function Onboarding() {
       const state = await invoke<AppState>("get_app_state");
       setActivePack(state.active_pack_type);
       setVolume(state.volume);
+      setEnabled(state.enabled);
       setSelectedDevice(state.audio_device || "");
       setShortcuts(state.shortcuts);
       setHyperKeyEnabled(state.hyper_key_enabled);
@@ -78,9 +80,14 @@ export function Onboarding() {
       setPlatformName(p);
     };
     init();
+    let lastTrusted = false;
     const interval = setInterval(async () => {
       const trusted = await invoke<boolean>("check_permissions");
       setHasPermission(trusted);
+      if (trusted && !lastTrusted) {
+        await invoke("start_keyboard_listener");
+      }
+      lastTrusted = trusted;
     }, 1000);
 
     const unlistenRawKey = listen<{ code: number, flags: number }>("raw-key-event", (event) => {
@@ -137,6 +144,12 @@ export function Onboarding() {
   const handlePackChange = async (pack: string) => {
     setActivePack(pack);
     await invoke("set_sound_pack", { packType: pack });
+  };
+
+  const enableKliky = async () => {
+    const nextEnabled = !enabled;
+    setEnabled(nextEnabled);
+    await invoke("set_enabled", { enabled: nextEnabled });
   };
 
   const handlePlayPreview = async (e: React.MouseEvent, pack: string) => {
@@ -202,6 +215,8 @@ export function Onboarding() {
 
         {step === 1 && (
           <SoundSelectionStep
+            enabled={enabled}
+            enableKliky={enableKliky}
             activePack={activePack}
             previewingPack={previewingPack}
             volume={volume}
