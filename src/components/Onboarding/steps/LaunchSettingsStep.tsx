@@ -16,6 +16,7 @@ interface LaunchSettingsStepProps {
   onRecord: (action: string, isRecording: boolean) => void;
   onClear: (action: string) => void;
   hyperKeyEnabled: boolean;
+  onHyperKeyChange: (enabled: boolean) => void;
   onFinish: () => void;
 }
 
@@ -28,6 +29,7 @@ export function LaunchSettingsStep({
   onRecord,
   onClear,
   hyperKeyEnabled,
+  onHyperKeyChange,
   onFinish,
 }: LaunchSettingsStepProps) {
   return (
@@ -47,6 +49,15 @@ export function LaunchSettingsStep({
             <p className="text-[10px] text-zinc-500 text-left">Automatically start when you log in</p>
           </div>
           <Switch checked={isAutostart} onCheckedChange={onAutoLaunchChange} />
+        </OnboardingCard>
+
+        {/* Hyper Key Setting */}
+        <OnboardingCard className="flex items-center justify-between p-6">
+          <div className="space-y-1">
+            <p className="text-sm font-bold text-black dark:text-white">Hyper Key (Caps Lock)</p>
+            <p className="text-[10px] text-zinc-500 text-left">Use Caps Lock as ⌘+⌥+⌃+⇧ for shortcuts</p>
+          </div>
+          <Switch checked={hyperKeyEnabled} onCheckedChange={onHyperKeyChange} />
         </OnboardingCard>
 
         {/* Global Shortcut Setting */}

@@ -52,6 +52,7 @@ export function Settings() {
   const [totalKeystrokes, setTotalKeystrokes] = useState(0);
   const [sessionKeystrokes, setSessionKeystrokes] = useState(0);
   const [speedVolumeScaling, setSpeedVolumeScaling] = useState(true);
+  const [hasPermission, setHasPermission] = useState(false);
 
   const recordingActionRef = useRef<string | null>(null);
 
@@ -73,6 +74,9 @@ export function Settings() {
       setTotalKeystrokes(state.total_keystrokes);
       setSessionKeystrokes(state.session_keystrokes);
       setSpeedVolumeScaling(state.speed_volume_scaling);
+
+      const trusted = await invoke<boolean>('check_permissions');
+      setHasPermission(trusted);
     } catch (e) {
       console.error(e);
     }
@@ -105,6 +109,12 @@ export function Settings() {
       setPlatformName(p);
     };
     init();
+
+    const interval = setInterval(async () => {
+      const trusted = await invoke<boolean>('check_permissions');
+      setHasPermission(trusted);
+    }, 2000);
+
     const unlisten = listen('state-update', () => {
       fetchState();
     });
@@ -117,6 +127,7 @@ export function Settings() {
     });
 
     return () => {
+      clearInterval(interval);
       unlisten.then(f => f());
       unlistenRawKey.then(f => f());
     };
@@ -239,6 +250,8 @@ export function Settings() {
                 audioDevices={audioDevices}
                 totalKeystrokes={totalKeystrokes}
                 sessionKeystrokes={sessionKeystrokes}
+                hasPermission={hasPermission}
+                platformName={platformName}
               />
             )}
 

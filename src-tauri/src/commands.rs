@@ -187,7 +187,7 @@ pub fn play_pack_preview(app: tauri::AppHandle, pack_type: ActivePackType) {
     let audio_state = app.state::<crate::state::AudioState>().inner().clone();
 
     thread::spawn(move || {
-        let sequence = vec!["30", "35", "16", "28", "14", "57"]; // Key (A),  Enter, Backspace, Space
+        let sequence = vec!["30", "35", "16", "28", "14", "57", "42", "38", "50"]; // A, P, Y, Enter, BS, Space, Shift, L, M
         let mut idx = 0;
 
         // Pre-load built-in packs for the preview
@@ -232,8 +232,8 @@ pub fn play_pack_preview(app: tauri::AppHandle, pack_type: ActivePackType) {
                 ActivePackType::Zenith | ActivePackType::Obsidian | ActivePackType::Sapphire => {
                     let default_config = crate::audio::get_default_config();
                     if let Some(config) = default_config.get(key_id) {
-                        let start_sample = (config[0] * 441 * 2 / 10) as usize;
-                        let end_sample = start_sample + (config[1] * 441 * 2 / 10) as usize;
+                        let start_sample = (config[0] * 441 / 10) as usize;
+                        let end_sample = start_sample + (config[1] * 441 / 10) as usize;
                         if end_sample <= crate::state::DEFAULT_SAMPLES.len() {
                             let slice = &crate::state::DEFAULT_SAMPLES[start_sample..end_sample];
 
@@ -249,7 +249,7 @@ pub fn play_pack_preview(app: tauri::AppHandle, pack_type: ActivePackType) {
                             };
 
                             let s = SamplesBuffer::new(
-                                NonZero::new(2).unwrap(),
+                                NonZero::new(1).unwrap(),
                                 NonZero::new(44100).unwrap(),
                                 slice,
                             )
@@ -260,7 +260,7 @@ pub fn play_pack_preview(app: tauri::AppHandle, pack_type: ActivePackType) {
 
                             if pack_type == ActivePackType::Sapphire {
                                 let s2 = SamplesBuffer::new(
-                                    NonZero::new(2).unwrap(),
+                                    NonZero::new(1).unwrap(),
                                     NonZero::new(44100).unwrap(),
                                     slice,
                                 )
@@ -295,7 +295,7 @@ pub fn play_pack_preview(app: tauri::AppHandle, pack_type: ActivePackType) {
                                 }
 
                                 let s = SamplesBuffer::new(
-                                    NonZero::new(2).unwrap(),
+                                    NonZero::new(1).unwrap(),
                                     NonZero::new(44100).unwrap(),
                                     samples.as_slice(),
                                 )
@@ -308,7 +308,7 @@ pub fn play_pack_preview(app: tauri::AppHandle, pack_type: ActivePackType) {
                 }
             }
 
-            thread::sleep(Duration::from_millis(400)); // Slightly longer pause between sounds
+            thread::sleep(Duration::from_millis(150)); // Faster pause for a snappier preview
         }
     });
 }

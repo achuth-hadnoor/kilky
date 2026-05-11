@@ -1,7 +1,7 @@
 import { Label } from "@/components/ui/label";
 import { Switch } from "@/components/ui/switch";
 import { Button } from "@/components/ui/button";
-import { Rocket } from 'lucide-react';
+import { Rocket, Shield, AlertCircle } from 'lucide-react';
 import { invoke } from '@tauri-apps/api/core';
 
 interface GeneralSectionProps {
@@ -14,6 +14,8 @@ interface GeneralSectionProps {
   audioDevices: string[];
   totalKeystrokes: number;
   sessionKeystrokes: number;
+  hasPermission: boolean;
+  platformName: string;
 }
 
 export function GeneralSection({
@@ -24,10 +26,11 @@ export function GeneralSection({
   selectedDevice,
   handleDeviceChange,
   audioDevices,
-  // Statistics hidden for v2
-  // totalKeystrokes,
-  // sessionKeystrokes,
+  hasPermission,
+  platformName,
 }: GeneralSectionProps) {
+  const isMac = platformName === "macos";
+
   return (
     <div className="space-y-8">
       <div>
@@ -35,28 +38,41 @@ export function GeneralSection({
         <p className="text-sm text-black/40 dark:text-white/40">Configure how kliky behaves on your system.</p>
       </div>
 
-      {/* Keystroke Mileage hidden for future release
-      <div className="grid grid-cols-2 gap-4">
-        <div className="p-4 bg-black/5 dark:bg-white/5 rounded-2xl border border-black/5 dark:border-white/5 space-y-1">
-          <div className="flex items-center gap-2 text-black/40 dark:text-white/40 mb-1">
-            <Activity className="w-3.5 h-3.5" />
-            <span className="text-[10px] uppercase font-bold tracking-wider">Total Mileage</span>
-          </div>
-          <p className="text-2xl font-semibold tabular-nums">{totalKeystrokes.toLocaleString()}</p>
-          <p className="text-[10px] text-black/30 dark:text-white/30">Keystrokes since install</p>
-        </div>
-        <div className="p-4 bg-black/5 dark:bg-white/5 rounded-2xl border border-black/5 dark:border-white/5 space-y-1">
-          <div className="flex items-center gap-2 text-black/40 dark:text-white/40 mb-1">
-            <Keyboard className="w-3.5 h-3.5" />
-            <span className="text-[10px] uppercase font-bold tracking-wider">Session</span>
-          </div>
-          <p className="text-2xl font-semibold tabular-nums">{sessionKeystrokes.toLocaleString()}</p>
-          <p className="text-[10px] text-black/30 dark:text-white/30">Keystrokes this session</p>
-        </div>
-      </div>
-      */}
-
       <div className="space-y-6">
+        {isMac && (
+          <div className="flex items-center justify-between p-4 bg-black/5 dark:bg-white/5 rounded-2xl border border-black/5 dark:border-white/5">
+            <div className="flex flex-col gap-1">
+              <div className="flex items-center gap-2">
+                {hasPermission ? (
+                  <Shield className="w-4 h-4 text-emerald-500" />
+                ) : (
+                  <AlertCircle className="w-4 h-4 text-zinc-400 dark:text-zinc-500" />
+                )}
+                <span className="text-[10px] uppercase tracking-widest font-bold text-zinc-500 dark:text-zinc-400">
+                  {hasPermission ? "Accessibility Access Enabled" : "Accessibility Access Required"}
+                </span>
+              </div>
+              <div className="flex flex-col">
+                <Label className="text-base">System Permissions</Label>
+                <p className="text-xs text-black/40 dark:text-white/40 leading-tight">
+                  {hasPermission 
+                    ? "Permissions are granted and Kliky can detect key presses." 
+                    : "Kliky needs accessibility access to detect key presses."}
+                </p>
+              </div>
+            </div>
+            <Switch
+              checked={hasPermission}
+              disabled={hasPermission}
+              onCheckedChange={(checked) => {
+                if (checked && !hasPermission) {
+                  invoke("request_permissions");
+                }
+              }}
+            />
+          </div>
+        )}
+
         <div className="flex items-center justify-between p-4 bg-black/5 dark:bg-white/5 rounded-2xl border border-black/5 dark:border-white/5">
           <div className="space-y-1">
             <Label className="text-base">Enable Kliky</Label>

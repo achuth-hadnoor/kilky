@@ -189,6 +189,11 @@ export function Onboarding() {
     fetchState();
   };
 
+  const handleHyperKeyChange = async (enabled: boolean) => {
+    setHyperKeyEnabled(enabled);
+    await invoke("set_hyper_key_enabled", { enabled });
+  };
+
   const finish = async () => {
     await invoke("complete_onboarding");
     const win = getCurrentWebviewWindow();
@@ -254,6 +259,7 @@ export function Onboarding() {
             }}
             onClear={handleClearShortcut}
             hyperKeyEnabled={hyperKeyEnabled}
+            onHyperKeyChange={handleHyperKeyChange}
             onFinish={finish}
           />
         )}
