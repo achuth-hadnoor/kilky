@@ -20,7 +20,7 @@ pub fn spawn_window(handle: &AppHandle, window_type: WindowType) {
             "Welcome to Kliky",
             WebviewUrl::App("index.html#onboarding".into()),
             400.0,
-            600.0,
+            650.0,
             false,
         ),
     };
@@ -36,7 +36,7 @@ pub fn spawn_window(handle: &AppHandle, window_type: WindowType) {
             .resizable(resizable)
             .transparent(true)
             .visible_on_all_workspaces(true)
-            .skip_taskbar(true)
+            .skip_taskbar(matches!(window_type, WindowType::Settings))
             .maximizable(false)
             .minimizable(false)
             .always_on_top(matches!(window_type, WindowType::Settings));
@@ -88,6 +88,12 @@ pub fn handle_window_event(window: &tauri::Window, event: &tauri::WindowEvent) {
                 window.app_handle().exit(0);
             } else {
                 println!("Onboarding closed, hiding window (tray exists or finished).");
+                #[cfg(target_os = "macos")]
+                {
+                    let _ = window
+                        .app_handle()
+                        .set_activation_policy(tauri::ActivationPolicy::Accessory);
+                }
                 let _ = window.hide();
                 api.prevent_close();
             }

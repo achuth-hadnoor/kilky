@@ -80,12 +80,12 @@ pub fn run() {
 
             #[cfg(target_os = "macos")]
             {
-                app.set_activation_policy(tauri::ActivationPolicy::Accessory);
-                
                 if !has_onboarded {
+                    let _ = app.set_activation_policy(tauri::ActivationPolicy::Regular);
                     info!("Showing onboarding window...");
                     crate::window::spawn_window(app.handle(), crate::window::WindowType::Onboarding);
                 } else {
+                    let _ = app.set_activation_policy(tauri::ActivationPolicy::Accessory);
                     if !macos_accessibility_client::accessibility::application_is_trusted() {
                         info!("Accessibility permissions missing! Prompting user...");
                         let _ = macos_accessibility_client::accessibility::application_is_trusted_with_prompt();

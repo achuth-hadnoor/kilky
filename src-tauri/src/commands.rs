@@ -571,6 +571,11 @@ pub fn complete_onboarding(app: AppHandle) {
     // Ensure keyboard listener is started now that onboarding is done
     start_keyboard_listener(app.clone());
 
+    #[cfg(target_os = "macos")]
+    {
+        let _ = app.set_activation_policy(tauri::ActivationPolicy::Accessory);
+    }
+
     if let Some(window) = app.get_webview_window("onboarding") {
         let _ = window.hide();
     }
@@ -578,6 +583,10 @@ pub fn complete_onboarding(app: AppHandle) {
 
 #[tauri::command]
 pub fn show_onboarding(app: AppHandle) {
+    #[cfg(target_os = "macos")]
+    {
+        let _ = app.set_activation_policy(tauri::ActivationPolicy::Regular);
+    }
     crate::window::spawn_window(&app, crate::window::WindowType::Onboarding);
 }
 
