@@ -72,3 +72,29 @@ pub fn spawn_window(handle: &AppHandle, window_type: WindowType) {
         let _ = builder.build();
     }
 }
+
+pub fn handle_window_event(window: &tauri::Window, event: &tauri::WindowEvent) {
+    if let tauri::WindowEvent::CloseRequested { api, .. } = event {
+        if window.label() == "onboarding" {
+            let has_onboarded = {
+                let state = crate::state::STATE.lock().unwrap();
+                state.has_onboarded
+            };
+
+            let tray_exists = window.app_handle().tray_by_id("main").is_some();
+
+            if !has_onboarded && !tray_exists {
+                println!("Onboarding window closed manually and no tray exists, exiting app.");
+                window.app_handle().exit(0);
+            } else {
+                println!("Onboarding closed, hiding window (tray exists or finished).");
+                let _ = window.hide();
+                api.prevent_close();
+            }
+        } else {
+            log::info!("Window close requested, hiding instead.");
+            let _ = window.hide();
+            api.prevent_close();
+        }
+    }
+}

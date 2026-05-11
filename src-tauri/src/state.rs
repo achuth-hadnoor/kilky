@@ -15,6 +15,11 @@ pub struct KeyEvent {
     pub is_down: bool,
 }
 
+pub struct KeySender {
+    pub tx: std::sync::mpsc::Sender<KeyEvent>,
+    pub is_running: Arc<Mutex<bool>>,
+}
+
 #[derive(Clone, Serialize, Deserialize)]
 pub struct KeySettings {
     pub pitch: f32,
