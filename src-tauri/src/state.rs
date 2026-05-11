@@ -128,11 +128,20 @@ impl AppState {
             Self::load_from_json()
         });
 
+        let active_pack = match config.active_pack_type {
+            ActivePackType::Zenith => ActivePack::Zenith,
+            ActivePackType::Obsidian => ActivePack::Obsidian,
+            ActivePackType::Sapphire => ActivePack::Sapphire,
+            ActivePackType::Velvet => ActivePack::Velvet(crate::builtin_packs::get_velvet_pack()),
+            ActivePackType::Neon => ActivePack::Neon(crate::builtin_packs::get_neon_pack()),
+            ActivePackType::Custom => ActivePack::Zenith, // Fallback for now if custom fails
+        };
+
         Self {
             enabled: config.enabled,
             volume: config.volume,
             active_pack_type: config.active_pack_type,
-            active_pack: ActivePack::Zenith, 
+            active_pack, 
             preview_stop_signal: None,
             audio_device: config.audio_device,
             shortcuts: config.shortcuts,
