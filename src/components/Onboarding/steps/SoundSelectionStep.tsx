@@ -101,14 +101,6 @@ export function SoundSelectionStep({
         />
       </div>
 
-      <Button
-        className="w-full h-14 rounded-2xl bg-white text-black font-bold text-lg hover:bg-zinc-200 "
-        onClick={onNext}
-        disabled={!hasPermission}
-      >
-        Continue
-        <ChevronRight className="w-5 h-5 ml-2" />
-      </Button>
     </StepContainer>
   );
 }

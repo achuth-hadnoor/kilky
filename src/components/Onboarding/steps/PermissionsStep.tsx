@@ -90,14 +90,6 @@ export function PermissionsStep({
           </div>
         </OnboardingCard>
 
-        <Button
-          className="w-full h-14 rounded-2xl bg-black dark:bg-white text-white dark:text-black font-bold text-lg hover:opacity-90 transition-opacity"
-          onClick={onNext}
-          disabled={!hasPermission}
-        >
-          Next Step
-          <ChevronRight className="w-5 h-5 ml-2" />
-        </Button>
       </div>
     </StepContainer>
   );

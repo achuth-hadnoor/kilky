@@ -203,19 +203,7 @@ export function Onboarding() {
   return (
     <div className="w-screen h-screen flex flex-col py-4 text-white font-sans overflow-hidden select-none" data-tauri-drag-region>
 
-      {/* Top Navigation */}
-      <div className="absolute z-10 top-10 left-4 h-10 w-10 flex items-center justify-center" data-tauri-drag-region>
-        {step > 1 && (
-          <Button
-            variant="ghost"
-            size="icon"
-            className="rounded-full bg-zinc-300 dark:bg-zinc-700 hover:bg-zinc-400 text-zinc-900 dark:text-white/60 "
-            onClick={() => setStep(step - 1)}
-          >
-            <ChevronLeft className="w-5 h-5" />
-          </Button>
-        )}
-      </div>
+
       <div className="w-full max-w-md flex flex-col relative items-center justify-between mx-auto flex-1 h-full" data-tauri-drag-region>
 
         {step === 1 && (
@@ -264,15 +252,60 @@ export function Onboarding() {
           />
         )}
 
-        {/* Progress Indicator */}
-        <div className="flex justify-center gap-2">
-          {[1, 2, 3].map((s) => (
-            <div
-              key={s}
-              className={`h-1.5 rounded-full   duration-300 ${step === s ? "w-8 bg-black dark:bg-white" : "w-2 bg-black/10 dark:bg-white/10"
-                }`}
-            />
-          ))}
+        {/* Consolidated Footer Navigation */}
+        <div className="w-full flex items-center justify-between mt-auto pt-6 pb-2 px-2">
+          {/* Back Button */}
+          <div className="w-24">
+            {step > 1 && (
+              <Button
+                variant="ghost"
+                className="rounded-xl bg-black/5 dark:bg-white/5 hover:bg-black/10 dark:hover:bg-white/10 text-black dark:text-white px-6 h-12"
+                onClick={() => setStep(step - 1)}
+              >
+                <span className="text-sm font-medium">Back</span>
+              </Button>
+            )}
+          </div>
+
+          {/* Progress Dots */}
+          <div className="flex justify-center gap-2">
+            {[1, 2, 3].map((s) => (
+              <div
+                key={s}
+                className={`h-1.5 rounded-full duration-300 ${step === s ? "w-8 bg-black dark:bg-white" : "w-2 bg-black/10 dark:bg-white/10"
+                  }`}
+              />
+            ))}
+          </div>
+
+          {/* Next/Finish Button */}
+          <div className="w-24 flex justify-end">
+            {step === 1 && (
+              <Button
+                className="px-6 h-12 rounded-2xl bg-black dark:bg-white text-white dark:text-black font-bold hover:opacity-90 transition-opacity"
+                onClick={() => setStep(2)}
+                disabled={!hasPermission}
+              >
+                Continue
+              </Button>
+            )}
+            {step === 2 && (
+              <Button
+                className="px-6 h-12 rounded-2xl bg-black dark:bg-white text-white dark:text-black font-bold hover:opacity-90 transition-opacity"
+                onClick={() => setStep(3)}
+              >
+                Next
+              </Button>
+            )}
+            {step === 3 && (
+              <Button
+                className="px-6 h-12 rounded-2xl bg-black dark:bg-white text-white dark:text-black font-bold hover:opacity-90 transition-opacity"
+                onClick={finish}
+              >
+                Finish
+              </Button>
+            )}
+          </div>
         </div>
       </div>
     </div>

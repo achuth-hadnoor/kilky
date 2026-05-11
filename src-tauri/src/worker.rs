@@ -30,7 +30,18 @@ pub fn spawn_audio_worker(app_handle: AppHandle, rx: mpsc::Receiver<KeyEvent>) {
             let flags = key_event.flags;
             let is_down = key_event.is_down;
 
-            let key_id = get_key_id(keycode_raw);
+            let mut key_id = get_key_id(keycode_raw);
+
+            // Organic Variety: Pick a random alpha sound if typing an alpha key
+            use crate::audio::{is_alpha, ALPHA_IDS};
+            use rand::seq::IndexedRandom;
+            let mut r = rand::rng();
+            if is_alpha(key_id) {
+                if let Some(random_id) = ALPHA_IDS.choose(&mut r) {
+                    key_id = random_id;
+                }
+            }
+
             let pan = get_key_pan(key_id);
 
             let (action_to_trigger, is_enabled, active_pack, volume, speed_scaling) = {
@@ -131,7 +142,6 @@ pub fn spawn_audio_worker(app_handle: AppHandle, rx: mpsc::Receiver<KeyEvent>) {
 
             if !is_enabled { continue; }
 
-            let mut r = rng();
             let speed_base: f32 = match active_pack {
                 ActivePack::Zenith => 1.0,
                 ActivePack::Obsidian => 0.88,

@@ -9,6 +9,9 @@ use tauri::{
 use tauri_plugin_autostart::ManagerExt;
 
 pub fn setup_tray(app: &tauri::AppHandle) -> tauri::Result<()> {
+    if app.try_state::<TrayState>().is_some() {
+        return Ok(());
+    }
     let (initial_volume, initial_pack, initial_enabled) = {
         let state = STATE.lock().unwrap();
         (

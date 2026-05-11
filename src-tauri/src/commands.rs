@@ -575,22 +575,32 @@ pub fn start_keyboard_listener(app: tauri::AppHandle) {
 
 #[tauri::command]
 pub fn complete_onboarding(app: AppHandle) {
-    let mut state = STATE.lock().unwrap();
-    state.has_onboarded = true;
-    state.save();
+    log::info!("Completing onboarding...");
+    {
+        let mut state = STATE.lock().unwrap();
+        state.has_onboarded = true;
+        state.save();
+    }
     let _ = app.emit("state-update", ());
-    let _ = crate::tray::setup_tray(&app);
     
-    // Ensure keyboard listener is started now that onboarding is done
+    if let Err(e) = crate::tray::setup_tray(&app) {
+        log::error!("Failed to setup tray during onboarding: {:?}", e);
+    } else {
+        log::info!("Tray setup successfully.");
+    }
+    
+    log::info!("Starting keyboard listener...");
     start_keyboard_listener(app.clone());
 
     #[cfg(target_os = "macos")]
     {
+        log::info!("Setting activation policy to Accessory.");
         let _ = app.set_activation_policy(tauri::ActivationPolicy::Accessory);
     }
 
     if let Some(window) = app.get_webview_window("onboarding") {
-        let _ = window.hide();
+        log::info!("Closing onboarding window.");
+        let _ = window.close();
     }
 }
 
