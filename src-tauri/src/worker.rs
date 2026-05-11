@@ -130,10 +130,6 @@ pub fn spawn_audio_worker(app_handle: AppHandle, rx: mpsc::Receiver<KeyEvent>) {
             }
 
             if !is_enabled { continue; }
-            
-            if keycode_raw == 54 || keycode_raw == 55 || keycode_raw == 56 || keycode_raw == 57 || keycode_raw == 58 || keycode_raw == 59 || keycode_raw == 60 || keycode_raw == 61 || keycode_raw == 62 || keycode_raw == 63 {
-                continue;
-            }
 
             let mut r = rng();
             let speed_base: f32 = match active_pack {

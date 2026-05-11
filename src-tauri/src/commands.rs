@@ -12,6 +12,7 @@ use std::thread;
 use std::time::Duration;
 use tauri::{AppHandle, Emitter, Manager};
 use tauri_plugin_autostart::ManagerExt;
+use rand::RngExt;
 
 #[derive(serde::Serialize)]
 pub struct AppStateResponse {
@@ -254,13 +255,16 @@ pub fn play_pack_preview(app: tauri::AppHandle, pack_type: ActivePackType) {
                                 _ => 1.0,
                             };
 
+                            let mut rng = rand::rng();
+                            let pitch_var: f32 = rng.random_range(0.97..1.03);
+
                             let s = SamplesBuffer::new(
                                 NonZero::new(1).unwrap(),
                                 NonZero::new(44100).unwrap(),
                                 slice,
                             )
                             .amplify(volume * vol_mult)
-                            .speed(speed);
+                            .speed(speed * pitch_var);
                             
                             audio_state.mixer.lock().unwrap().add(s);
 
@@ -300,13 +304,16 @@ pub fn play_pack_preview(app: tauri::AppHandle, pack_type: ActivePackType) {
                                     }
                                 }
 
+                                let mut rng = rand::rng();
+                                let pitch_var: f32 = rng.random_range(0.97..1.03);
+
                                 let s = SamplesBuffer::new(
                                     NonZero::new(1).unwrap(),
                                     NonZero::new(44100).unwrap(),
                                     samples.as_slice(),
                                 )
                                 .amplify(final_vol)
-                                .speed(final_pitch);
+                                .speed(final_pitch * pitch_var);
                             audio_state.mixer.lock().unwrap().add(s);
                         }
                     }
