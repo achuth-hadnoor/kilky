@@ -187,7 +187,13 @@ pub fn play_pack_preview(app: tauri::AppHandle, pack_type: ActivePackType) {
     let audio_state = app.state::<crate::state::AudioState>().inner().clone();
 
     thread::spawn(move || {
-        let sequence = vec!["30", "35", "16", "28", "14", "57", "42", "38", "50"]; // A, P, Y, Enter, BS, Space, Shift, L, M
+        // Spelling "kliky", "preview", then cmd + enter
+        let sequence = vec![
+            "37", "38", "23", "37", "21", // k-l-i-k-y
+            "57",                         // space
+            "25", "19", "18", "47", "23", "18", "17", // p-r-e-v-i-e-w
+            "55", "28"                    // cmd, enter
+        ];
         let mut idx = 0;
 
         // Pre-load built-in packs for the preview
