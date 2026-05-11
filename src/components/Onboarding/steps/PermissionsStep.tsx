@@ -1,3 +1,4 @@
+import { useState } from "react";
 import { ChevronRight, Speaker } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { StepHeader } from "../shared/StepHeader";
@@ -12,6 +13,15 @@ interface PermissionsStepProps {
   onNext: () => void;
 }
 
+const QUOTES = [
+  "The quick brown fox jumps over the lazy dog.",
+  "Every keystroke is a beat in the melody of your digital life.",
+  "Typing is a rhythmic dance between thought and action.",
+  "In the click of a key, a new idea is born.",
+  "Words are a thin veneer over a vast deep of silence.",
+  "Simplicity is the ultimate sophistication."
+];
+
 export function PermissionsStep({
   hasPermission,
   audioDevices,
@@ -19,38 +29,69 @@ export function PermissionsStep({
   onDeviceChange,
   onNext,
 }: PermissionsStepProps) {
+  const [quote] = useState(() => QUOTES[Math.floor(Math.random() * QUOTES.length)]);
+  const [typedText, setTypedText] = useState("");
 
   return (
     <StepContainer>
       <StepHeader
-        title="Audio Output"
-        description="Select where you want to hear your typing sounds"
+        title="Test & Output"
+        description="Type the ghost text below to test your sounds"
         icon={<Speaker className="w-10 h-10 text-emerald-200 dark:text-emerald-500" />}
         iconBgColor="bg-emerald-500 dark:bg-emerald-500/10"
       />
 
       <div className="space-y-4 ">
+        {/* Testing Area */}
+        <OnboardingCard className="p-0 overflow-hidden bg-black/5 dark:bg-white/5 border-black/10 dark:border-white/10 relative h-32 group focus-within:ring-2 focus-within:ring-indigo-500/30 transition-all">
+          {/* Ghost Text Layer */}
+          <div
+            className="absolute inset-0 p-4 text-md font-medium leading-relaxed select-none pointer-events-none whitespace-pre-wrap break-all opacity-20 dark:opacity-10 text-black dark:text-white"
+          >
+            {quote}
+          </div>
+
+          {/* User Text Layer */}
+          <textarea
+            autoFocus
+            value={typedText}
+            onChange={(e) => setTypedText(e.target.value)}
+            placeholder=""
+            className="absolute inset-0 w-full h-full p-4 bg-transparent text-md font-medium leading-relaxed resize-none focus:outline-none text-indigo-600 dark:text-indigo-400 whitespace-pre-wrap break-all"
+            spellCheck={false}
+          />
+
+          <div className="absolute bottom-2 right-3 text-[9px] uppercase tracking-tighter font-bold text-black/20 dark:text-white/20 group-focus-within:opacity-0 transition-opacity">
+            Start typing to test
+          </div>
+        </OnboardingCard>
+
         {/* Audio Device Section */}
         <OnboardingCard className="space-y-3">
-          <div className="flex items-center gap-2 mb-2">
-            <Speaker className="w-4 h-4 text-zinc-500" />
-            <span className="text-[10px] uppercase tracking-widest font-bold dark:text-zinc-500 text-zinc-500">Audio Output</span>
+          <div className="flex items-center gap-2 mb-1">
+            <span className="text-[10px] uppercase tracking-widest font-bold dark:text-zinc-500 text-zinc-500">Audio Output Device</span>
           </div>
-          <select
-            value={selectedDevice}
-            onChange={(e) => onDeviceChange(e.target.value)}
-            className="w-full p-3 bg-white/5 rounded-xl border dark:border-white/10 border-zinc-400 text-sm focus:outline-none focus:ring-2 focus:ring-white/20 appearance-none cursor-pointer dark:text-white text-zinc-900"
-          >
-            <option value="" className="bg-zinc-900 text-white">Default System Device</option>
-            {audioDevices.map((device) => (
-              <option key={device} value={device} className="bg-zinc-900 text-white">
-                {device}
-              </option>
-            ))}
-          </select>
+          <div className="relative">
+            <select
+              value={selectedDevice}
+              onChange={(e) => onDeviceChange(e.target.value)}
+              className="w-full p-3 bg-black/5 dark:bg-white/5 rounded-xl border dark:border-white/10 border-black/10 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500/30 appearance-none cursor-pointer dark:text-white text-zinc-900"
+            >
+              <option value="" className="bg-white dark:bg-zinc-900 text-black dark:text-white">Default System Device</option>
+              {audioDevices.map((device) => (
+                <option key={device} value={device} className="bg-white dark:bg-zinc-900 text-black dark:text-white">
+                  {device}
+                </option>
+              ))}
+            </select>
+            <div className="absolute right-3 top-1/2 -translate-y-1/2 pointer-events-none opacity-40">
+              <ChevronRight className="w-4 h-4 rotate-90" />
+            </div>
+          </div>
         </OnboardingCard>
+
         <Button
-          className="w-full h-14 rounded-2xl bg-white text-black font-bold text-lg hover:bg-zinc-200 "
+          className="w-full h-14 rounded-2xl bg-black dark:bg-white text-white dark:text-black font-bold text-lg hover:opacity-90 transition-opacity"
           onClick={onNext}
           disabled={!hasPermission}
         >
@@ -58,7 +99,6 @@ export function PermissionsStep({
           <ChevronRight className="w-5 h-5 ml-2" />
         </Button>
       </div>
-
     </StepContainer>
   );
 }
