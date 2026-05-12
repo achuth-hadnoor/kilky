@@ -21,12 +21,12 @@ export function AboutSection({ appVersion, platformName, handleCheckUpdates }: A
   return (
     <div className="space-y-2">
       <div className="flex flex-col items-center py-8 text-center space-y-6">
-        <div className="w-24 h-24 rounded-[32px] bg-gradient-to-br from-indigo-500 to-purple-600 shadow-2xl flex items-center justify-center text-white">
-          <Rocket className="w-12 h-12" />
+        <div className="w-28 h-28 rounded-[32px] overflow-hidden shadow-2xl flex items-center justify-center bg-white dark:bg-zinc-900 border-4 border-black/5 dark:border-white/5">
+          <img src="/icon.png" alt="Kliky Logo" className="w-full h-full object-cover" />
         </div>
-        <div className="flex flex-col gap-2">
-          <h3 className="text-3xl font-bold tracking-tight">kliky</h3>
-          <p className="text-indigo-500 font-medium">Version {appVersion}</p>
+        <div className="flex flex-col gap-1">
+          <h3 className="text-4xl font-bold tracking-tighter">kliky</h3>
+          <p className="text-indigo-500 font-bold text-xs uppercase tracking-widest">Version {appVersion}</p>
         </div>
 
         <div className="max-w-xs text-sm text-black/40 dark:text-white/40">

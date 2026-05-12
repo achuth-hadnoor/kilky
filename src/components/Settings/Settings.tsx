@@ -221,11 +221,10 @@ export function Settings() {
   };
 
   const navItems = [
-    { id: 'general', label: 'General', icon: SettingsIcon },
-    { id: 'audio', label: 'Sounds', icon: Volume2 },
-    { id: 'hotkeys', label: 'Hotkeys', icon: Keyboard },
-    { id: 'advanced', label: 'Advanced', icon: Rocket },
-    { id: 'about', label: 'About', icon: Info },
+    { id: 'general', label: 'General', icon: SettingsIcon, color: 'bg-blue-500' },
+    { id: 'audio', label: 'Sounds', icon: Volume2, color: 'bg-emerald-500' },
+    { id: 'hotkeys', label: 'Hotkeys', icon: Keyboard, color: 'bg-amber-500' },
+    { id: 'about', label: 'About', icon: Info, color: 'bg-zinc-500' },
   ];
 
   return (

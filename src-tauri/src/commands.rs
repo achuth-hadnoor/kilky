@@ -208,6 +208,22 @@ pub fn play_pack_preview(app: tauri::AppHandle, pack_type: ActivePackType) {
             let key_id = sequence[idx];
             idx = (idx + 1) % sequence.len();
 
+            // Safety check: If another preview has started, this thread should die
+            {
+                let state = match STATE.lock() {
+                    Ok(s) => s,
+                    Err(_) => break,
+                };
+                if let Some(current_signal) = &state.preview_stop_signal {
+                    if !Arc::ptr_eq(current_signal, &stop_signal_clone) {
+                        break;
+                    }
+                } else {
+                    // If signal is gone, we should stop
+                    break;
+                }
+            }
+
             let state = match STATE.lock() {
                 Ok(s) => s,
                 Err(_) => break,

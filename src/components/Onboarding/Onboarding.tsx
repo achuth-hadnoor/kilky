@@ -32,7 +32,7 @@ export function Onboarding() {
   const [shortcuts, setShortcuts] = useState<Record<string, Shortcut>>({});
   const [recordingAction, setRecordingAction] = useState<string | null>(null);
   const [previewShortcut, setPreviewShortcut] = useState<string | null>(null);
-  const [hyperKeyEnabled, setHyperKeyEnabled] = useState(false);
+  const [hyperKeyEnabled, setHyperKeyEnabled] = useState(true);
   const [platformName, setPlatformName] = useState<string>("macos");
 
   const recordingActionRef = useRef<string | null>(null);

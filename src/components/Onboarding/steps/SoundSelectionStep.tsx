@@ -40,10 +40,15 @@ export function SoundSelectionStep({
 
   return (
     <StepContainer>
-      <StepHeader
-        title="kliky"
-        description="Select your typing sound profile"
-      />
+      <div className="flex flex-col items-center py-6 text-center space-y-4">
+        <div className="w-20 h-20 rounded-3xl overflow-hidden shadow-xl border-2 border-black/5 dark:border-white/5">
+          <img src="/icon.png" alt="Kliky Logo" className="w-full h-full object-cover" />
+        </div>
+        <div className="space-y-1">
+          <h1 className="text-3xl font-bold tracking-tighter">kliky</h1>
+          <p className="text-sm text-black/40 dark:text-white/40">Select your typing sound profile</p>
+        </div>
+      </div>
 
       <div className="space-y-4">
         {/* Permission Section */}
