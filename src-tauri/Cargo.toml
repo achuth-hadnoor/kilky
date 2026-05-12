@@ -1,13 +1,13 @@
 [package]
-name = "tauri-app"
+name = "kliky"
 version = "0.1.0"
-description = "A Tauri App"
-authors = ["you"]
+description = "Kliky is a mechanical keyboard sound simulator for macOS and windows."
+authors = ["Achuth"]
 edition = "2021"
 build = "build.rs"
 
 [lib]
-name = "tauri_app_lib"
+name = "kliky_lib"
 crate-type = ["staticlib", "cdylib", "rlib"]
 
 [build-dependencies]
