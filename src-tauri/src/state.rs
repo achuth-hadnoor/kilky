@@ -157,12 +157,7 @@ impl AppState {
     }
 
     pub fn default_config() -> PersistentConfig {
-        let mut shortcuts = HashMap::new();
-        shortcuts.insert("toggle_engine".to_string(), Shortcut {
-            key_code: 40,
-            modifiers: 15,
-            display: "⌘ + ⌥ + ⌃ + ⇧ + K".to_string(),
-        });
+        let shortcuts = HashMap::new();
 
         PersistentConfig {
             enabled: true,

@@ -194,6 +194,15 @@ export function Onboarding() {
     await win.close();
   };
 
+  useEffect(() => {
+    // Stop preview whenever we switch steps
+    const stopPreview = async () => {
+      setPreviewingPack(null);
+      await invoke("stop_pack_preview");
+    };
+    stopPreview();
+  }, [step]);
+
   return (
     <div className="w-screen h-screen flex flex-col py-4 text-white font-sans overflow-hidden select-none" data-tauri-drag-region>
 

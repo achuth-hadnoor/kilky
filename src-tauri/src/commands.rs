@@ -664,12 +664,7 @@ pub fn reset_settings(app: tauri::AppHandle) {
     let has_onboarded = state.has_onboarded;
     
     // Create a default config
-    let mut shortcuts = std::collections::HashMap::new();
-    shortcuts.insert("toggle_engine".to_string(), crate::state::Shortcut {
-        key_code: 40,
-        modifiers: 15,
-        display: "⌘ + ⌥ + ⌃ + ⇧ + K".to_string(),
-    });
+    let shortcuts = std::collections::HashMap::new();
 
     state.enabled = true;
     state.volume = 0.1;
@@ -681,6 +676,9 @@ pub fn reset_settings(app: tauri::AppHandle) {
     state.buffer_size = 128;
     state.hardware_acceleration = true;
     state.has_onboarded = has_onboarded;
+
+    // Explicitly disable autostart
+    let _ = app.autolaunch().disable();
 
     state.save();
     let _ = app.emit("state-update", ());

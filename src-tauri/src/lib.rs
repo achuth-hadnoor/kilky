@@ -13,6 +13,7 @@ mod db;
 
 use rodio::DeviceSinkBuilder;
 use tauri::Manager;
+use tauri_plugin_autostart::ManagerExt;
 use log::{info, error};
 use std::sync::{mpsc, Arc, Mutex};
 use crate::state::{STATE, KeyEvent, KeySender};
@@ -74,7 +75,15 @@ pub fn run() {
             info!("Starting setup...");
 
             let has_onboarded = {
-                let state = STATE.lock().unwrap();
+                let mut state = STATE.lock().unwrap();
+                
+                if !state.has_onboarded {
+                    // Reset to new defaults if not onboarded
+                    state.shortcuts.clear();
+                    let _ = app.autolaunch().disable();
+                    state.save();
+                }
+                
                 state.has_onboarded
             };
 
