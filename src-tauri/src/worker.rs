@@ -6,7 +6,7 @@ use std::num::NonZero;
 use std::thread;
 use std::sync::mpsc;
 use std::time::{Duration, Instant};
-use rand::{rng, RngExt};
+use rand::RngExt;
 use crate::audio::{get_default_config, get_key_id, get_key_pan};
 use crate::state::{STATE, DEFAULT_SAMPLES, ActivePack, KeyEvent, AudioState};
 

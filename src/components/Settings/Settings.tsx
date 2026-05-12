@@ -156,8 +156,13 @@ export function Settings() {
 
   const handlePlayPreview = async (e: React.MouseEvent, id: string) => {
     e.stopPropagation();
-    setPreviewingPack(id);
-    await invoke('play_pack_preview', { packType: id });
+    if (previewingPack === id) {
+      setPreviewingPack(null);
+      await invoke('stop_pack_preview');
+    } else {
+      setPreviewingPack(id);
+      await invoke('play_pack_preview', { packType: id });
+    }
   };
 
   const handleDeviceChange = async (deviceName: string) => {
