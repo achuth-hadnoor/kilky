@@ -34,8 +34,6 @@ pub fn spawn_window(handle: &AppHandle, window_type: WindowType) {
             .title("")
             .inner_size(width, height)
             .resizable(resizable)
-            .transparent(true)
-            .visible_on_all_workspaces(true)
             .skip_taskbar(matches!(window_type, WindowType::Settings))
             .maximizable(false)
             .minimizable(false)
@@ -52,7 +50,10 @@ pub fn spawn_window(handle: &AppHandle, window_type: WindowType) {
                 })
                 .effects(
                     EffectsBuilder::new()
-                        .effects(vec![Effect::Sidebar])
+                        .effects(vec![match window_type {
+                            WindowType::Onboarding => Effect::HudWindow,
+                            WindowType::Settings => Effect::Sidebar,
+                        }])
                         .state(EffectState::Active)
                         .build(),
                 );

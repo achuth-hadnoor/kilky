@@ -122,7 +122,8 @@
     @apply border-border outline-ring/50;
   }
 
-  html {
-    @apply font-sans select-none;
+  html,
+  body {
+    @apply font-sans select-none bg-white dark:bg-black;
   }
 }
