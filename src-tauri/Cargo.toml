@@ -1,6 +1,6 @@
 [package]
 name = "kliky"
-version = "0.1.0"
+version = "1.0.0"
 description = "A premium mechanical keyboard sound simulator with spatial audio and real-time feedback."
 authors = ["Achuth Hadnoor <achuth@example.com>"]
 edition = "2021"
