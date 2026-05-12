@@ -10,6 +10,7 @@ mod macos_listener;
 mod generic_listener;
 mod builtin_packs;
 mod db;
+#[cfg(target_os = "macos")]
 mod keys;
 
 use rodio::DeviceSinkBuilder;

@@ -9,8 +9,10 @@ use std::time::{Duration, Instant};
 use rand::RngExt;
 use crate::audio::{get_default_config, get_key_id, get_key_pan};
 use crate::state::{STATE, DEFAULT_SAMPLES, ActivePack, KeyEvent, AudioState};
+#[cfg(target_os = "macos")]
 use std::sync::atomic::{AtomicUsize, Ordering};
 
+#[cfg(target_os = "macos")]
 lazy_static::lazy_static! {
     static ref TRAY_TITLE_GEN: AtomicUsize = AtomicUsize::new(0);
 }
