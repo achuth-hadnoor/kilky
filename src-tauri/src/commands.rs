@@ -85,10 +85,13 @@ pub fn set_sound_pack(app: AppHandle, pack_type: ActivePackType) {
 
     if let Some(tray) = app.try_state::<TrayState>() {
         let items = tray.packs.clone();
+        let menu = tray.menu.clone();
+        let tray_handle = tray._tray.clone();
         let _ = app.run_on_main_thread(move || {
             for (pt, item) in &items {
                 let _ = item.set_checked(*pt == pack_type);
             }
+            let _ = tray_handle.set_menu(Some(menu));
         });
     }
     state.save();
@@ -350,10 +353,13 @@ pub fn set_volume(app: AppHandle, volume: f32) {
     if let Some(tray) = app.try_state::<TrayState>() {
         let vol_int = (volume * 100.0).round() as u32;
         let volumes = tray.volumes.clone();
+        let menu = tray.menu.clone();
+        let tray_handle = tray._tray.clone();
         let _ = app.run_on_main_thread(move || {
             for (v, item) in &volumes {
                 let _ = item.set_checked(*v == vol_int);
             }
+            let _ = tray_handle.set_menu(Some(menu));
         });
     }
     state.save();
@@ -367,8 +373,11 @@ pub fn set_enabled(app: AppHandle, enabled: bool) {
     state.save();
     if let Some(tray) = app.try_state::<TrayState>() {
         let toggle = tray.toggle.clone();
+        let menu = tray.menu.clone();
+        let tray_handle = tray._tray.clone();
         let _ = app.run_on_main_thread(move || {
             let _ = toggle.set_checked(enabled);
+            let _ = tray_handle.set_menu(Some(menu));
         });
     }
     let _ = app.emit("state-update", ());
@@ -405,6 +414,15 @@ pub async fn set_autostart_enabled(app: AppHandle, enabled: bool) -> Result<(), 
         app.autolaunch().enable().map_err(|e| e.to_string())?;
     } else {
         app.autolaunch().disable().map_err(|e| e.to_string())?;
+    }
+    if let Some(tray) = app.try_state::<TrayState>() {
+        let autostart = tray.autostart.clone();
+        let menu = tray.menu.clone();
+        let tray_handle = tray._tray.clone();
+        let _ = app.run_on_main_thread(move || {
+            let _ = autostart.set_checked(enabled);
+            let _ = tray_handle.set_menu(Some(menu));
+        });
     }
     let _ = app.emit("state-update", ());
     Ok(())

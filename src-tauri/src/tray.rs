@@ -38,7 +38,7 @@ pub fn setup_tray(app: &tauri::AppHandle) -> tauri::Result<()> {
     let quit_i = MenuItem::with_id(app, "quit", "Quit", true, None::<&str>)?;
 
     // Volume Submenu
-    let vol_submenu = Submenu::with_id(app, "volume", "Volume", true)?;
+    let vol_submenu = Submenu::new(app, "Volume", true)?;
     let mut vol_items = HashMap::new();
     let presets = [
         ("Louder (100%)", 100),
@@ -62,7 +62,7 @@ pub fn setup_tray(app: &tauri::AppHandle) -> tauri::Result<()> {
     }
 
     // Sound Switches Submenu (Copyright-Safe Rebranding)
-    let pack_submenu = Submenu::with_id(app, "packs", "Sound Switches", true)?;
+    let pack_submenu = Submenu::new(app, "Sound Switches", true)?;
     let mut pack_items = HashMap::new();
     let pack_configs = [
         ("Zenith (Smooth Linear)", ActivePackType::Zenith),
@@ -125,6 +125,12 @@ pub fn setup_tray(app: &tauri::AppHandle) -> tauri::Result<()> {
                         let _ = autostart_manager.enable();
                         let _ = autostart_c.set_checked(true);
                     }
+
+                    // Force refresh menu visuals
+                    if let Some(tray) = handle.try_state::<TrayState>() {
+                        let _ = tray._tray.set_menu(Some(tray.menu.clone()));
+                    }
+
                     let _ = handle.emit("state-update", ());
                 } else if let Some(vol_str) = id_str.strip_prefix("vol_") {
                     if let Ok(vol) = vol_str.parse::<u32>() {
@@ -158,8 +164,10 @@ pub fn setup_tray(app: &tauri::AppHandle) -> tauri::Result<()> {
 
     app.manage(TrayState {
         toggle: toggle_i,
+        autostart: autostart_i,
         volumes: vol_items,
         packs: pack_items,
+        menu: menu.clone(),
         _tray: tray,
     });
 

@@ -5,7 +5,7 @@ use std::collections::HashMap;
 use std::io::Cursor;
 use std::sync::{Arc, Mutex};
 use std::sync::atomic::AtomicBool;
-use tauri::menu::CheckMenuItem;
+use tauri::menu::{Menu, CheckMenuItem};
 use tauri::tray::TrayIcon;
 
 #[derive(Serialize, Deserialize, Clone, Copy, Debug)]
@@ -200,8 +200,10 @@ impl AppState {
 
 pub struct TrayState {
     pub toggle: CheckMenuItem<tauri::Wry>,
+    pub autostart: CheckMenuItem<tauri::Wry>,
     pub volumes: HashMap<u32, CheckMenuItem<tauri::Wry>>,
     pub packs: HashMap<ActivePackType, CheckMenuItem<tauri::Wry>>,
+    pub menu: Menu<tauri::Wry>,
     pub _tray: TrayIcon<tauri::Wry>,
 }
 
