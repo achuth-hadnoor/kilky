@@ -98,10 +98,16 @@ pub fn run() {
                 } else {
                     let _ = app.set_activation_policy(tauri::ActivationPolicy::Accessory);
                     if !macos_accessibility_client::accessibility::application_is_trusted() {
-                        info!("Accessibility permissions missing! Prompting user...");
+                        info!("Accessibility permissions missing! Disabling Kliky...");
+                        let mut state = STATE.lock().unwrap();
+                        state.enabled = false;
+                        state.save();
                         let _ = macos_accessibility_client::accessibility::application_is_trusted_with_prompt();
                     } else {
-                        info!("Accessibility permissions confirmed.");
+                        info!("Accessibility permissions confirmed. Enabling Kliky...");
+                        let mut state = STATE.lock().unwrap();
+                        state.enabled = true;
+                        state.save();
                     }
                     tray::setup_tray(app.handle())?;
                 }

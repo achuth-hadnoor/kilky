@@ -574,10 +574,19 @@ pub fn request_permissions(app: tauri::AppHandle) -> bool {
 }
 
 #[tauri::command]
-pub fn check_permissions() -> bool {
+pub fn check_permissions(app: tauri::AppHandle) -> bool {
     #[cfg(target_os = "macos")]
     {
-        macos_accessibility_client::accessibility::application_is_trusted()
+        let trusted = macos_accessibility_client::accessibility::application_is_trusted();
+        let current_enabled = STATE.lock().unwrap().enabled;
+        
+        if !trusted && current_enabled {
+            set_enabled(app, false);
+        } else if trusted && !current_enabled {
+            // Auto-enable if user just granted permissions
+            set_enabled(app, true);
+        }
+        trusted
     }
     #[cfg(not(target_os = "macos"))]
     {
