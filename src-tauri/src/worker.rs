@@ -9,6 +9,11 @@ use std::time::{Duration, Instant};
 use rand::RngExt;
 use crate::audio::{get_default_config, get_key_id, get_key_pan};
 use crate::state::{STATE, DEFAULT_SAMPLES, ActivePack, KeyEvent, AudioState};
+use std::sync::atomic::{AtomicUsize, Ordering};
+
+lazy_static::lazy_static! {
+    static ref TRAY_TITLE_GEN: AtomicUsize = AtomicUsize::new(0);
+}
 
 pub fn spawn_audio_worker(app_handle: AppHandle, rx: mpsc::Receiver<KeyEvent>) {
     let audio_state = app_handle.state::<AudioState>().inner().clone();
@@ -141,6 +146,34 @@ pub fn spawn_audio_worker(app_handle: AppHandle, rx: mpsc::Receiver<KeyEvent>) {
             }
 
             if !is_enabled { continue; }
+
+            // Update tray title on macOS
+            #[cfg(target_os = "macos")]
+            if is_down {
+                let gen = TRAY_TITLE_GEN.fetch_add(1, Ordering::SeqCst) + 1;
+                if let Some(key_name) = crate::keys::get_key_name(keycode_raw) {
+                    if let Some(tray) = app_handle_clone.tray_by_id("main") {
+                        let _ = tray.set_title(Some(key_name.to_string()));
+                        
+                        // Clear after a delay, but only if no new key was pressed
+                        let app_handle_timer = app_handle_clone.clone();
+                        thread::spawn(move || {
+                            thread::sleep(Duration::from_millis(1000));
+                            if TRAY_TITLE_GEN.load(Ordering::SeqCst) == gen {
+                                if let Some(tray) = app_handle_timer.tray_by_id("main") {
+                                    // Using empty string as fallback to ensure it clears
+                                    let _ = tray.set_title(Some("".to_string()));
+                                }
+                            }
+                        });
+                    }
+                } else {
+                    // If it's a key we don't recognize, we should still clear the previous title
+                    if let Some(tray) = app_handle_clone.tray_by_id("main") {
+                        let _ = tray.set_title(Some("".to_string()));
+                    }
+                }
+            }
 
             let speed_base: f32 = match active_pack {
                 ActivePack::Zenith => 1.0,

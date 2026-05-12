@@ -10,6 +10,7 @@ mod macos_listener;
 mod generic_listener;
 mod builtin_packs;
 mod db;
+mod keys;
 
 use rodio::DeviceSinkBuilder;
 use tauri::Manager;
