@@ -7,7 +7,7 @@ interface StepContainerProps {
 export function StepContainer({ children }: StepContainerProps) {
 
   return (
-    <div className={`space-y-8 flex flex-col justify-between py-10 px-5 flex-1  duration-700 overflow-y-auto w-screen`}>
+    <div className={`flex flex-col h-full pt-5 px-5 flex-1 duration-700 w-screen min-h-0`}>
       {children}
     </div>
   );

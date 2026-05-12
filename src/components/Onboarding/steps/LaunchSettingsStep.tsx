@@ -32,11 +32,11 @@ export function LaunchSettingsStep({
       <StepHeader
         title="Final Step"
         description="Configure how Kliky starts"
-        icon={<Rocket className="w-10 h-10 text-blue-400" />}
+        icon={<Rocket className="w-8 h-8 text-blue-400" />}
         iconBgColor="bg-blue-500/10"
       />
 
-      <div className="space-y-4">
+      <div className="flex-1 overflow-y-auto pr-2 -mr-2 space-y-6 mt-4 pb-10">
         {/* Startup Setting */}
         <OnboardingCard className="flex items-center justify-between p-6">
           <div className="space-y-1">

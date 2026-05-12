@@ -32,11 +32,11 @@ export function PermissionsStep({
       <StepHeader
         title="Test & Output"
         description="Type the ghost text below to test your sounds"
-        icon={<Speaker className="w-10 h-10 text-emerald-200 dark:text-emerald-500" />}
-        iconBgColor="bg-emerald-500 dark:bg-emerald-500/10"
+        icon={<Speaker className="w-8 h-8 text-emerald-500" />}
+        iconBgColor="bg-emerald-500/10"
       />
 
-      <div className="space-y-4 ">
+      <div className="flex-1 overflow-y-auto pr-2 -mr-2 space-y-6 mt-4 pb-10">
         {/* Testing Area */}
         <OnboardingCard className="p-0 overflow-hidden bg-black/5 dark:bg-white/5 border-black/10 dark:border-white/10 relative h-32 group focus-within:ring-2 focus-within:ring-indigo-500/30 transition-all">
           {/* Ghost Text Layer */}

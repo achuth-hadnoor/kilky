@@ -1,6 +1,7 @@
-import { Shield, AlertCircle } from "lucide-react";
+import { Shield } from "lucide-react";
 import { OnboardingCard } from "../shared/OnboardingCard";
 import { StepContainer } from "../shared/StepContainer";
+import { StepHeader } from "../shared/StepHeader";
 import { VolumeControl } from "../../Sound/VolumeControl";
 import { SoundPackPicker } from "../../Sound/SoundPackPicker";
 import { Switch } from "@/components/ui/switch";
@@ -36,32 +37,24 @@ export function SoundSelectionStep({
 
   return (
     <StepContainer>
-      <div className="flex flex-col items-center py-6 text-center space-y-4">
-        <div className="w-20 h-20 rounded-3xl overflow-hidden shadow-xl border-2 border-black/5 dark:border-white/5">
-          <img src="/icon.png" alt="Kliky Logo" className="w-full h-full object-cover" />
-        </div>
-        <div className="space-y-1">
-          <h1 className="text-3xl font-bold tracking-tighter">kliky</h1>
-          <p className="text-sm text-black/40 dark:text-white/40">Select your typing sound profile</p>
-        </div>
-      </div>
+      <StepHeader
+        title="kliky"
+        description="Select your typing sound profile"
+        icon={<img src="/icon.png" alt="Kliky Logo" className="w-full h-full object-cover" />}
+      />
 
-      <div className="space-y-4">
+      <div className="flex-1 overflow-y-auto pr-2 -mr-2 space-y-6 py-2">
         {/* Permission Section */}
-        {isMac
-          && <OnboardingCard className="space-y-4 bg-lime-300/10">
+        {isMac && (
+          <OnboardingCard className={`space-y-4 border-none transition-colors duration-500 ${hasPermission ? 'bg-green-400/20 dark:bg-lime-400/10 text-lime-800 dark:text-green-600' : 'bg-orange-400/20 dark:bg-amber-400/10 text-amber-800 dark:text-amber-600'}`}>
             <div className="flex items-center justify-between">
-              <div className="flex flex-col gap-1">
-                <div className="flex items-center gap-2">
-                  {hasPermission ? <Shield className="w-4 h-4 text-lime-600 dark:text-green-400" /> : <AlertCircle className="w-4 h-4 text-zinc-400 dark:text-zinc-500" />}
-                  <span className="text-[10px] uppercase tracking-widest font-bold text-zinc-500 dark:text-zinc-400"> {hasPermission ? "Accessibility Access Enabled" : "Enable Accessibility Access"}</span>
-                </div>
-                {/* <div className="flex flex-col">
-                  <span className="text-sm font-semibold text-neutral-800 dark:text-neutral-100">Accessibility Access</span>
-                  <p className="text-[11px] text-neutral-500 leading-tight">
-                    Required to detect key presses and play sounds
+              <div className="flex items-center gap-4">
+                <Shield className="w-5 h-5 " />
+                <div className="space-y-0.5 text-left">
+                  <p className="text-[10px] font-bold ">
+                    {hasPermission ? "Access Granted: Keystroke listening is active" : "Accessibility Access Required"}
                   </p>
-                </div> */}
+                </div>
               </div>
               <Switch
                 checked={hasPermission}
@@ -73,35 +66,36 @@ export function SoundSelectionStep({
                 }}
               />
             </div>
-          </OnboardingCard>}
-        <OnboardingCard className="space-y-4 bg-black/5 dark:bg-white/5">
+          </OnboardingCard>
+        )}
+
+        {/* Master Toggle and Volume */}
+        <OnboardingCard className="space-y-2 bg-black/5 dark:bg-white/5 border-none">
           <div className="flex items-center justify-between">
-            <div className="flex flex-col gap-1">
-              <div className="flex items-center gap-2">
-                <span className="text-[10px] uppercase tracking-widest font-bold text-zinc-500 dark:text-zinc-400"> Enable Kliky</span>
-              </div>
+            <div className="space-y-0.5 text-left">
+              <p className="text-xs font-bold uppercase tracking-widest text-zinc-500">Audio Engine</p>
+              <p className="text-[10px] text-zinc-400">Master sound toggle</p>
             </div>
-            <Switch
-              checked={enabled}
-              onCheckedChange={enableKliky}
-            />
+            <Switch checked={enabled} onCheckedChange={enableKliky} />
+          </div>
+          <div className="pt-2 border-t border-black/5 dark:border-white/5">
+            <VolumeControl volume={volume} onVolumeUpdate={onVolumeUpdate} />
           </div>
         </OnboardingCard>
-        <OnboardingCard className="py-2 px-4">
-          <VolumeControl
-            volume={volume}
-            onVolumeUpdate={onVolumeUpdate}
+
+        {/* Pack Selection */}
+        <div className="space-y-3">
+          <div className="flex items-center gap-2 mb-2 px-2">
+            <p className="text-[10px] uppercase tracking-widest font-bold text-zinc-500">Sound Profiles</p>
+          </div>
+          <SoundPackPicker
+            activePack={activePack}
+            previewingPack={previewingPack}
+            onPackChange={onPackChange}
+            onPlayPreview={onPlayPreview}
           />
-        </OnboardingCard>
-
-        <SoundPackPicker
-          activePack={activePack}
-          previewingPack={previewingPack}
-          onPackChange={onPackChange}
-          onPlayPreview={onPlayPreview}
-        />
+        </div>
       </div>
-
     </StepContainer>
   );
 }

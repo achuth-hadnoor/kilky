@@ -7,18 +7,20 @@ interface StepHeaderProps {
   iconBgColor?: string;
 }
 
-export function StepHeader({ title, description, icon, iconBgColor = "bg-white/5" }: StepHeaderProps) {
+export function StepHeader({ title, description, icon, iconBgColor = "bg-black/5 dark:bg-white/5" }: StepHeaderProps) {
   return (
-    <div className="text-center space-y-2" >
+    <div className="flex items-center gap-4 py-4 shrink-0 border-b border-black/5 dark:border-white/5 mb-2">
       {icon && (
-        <div className={`w-20 h-20 ${iconBgColor} rounded-3xl flex items-center justify-center mx-auto mb-4 border border-white/10 text-black dark:text-white `}>
+        <div className={`w-14 h-14 rounded-2xl overflow-hidden shadow-lg border-2 border-black/5 dark:border-white/5 flex items-center justify-center ${iconBgColor}`}>
           {icon}
         </div>
       )}
-      <h1 className={`font-black tracking-tight text-black dark:text-white ${icon ? "text-3xl" : "text-5xl"} `} data-tauri-drag-region>
-        {title}
-      </h1>
-      <p className="text-gray-600 dark:text-zinc-400 text-sm">{description}</p>
+      <div className="text-left space-y-0.5">
+        <h1 className="text-2xl font-bold tracking-tighter text-black dark:text-white" data-tauri-drag-region>
+          {title}
+        </h1>
+        <p className="text-[11px] text-black/40 dark:text-white/40">{description}</p>
+      </div>
     </div>
   );
 }
