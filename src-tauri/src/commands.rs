@@ -558,38 +558,38 @@ pub async fn create_custom_pack(dest: String, config: PackConfig) -> Result<(), 
 }
 
 #[tauri::command]
-pub fn request_permissions(app: tauri::AppHandle) -> bool {
+pub fn request_permissions() {
     #[cfg(target_os = "macos")]
     {
-        if let Some(window) = app.get_webview_window("onboarding") {
-            let _ = window.set_always_on_top(false);
-        }
-        macos_accessibility_client::accessibility::application_is_trusted_with_prompt()
-    }
-    #[cfg(not(target_os = "macos"))]
-    {
-        let _ = app;
-        true
+        // Try the standard prompt first
+        let _ = macos_accessibility_client::accessibility::application_is_trusted_with_prompt();
+        
+        // Fallback: Open System Settings directly to the Accessibility pane
+        // This ensures the user can find it even if the system blocks the prompt.
+        let _ = std::process::Command::new("open")
+            .arg("x-apple.systempreferences:com.apple.preference.security?Privacy_Accessibility")
+            .spawn();
     }
 }
 
 #[tauri::command]
-pub fn check_permissions(app: tauri::AppHandle) -> bool {
+pub fn check_permissions(_app: tauri::AppHandle) -> bool {
     #[cfg(target_os = "macos")]
     {
         let trusted = macos_accessibility_client::accessibility::application_is_trusted();
-        let current_enabled = STATE.lock().unwrap().enabled;
         
-        if !trusted && current_enabled {
-            set_enabled(app, false);
-        } else if trusted && !current_enabled {
-            // Auto-enable if user just granted permissions
-            set_enabled(app, true);
+        // We removed the auto-disable logic here because AXIsProcessTrusted()
+        // can return false negatives in sandboxed/production environments.
+        // We now let the user maintain control of the toggle.
+        if trusted {
+            log::info!("Accessibility trust confirmed by system.");
         }
+        
         trusted
     }
     #[cfg(not(target_os = "macos"))]
     {
+        let _ = app;
         true
     }
 }
