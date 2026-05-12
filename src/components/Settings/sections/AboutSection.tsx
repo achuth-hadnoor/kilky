@@ -51,6 +51,12 @@ export function AboutSection({ appVersion, platformName, handleCheckUpdates }: A
             )}
           </Button>
         </div>
+
+        {import.meta.env.DEV && (
+          <p className="text-[10px] text-black/30 dark:text-white/30 max-w-[200px] leading-tight">
+            Note: In development, this usually means no GitHub releases exist yet.
+          </p>
+        )}
       </div>
 
       {/* <div className="p-6 bg-black/5 dark:bg-white/5 rounded-3xl border border-black/5 dark:border-white/5">
