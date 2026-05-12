@@ -1,16 +1,13 @@
 import { useState } from "react";
-import { ChevronRight, Speaker } from "lucide-react";
-import { Button } from "@/components/ui/button";
+import { Speaker, ChevronRight } from "lucide-react";
 import { StepHeader } from "../shared/StepHeader";
 import { OnboardingCard } from "../shared/OnboardingCard";
 import { StepContainer } from "../shared/StepContainer";
 
 interface PermissionsStepProps {
-  hasPermission: boolean;
   audioDevices: string[];
   selectedDevice: string;
   onDeviceChange: (device: string) => void;
-  onNext: () => void;
 }
 
 const QUOTES = [
@@ -23,11 +20,9 @@ const QUOTES = [
 ];
 
 export function PermissionsStep({
-  hasPermission,
   audioDevices,
   selectedDevice,
   onDeviceChange,
-  onNext,
 }: PermissionsStepProps) {
   const [quote] = useState(() => QUOTES[Math.floor(Math.random() * QUOTES.length)]);
   const [typedText, setTypedText] = useState("");

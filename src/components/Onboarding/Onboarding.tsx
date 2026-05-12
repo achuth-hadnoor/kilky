@@ -2,7 +2,6 @@ import { useState, useEffect, useRef } from "react";
 import { invoke } from "@tauri-apps/api/core";
 import { listen } from "@tauri-apps/api/event";
 import { getCurrentWebviewWindow } from "@tauri-apps/api/webviewWindow";
-import { ChevronLeft } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Shortcut, getKeyName, getModifierSymbol } from "../shared/utils";
 
@@ -189,11 +188,6 @@ export function Onboarding() {
     fetchState();
   };
 
-  const handleHyperKeyChange = async (enabled: boolean) => {
-    setHyperKeyEnabled(enabled);
-    await invoke("set_hyper_key_enabled", { enabled });
-  };
-
   const finish = async () => {
     await invoke("complete_onboarding");
     const win = getCurrentWebviewWindow();
@@ -219,17 +213,14 @@ export function Onboarding() {
             hasPermission={hasPermission}
             onRequestPermission={requestPermission}
             platformName={platformName}
-            onNext={() => setStep(2)}
           />
         )}
 
         {step === 2 && (
           <PermissionsStep
-            hasPermission={hasPermission}
             audioDevices={audioDevices}
             selectedDevice={selectedDevice}
             onDeviceChange={handleDeviceChange}
-            onNext={() => setStep(3)}
           />
         )}
 
@@ -247,8 +238,6 @@ export function Onboarding() {
             }}
             onClear={handleClearShortcut}
             hyperKeyEnabled={hyperKeyEnabled}
-            onHyperKeyChange={handleHyperKeyChange}
-            onFinish={finish}
           />
         )}
 

@@ -1,5 +1,4 @@
 import { Rocket, Keyboard } from "lucide-react";
-import { Button } from "@/components/ui/button";
 import { Switch } from "@/components/ui/switch";
 import { StepHeader } from "../shared/StepHeader";
 import { OnboardingCard } from "../shared/OnboardingCard";
@@ -16,8 +15,6 @@ interface LaunchSettingsStepProps {
   onRecord: (action: string, isRecording: boolean) => void;
   onClear: (action: string) => void;
   hyperKeyEnabled: boolean;
-  onHyperKeyChange: (enabled: boolean) => void;
-  onFinish: () => void;
 }
 
 export function LaunchSettingsStep({
@@ -29,8 +26,6 @@ export function LaunchSettingsStep({
   onRecord,
   onClear,
   hyperKeyEnabled,
-  onHyperKeyChange,
-  onFinish,
 }: LaunchSettingsStepProps) {
   return (
     <StepContainer>

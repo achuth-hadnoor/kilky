@@ -1,6 +1,4 @@
-import { ChevronRight, Shield, AlertCircle } from "lucide-react";
-import { Button } from "@/components/ui/button";
-import { StepHeader } from "../shared/StepHeader";
+import { Shield, AlertCircle } from "lucide-react";
 import { OnboardingCard } from "../shared/OnboardingCard";
 import { StepContainer } from "../shared/StepContainer";
 import { VolumeControl } from "../../Sound/VolumeControl";
@@ -16,7 +14,6 @@ interface SoundSelectionStepProps {
   onPackChange: (id: string) => void;
   onPlayPreview: (e: React.MouseEvent, id: string) => void;
   onVolumeUpdate: (val: number[]) => void;
-  onNext: () => void;
   hasPermission: boolean;
   onRequestPermission: () => void;
   platformName: string;
@@ -31,7 +28,6 @@ export function SoundSelectionStep({
   onPackChange,
   onPlayPreview,
   onVolumeUpdate,
-  onNext,
   hasPermission,
   onRequestPermission,
   platformName,
