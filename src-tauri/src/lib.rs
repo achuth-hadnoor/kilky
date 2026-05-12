@@ -72,7 +72,16 @@ pub fn run() {
             commands::reset_settings,
             commands::set_speed_volume_scaling
         ])
-        .on_window_event(window::handle_window_event)
+        .on_window_event(|window, event| {
+            if let tauri::WindowEvent::Destroyed = event {
+                #[cfg(any(target_os = "macos", target_os = "windows"))]
+                {
+                    use tauri_plugin_global_shortcut::ShortcutExt;
+                    let _ = window.app_handle().global_shortcut().unregister_all();
+                }
+            }
+            window::handle_window_event(window, event);
+        })
         .setup(|app| {
             info!("Starting setup...");
 
