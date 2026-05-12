@@ -573,9 +573,10 @@ pub fn request_permissions() {
 }
 
 #[tauri::command]
-pub fn check_permissions(_app: tauri::AppHandle) -> bool {
+pub fn check_permissions(app: tauri::AppHandle) -> bool {
     #[cfg(target_os = "macos")]
     {
+        let _ = app;
         let trusted = macos_accessibility_client::accessibility::application_is_trusted();
         
         // We removed the auto-disable logic here because AXIsProcessTrusted()
