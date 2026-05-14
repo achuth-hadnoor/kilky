@@ -1,4 +1,5 @@
 use crate::state::{ActivePack, ActivePackType, ExternalPack, PackConfig, TrayState, STATE};
+use rodio::buffer::SamplesBuffer;
 use rodio::Decoder;
 use serde_json::json;
 use std::collections::HashMap;
@@ -732,4 +733,66 @@ pub fn set_speed_volume_scaling(app: tauri::AppHandle, enabled: bool) {
     state.speed_volume_scaling = enabled;
     state.save();
     let _ = app.emit("state-update", ());
+}
+#[tauri::command]
+pub fn play_custom_sample(
+    app: AppHandle, 
+    path: String, 
+    pitch: f32, 
+    volume: f32,
+    keyup_pitch_multiplier: f32,
+    keyup_volume_multiplier: f32,
+    duration_limit: Option<u64>,
+    jitter: f32
+) -> Result<(), String> {
+    use rodio::source::Source;
+    let audio_state = app.state::<crate::state::AudioState>();
+    
+    // We'll play the sequence in a thread to handle the delay between Down and Up
+    let path_clone = path.clone();
+    let audio_state_clone = audio_state.inner().clone();
+    
+    thread::spawn(move || {
+        let file = match File::open(&path_clone) {
+            Ok(f) => f,
+            Err(_) => return,
+        };
+        let decoder = match Decoder::try_from(BufReader::new(file)) {
+            Ok(d) => d,
+            Err(_) => return,
+        };
+        let samples: Vec<f32> = decoder.collect();
+
+        let mut rng = rand::rng();
+        let j_pitch = rng.random_range((1.0 - jitter)..(1.0 + jitter));
+        let j_vol = rng.random_range((1.0 - jitter)..(1.0 + jitter));
+
+        // 1. Play DOWN sound (Full duration)
+        let down_source = SamplesBuffer::new(
+            std::num::NonZero::new(1).unwrap(),
+            std::num::NonZero::new(44100).unwrap(),
+            samples.clone(),
+        )
+        .amplify(volume * j_vol)
+        .speed(pitch * j_pitch);
+        
+        audio_state_clone.mixer.lock().unwrap().add(down_source);
+
+        // 2. Wait for a simulated keypress duration
+        thread::sleep(Duration::from_millis(100));
+
+        // 3. Play UP sound (Shifted & Clipped)
+        let up_source = SamplesBuffer::new(
+            std::num::NonZero::new(1).unwrap(),
+            std::num::NonZero::new(44100).unwrap(),
+            samples,
+        )
+        .amplify(volume * j_vol * keyup_volume_multiplier)
+        .speed(pitch * j_pitch * keyup_pitch_multiplier);
+        
+        let clipped_up = up_source.take_duration(Duration::from_millis(duration_limit.unwrap_or(40)));
+        audio_state_clone.mixer.lock().unwrap().add(clipped_up);
+    });
+
+    Ok(())
 }

@@ -276,24 +276,49 @@ pub fn spawn_audio_worker(app_handle: AppHandle, rx: mpsc::Receiver<KeyEvent>) {
 
                     if let Some(fname) = filename {
                         if let Some(samples) = pack.audio_data.get(fname) {
-                            let mut p_vol = final_volume;
-                            let mut p_pitch = speed;
+                            let p_vol = final_volume;
+                            let p_pitch = speed;
+
+                            let mut final_vol = p_vol;
+                            let mut final_pitch = p_pitch;
+                            let mut duration_limit = 40; // default
+                            let mut jitter = 0.02;
 
                             if let Some(settings_map) = &pack.config.settings {
                                 let settings = settings_map.get(key_id).or_else(|| settings_map.get("Default"));
                                 if let Some(s) = settings {
-                                    p_vol *= s.volume;
-                                    p_pitch *= s.pitch;
+                                    final_vol *= s.volume;
+                                    final_pitch *= s.pitch;
+                                    jitter = s.jitter;
+                                    duration_limit = s.duration_limit.unwrap_or(40);
+                                    
+                                    if !is_down {
+                                        final_vol *= s.keyup_volume_multiplier;
+                                        final_pitch *= s.keyup_pitch_multiplier;
+                                    }
+                                } else if !is_down {
+                                    // Legacy/Default KeyUp behavior
+                                    final_vol *= 0.45;
+                                    final_pitch *= 1.25;
                                 }
+                            } else if !is_down {
+                                // Legacy/Default KeyUp behavior
+                                final_vol *= 0.45;
+                                final_pitch *= 1.25;
                             }
+
+                            // Apply Jitter
+                            let mut rng = rand::rng();
+                            final_pitch *= rng.random_range((1.0 - jitter)..(1.0 + jitter));
+                            final_vol *= rng.random_range((1.0 - jitter)..(1.0 + jitter));
 
                             let source = SamplesBuffer::new(
                                 NonZero::new(1).unwrap(),
                                 NonZero::new(44100).unwrap(),
                                 samples.as_slice(),
                             )
-                            .amplify(p_vol)
-                            .speed(p_pitch);
+                            .amplify(final_vol)
+                            .speed(final_pitch);
                             
                             match &active_pack {
                                 ActivePack::VelvetCocoa(_) => {
@@ -309,27 +334,27 @@ pub fn spawn_audio_worker(app_handle: AppHandle, rx: mpsc::Receiver<KeyEvent>) {
                                             NonZero::new(44100).unwrap(),
                                             samples.as_slice(),
                                         )
-                                        .amplify(p_vol * 0.4)
-                                        .speed(p_pitch * 0.7) // Much deeper resonance
+                                        .amplify(final_vol * 0.4)
+                                        .speed(final_pitch * 0.7) // Much deeper resonance
                                         .delay(Duration::from_millis(12));
                                         
                                         let spatial_resonance = Spatial::new(resonance, emitter, left_ear, right_ear);
                                         m.add(spatial_resonance);
                                     } else {
-                                        let spatial_source = Spatial::new(source.take_duration(Duration::from_millis(40)), emitter, left_ear, right_ear);
+                                        let spatial_source = Spatial::new(source.take_duration(Duration::from_millis(duration_limit)), emitter, left_ear, right_ear);
                                         m.add(spatial_source);
                                     }
                                 }
                                 ActivePack::VelvetMint(_) => {
                                     // Mint variation: Much shorter, snappier duration
-                                    let duration = if is_down { 45 } else { 25 };
+                                    let duration = if is_down { 45 } else { duration_limit as u64 };
                                     let spatial_source = Spatial::new(source.take_duration(Duration::from_millis(duration)), emitter, left_ear, right_ear);
                                     audio_state.mixer.lock().unwrap().add(spatial_source);
                                 }
                                 _ => {
                                     // Standard Velvet/Neon/Custom
                                     if !is_down {
-                                        let sp = Spatial::new(source.take_duration(Duration::from_millis(35)), emitter, left_ear, right_ear);
+                                        let sp = Spatial::new(source.take_duration(Duration::from_millis(duration_limit as u64)), emitter, left_ear, right_ear);
                                         audio_state.mixer.lock().unwrap().add(sp);
                                     } else {
                                         let spatial_source = Spatial::new(source, emitter, left_ear, right_ear);

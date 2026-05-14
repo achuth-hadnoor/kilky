@@ -70,7 +70,8 @@ pub fn run() {
             commands::set_buffer_size,
             commands::set_hardware_acceleration,
             commands::reset_settings,
-            commands::set_speed_volume_scaling
+            commands::set_speed_volume_scaling,
+            commands::play_custom_sample
         ])
         .on_window_event(window::handle_window_event)
         .setup(|app| {

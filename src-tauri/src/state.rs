@@ -24,6 +24,10 @@ pub struct KeySender {
 pub struct KeySettings {
     pub pitch: f32,
     pub volume: f32,
+    pub keyup_pitch_multiplier: f32,
+    pub keyup_volume_multiplier: f32,
+    pub duration_limit: Option<u64>,
+    pub jitter: f32,
 }
 
 #[derive(Clone, Serialize, Deserialize, Debug)]

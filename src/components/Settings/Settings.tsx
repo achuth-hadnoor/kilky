@@ -5,7 +5,7 @@ import { getVersion } from '@tauri-apps/api/app';
 import { check } from '@tauri-apps/plugin-updater';
 import { relaunch } from '@tauri-apps/plugin-process';
 import { message, ask } from '@tauri-apps/plugin-dialog';
-import { Settings as SettingsIcon, Volume2, Keyboard, Info } from 'lucide-react';
+import { Settings as SettingsIcon, Volume2, Keyboard, Info, Beaker } from 'lucide-react';
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { Shortcut } from "../shared/utils";
 
@@ -15,6 +15,7 @@ import { AudioSection } from './sections/AudioSection';
 import { HotkeysSection } from './sections/HotkeysSection';
 import { AdvancedSection } from './sections/AdvancedSection';
 import { AboutSection } from './sections/AboutSection';
+import { LabSection } from './sections/LabSection';
 
 import './Settings.css';
 
@@ -228,6 +229,7 @@ export function Settings() {
   const navItems = [
     { id: 'general', label: 'General', icon: SettingsIcon, color: 'bg-blue-500' },
     { id: 'audio', label: 'Sounds', icon: Volume2, color: 'bg-emerald-500' },
+    { id: 'lab', label: 'Sound Lab', icon: Beaker, color: 'bg-indigo-500' },
     { id: 'hotkeys', label: 'Hotkeys', icon: Keyboard, color: 'bg-amber-500' },
     { id: 'about', label: 'About', icon: Info, color: 'bg-zinc-500' },
   ];
@@ -268,6 +270,10 @@ export function Settings() {
                 handlePackChange={handlePackChange}
                 handlePlayPreview={handlePlayPreview}
               />
+            )}
+
+            {activeTab === 'lab' && (
+              <LabSection />
             )}
 
             {activeTab === 'hotkeys' && (

@@ -18,16 +18,44 @@ pub fn get_velvet_pack() -> ExternalPack {
         
         if key_id == spacebar {
             sounds.insert(key_id.clone(), "banana-l-2.wav".to_string());
-            settings.insert(key_id, crate::state::KeySettings { pitch: 0.85, volume: 1.2 });
+            settings.insert(key_id, crate::state::KeySettings { 
+                pitch: 0.85, 
+                volume: 1.2,
+                keyup_pitch_multiplier: 1.25,
+                keyup_volume_multiplier: 0.45,
+                duration_limit: Some(40),
+                jitter: 0.02
+            });
         } else if key_id == enter || key_id == backspace {
             sounds.insert(key_id.clone(), "banana-l-4.wav".to_string());
-            settings.insert(key_id, crate::state::KeySettings { pitch: 0.95, volume: 1.1 });
+            settings.insert(key_id, crate::state::KeySettings { 
+                pitch: 0.95, 
+                volume: 1.1,
+                keyup_pitch_multiplier: 1.25,
+                keyup_volume_multiplier: 0.45,
+                duration_limit: Some(40),
+                jitter: 0.02
+            });
         } else if modifiers.contains(&key_id.as_str()) {
             sounds.insert(key_id.clone(), "banana-l-1.wav".to_string());
-            settings.insert(key_id, crate::state::KeySettings { pitch: 1.0, volume: 0.7 });
+            settings.insert(key_id, crate::state::KeySettings { 
+                pitch: 1.0, 
+                volume: 0.7,
+                keyup_pitch_multiplier: 1.25,
+                keyup_volume_multiplier: 0.45,
+                duration_limit: Some(40),
+                jitter: 0.02
+            });
         } else if arrows.contains(&key_id.as_str()) {
             sounds.insert(key_id.clone(), "banana-l-3.wav".to_string());
-            settings.insert(key_id, crate::state::KeySettings { pitch: 1.05, volume: 0.9 });
+            settings.insert(key_id, crate::state::KeySettings { 
+                pitch: 1.05, 
+                volume: 0.9,
+                keyup_pitch_multiplier: 1.25,
+                keyup_volume_multiplier: 0.45,
+                duration_limit: Some(40),
+                jitter: 0.02
+            });
         } else {
             // Alphas and everything else - cycle through 1, 3, 5, 6, 7
             let alpha_samples = [1, 3, 5, 6, 7];
@@ -102,10 +130,24 @@ pub fn get_neon_pack() -> ExternalPack {
         let key_id = i.to_string();
         if key_id == spacebar {
             sounds.insert(key_id.clone(), "2.wav".to_string());
-            settings.insert(key_id, crate::state::KeySettings { pitch: 0.7, volume: 1.3 });
+            settings.insert(key_id, crate::state::KeySettings { 
+                pitch: 0.7, 
+                volume: 1.3,
+                keyup_pitch_multiplier: 1.25,
+                keyup_volume_multiplier: 0.45,
+                duration_limit: Some(40),
+                jitter: 0.02
+            });
         } else if modifiers.contains(&key_id.as_str()) {
             sounds.insert(key_id.clone(), "1.wav".to_string());
-            settings.insert(key_id, crate::state::KeySettings { pitch: 1.0, volume: 0.6 });
+            settings.insert(key_id, crate::state::KeySettings { 
+                pitch: 1.0, 
+                volume: 0.6,
+                keyup_pitch_multiplier: 1.25,
+                keyup_volume_multiplier: 0.45,
+                duration_limit: Some(40),
+                jitter: 0.02
+            });
         } else {
             let sample_num = if i % 2 == 0 { 2 } else { 1 };
             sounds.insert(key_id, format!("{}.wav", sample_num));
