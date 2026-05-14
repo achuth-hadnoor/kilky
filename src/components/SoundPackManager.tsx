@@ -93,7 +93,7 @@ export function SoundPackManager() {
                   cursor: 'pointer',
                   border: '1px solid var(--border-color)',
                   textAlign: 'center',
-                  transition: 'all 0.2s ease'
+                  // transition: 'all 0.2s ease'
                 }}
               >
                 <div style={{ fontWeight: 600, color: 'var(--primary-color)' }}>{key}</div>

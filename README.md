@@ -48,3 +48,43 @@ yarn tauri build
 
 ### **Ready to find your rhythm?**
 **[Download Kliky for macOS & Windows]**
+
+
+Name : Kliky
+Description
+one liner : satisfying sounds at every keystroke
+two liner : change the way you type with satisfying keyboard sounds at every press, tap, and click.
+
+Target Audience
+
+- Any keyboard user who wants to add a satisfying sound to their typing experience.
+- Laptop keyboard users who want to add a satisfying sound to their typing experience.
+- Users of keyboards who want to make their typing experience more enjoyable.
+- People who like ASMR
+- People who like mechanical keyboards
+
+Value Proposition
+
+- Enhances typing experience
+- Provides satisfying sounds
+- Works on any keyboard
+- Easy to use
+- Customizable sounds
+- Low system resource usage
+- Cross-platform
+
+Key Features
+
+- current feature list
+  - Enable / disable typing sounds
+  - Auto start typing sounds when computer starts
+  - Adjustable volume ( soft, balanced, loud )
+  - Auto output device selection
+  - 
+
+- soon to be added -
+  - Custom sound library
+  - Adjustable pitch
+  - Adjustable typing speed sensitivity
+  - Auto disable typing sounds when playing games
+  - Auto enable typing sounds when leaving games

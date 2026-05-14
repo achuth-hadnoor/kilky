@@ -40,7 +40,7 @@ export function GeneralSection({
 
       <div className="space-y-6">
         {isMac && (
-          <div className="flex items-center justify-between p-4 bg-black/5 dark:bg-white/5 rounded-2xl border border-black/5 dark:border-white/5">
+          <div className="flex items-center justify-between p-4 bg-black/5 dark:bg-white/5 rounded-xl border border-black/5 dark:border-white/5">
             <div className="flex flex-col gap-1">
               <div className="flex items-center gap-2">
                 {hasPermission ? (
@@ -55,8 +55,8 @@ export function GeneralSection({
               <div className="flex flex-col">
                 <Label className="text-base">System Permissions</Label>
                 <p className="text-xs text-black/40 dark:text-white/40 leading-tight">
-                  {hasPermission 
-                    ? "Permissions are granted and Kliky can detect key presses." 
+                  {hasPermission
+                    ? "Permissions are granted and Kliky can detect key presses."
                     : "Kliky needs accessibility access to detect key presses."}
                 </p>
               </div>
@@ -73,7 +73,7 @@ export function GeneralSection({
           </div>
         )}
 
-        <div className="flex items-center justify-between p-4 bg-black/5 dark:bg-white/5 rounded-2xl border border-black/5 dark:border-white/5">
+        <div className="flex items-center justify-between p-4 bg-black/5 dark:bg-white/5 rounded-xl border border-black/5 dark:border-white/5">
           <div className="space-y-1">
             <Label className="text-base">Enable Kliky</Label>
             <p className="text-xs text-black/40 dark:text-white/40">Turn all keyboard sounds on or off globally.</p>
@@ -81,7 +81,7 @@ export function GeneralSection({
           <Switch checked={enabled} onCheckedChange={handleToggle} />
         </div>
 
-        <div className="flex items-center justify-between p-4 bg-black/5 dark:bg-white/5 rounded-2xl border border-black/5 dark:border-white/5">
+        <div className="flex items-center justify-between p-4 bg-black/5 dark:bg-white/5 rounded-xl border border-black/5 dark:border-white/5">
           <div className="space-y-1">
             <Label className="text-base">Launch at Startup</Label>
             <p className="text-xs text-black/40 dark:text-white/40">Automatically start kliky when you log in.</p>
@@ -89,7 +89,7 @@ export function GeneralSection({
           <Switch checked={isAutostart} onCheckedChange={handleAutoLaunchChange} />
         </div>
 
-        <div className="flex flex-col gap-4 p-4 bg-black/5 dark:bg-white/5 rounded-2xl border border-black/5 dark:border-white/5">
+        <div className="flex flex-col gap-4 p-4 bg-black/5 dark:bg-white/5 rounded-xl border border-black/5 dark:border-white/5">
           <div className="space-y-1">
             <Label className="text-base">Audio Output Device</Label>
             <p className="text-xs text-black/40 dark:text-white/40">Choose where the keyboard sounds will play.</p>
@@ -107,7 +107,7 @@ export function GeneralSection({
         </div>
 
         {import.meta.env.DEV && (
-          <div className="p-4 bg-black/5 dark:bg-white/5 rounded-2xl border border-black/5 dark:border-white/5 space-y-4">
+          <div className="p-4 bg-black/5 dark:bg-white/5 rounded-xl border border-black/5 dark:border-white/5 space-y-4">
             <div className="space-y-1">
               <Label className="text-base font-semibold">Welcome Experience (Dev)</Label>
               <p className="text-xs text-black/40 dark:text-white/40">Re-run the setup guide to configure your sounds and permissions.</p>

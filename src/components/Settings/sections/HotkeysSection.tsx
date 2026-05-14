@@ -25,7 +25,7 @@ export function HotkeysSection({
   hyperKeyEnabled,
 }: HotkeysSectionProps) {
   return (
-    <div className="space-y-8 animate-in fade-in slide-in-from-right-4 duration-500">
+    <div className="space-y-8 ">
       <div>
         <h3 className="text-2xl font-semibold mb-2">Global Hotkeys</h3>
         <p className="text-sm text-black/40 dark:text-white/40">Control kliky from any application with custom key combinations.</p>

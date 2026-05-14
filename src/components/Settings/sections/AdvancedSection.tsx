@@ -59,7 +59,7 @@ export function AdvancedSection({
           />
         </div>
 
-        <div className="flex items-center justify-between p-4 bg-black/5 dark:bg-white/5 rounded-2xl border border-black/5 dark:border-white/5 transition-all duration-300">
+        <div className="flex items-center justify-between p-4 bg-black/5 dark:bg-white/5 rounded-2xl border border-black/5 dark:border-white/5 duration-300">
           <div className="space-y-1">
             <Label className="text-base">Buffer Size</Label>
             <p className="text-xs text-black/40 dark:text-white/40">Balance between latency and CPU usage.</p>
@@ -74,9 +74,9 @@ export function AdvancedSection({
                       handleBufferSizeChange(opt);
                       setIsChanging(false);
                     }}
-                    className={`px-2.5 py-1 rounded-lg text-[10px] font-mono font-bold transition-all ${bufferSize === opt
-                        ? "bg-indigo-500 text-white shadow-lg shadow-indigo-500/20"
-                        : "bg-black/5 dark:bg-white/5 text-black/40 dark:text-white/40 hover:bg-black/10 dark:hover:bg-white/10"
+                    className={`px-2.5 py-1 rounded-lg text-[10px] font-mono font-bold ${bufferSize === opt
+                      ? "bg-indigo-500 text-white shadow-lg shadow-indigo-500/20"
+                      : "bg-black/5 dark:bg-white/5 text-black/40 dark:text-white/40 hover:bg-black/10 dark:hover:bg-white/10"
                       }`}
                   >
                     {opt}ms

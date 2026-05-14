@@ -233,14 +233,14 @@ export function Settings() {
   ];
 
   return (
-    <div className="flex h-screen w-screen bg-transparent overflow-hidden p-2 gap-4 text-black dark:text-white duration-500 font-sans" data-tauri-drag-region="true">
+    <div className="flex h-screen w-screen bg-transparent overflow-hidden p-2 gap-2 text-black dark:text-white duration-500 font-sans" data-tauri-drag-region="true">
       <Sidebar
         navItems={navItems}
         activeTab={activeTab}
         setActiveTab={setActiveTab}
       />
 
-      <main className="flex-1 h-full bg-white/5 dark:bg-black/10 backdrop-blur-md rounded-3xl border border-black/5 dark:border-white/5 overflow-hidden flex flex-col min-h-0">
+      <main className="flex-1 h-full bg-white/5 dark:bg-black/10 backdrop-blur-md rounded-xl border border-black/5 dark:border-white/5 overflow-hidden flex flex-col min-h-0">
         <ScrollArea className="flex-1 overflow-y-auto">
           <div className="max-w-xl mx-auto px-8 py-10 animate-in fade-in slide-in-from-bottom-4 duration-500 select-none">
             {activeTab === 'general' && (
