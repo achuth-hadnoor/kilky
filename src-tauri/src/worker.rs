@@ -295,12 +295,47 @@ pub fn spawn_audio_worker(app_handle: AppHandle, rx: mpsc::Receiver<KeyEvent>) {
                             .amplify(p_vol)
                             .speed(p_pitch);
                             
-                            if !is_down {
-                                let sp = Spatial::new(source.take_duration(Duration::from_millis(35)), emitter, left_ear, right_ear);
-                                audio_state.mixer.lock().unwrap().add(sp);
-                            } else {
-                                let spatial_source = Spatial::new(source, emitter, left_ear, right_ear);
-                                audio_state.mixer.lock().unwrap().add(spatial_source);
+                            match &active_pack {
+                                ActivePack::VelvetCocoa(_) => {
+                                    // Cocoa variation: Add a secondary resonance layer for thock
+                                    let m = audio_state.mixer.lock().unwrap();
+                                    
+                                    if is_down {
+                                        let spatial_source = Spatial::new(source, emitter, left_ear, right_ear);
+                                        m.add(spatial_source);
+                                        
+                                        let resonance = SamplesBuffer::new(
+                                            NonZero::new(1).unwrap(),
+                                            NonZero::new(44100).unwrap(),
+                                            samples.as_slice(),
+                                        )
+                                        .amplify(p_vol * 0.4)
+                                        .speed(p_pitch * 0.7) // Much deeper resonance
+                                        .delay(Duration::from_millis(12));
+                                        
+                                        let spatial_resonance = Spatial::new(resonance, emitter, left_ear, right_ear);
+                                        m.add(spatial_resonance);
+                                    } else {
+                                        let spatial_source = Spatial::new(source.take_duration(Duration::from_millis(40)), emitter, left_ear, right_ear);
+                                        m.add(spatial_source);
+                                    }
+                                }
+                                ActivePack::VelvetMint(_) => {
+                                    // Mint variation: Much shorter, snappier duration
+                                    let duration = if is_down { 45 } else { 25 };
+                                    let spatial_source = Spatial::new(source.take_duration(Duration::from_millis(duration)), emitter, left_ear, right_ear);
+                                    audio_state.mixer.lock().unwrap().add(spatial_source);
+                                }
+                                _ => {
+                                    // Standard Velvet/Neon/Custom
+                                    if !is_down {
+                                        let sp = Spatial::new(source.take_duration(Duration::from_millis(35)), emitter, left_ear, right_ear);
+                                        audio_state.mixer.lock().unwrap().add(sp);
+                                    } else {
+                                        let spatial_source = Spatial::new(source, emitter, left_ear, right_ear);
+                                        audio_state.mixer.lock().unwrap().add(spatial_source);
+                                    }
+                                }
                             }
                         }
                     }

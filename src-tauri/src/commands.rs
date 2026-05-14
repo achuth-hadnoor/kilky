@@ -337,7 +337,27 @@ pub fn play_pack_preview(app: tauri::AppHandle, pack_type: ActivePackType) {
                                 )
                                 .amplify(final_vol)
                                 .speed(final_pitch * pitch_var);
-                            audio_state.mixer.lock().unwrap().add(s);
+
+                            match pack_type {
+                                ActivePackType::VelvetCocoa => {
+                                    audio_state.mixer.lock().unwrap().add(s);
+                                    let resonance = SamplesBuffer::new(
+                                        NonZero::new(1).unwrap(),
+                                        NonZero::new(44100).unwrap(),
+                                        samples.as_slice(),
+                                    )
+                                    .amplify(final_vol * 0.4)
+                                    .speed(final_pitch * pitch_var * 0.7)
+                                    .delay(Duration::from_millis(12));
+                                    audio_state.mixer.lock().unwrap().add(resonance);
+                                }
+                                ActivePackType::VelvetMint => {
+                                    audio_state.mixer.lock().unwrap().add(s.take_duration(Duration::from_millis(45)));
+                                }
+                                _ => {
+                                    audio_state.mixer.lock().unwrap().add(s);
+                                }
+                            }
                         }
                     }
                 }
