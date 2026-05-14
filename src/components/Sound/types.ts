@@ -8,6 +8,8 @@ export interface SoundPack {
 export const SOUND_PACKS: SoundPack[] = [
   { id: 'Zenith', name: 'Zenith', desc: 'Smooth Linear', color: 'bg-blue-500' },
   { id: 'Velvet', name: 'Velvet', desc: 'Creamy Linear', color: 'bg-purple-500' },
+  { id: 'VelvetCocoa', name: 'Velvet Cocoa', desc: 'Deeper & Thocky', color: 'bg-amber-900' },
+  { id: 'VelvetMint', name: 'Velvet Mint', desc: 'Crisp & Snappy', color: 'bg-emerald-500' },
   { id: 'Neon', name: 'Neon', desc: 'Retro 8-bit', color: 'bg-pink-500' },
   { id: 'Obsidian', name: 'Obsidian', desc: 'Crisp Tactile', color: 'bg-zinc-700' },
   { id: 'Sapphire', name: 'Sapphire', desc: 'Sharp Clicky', color: 'bg-cyan-500' },

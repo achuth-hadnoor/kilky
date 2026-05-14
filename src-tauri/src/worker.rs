@@ -271,7 +271,7 @@ pub fn spawn_audio_worker(app_handle: AppHandle, rx: mpsc::Receiver<KeyEvent>) {
                         }
                     }
                 }
-                ActivePack::Velvet(pack) | ActivePack::Neon(pack) | ActivePack::Custom(pack) => {
+                ActivePack::Velvet(pack) | ActivePack::VelvetCocoa(pack) | ActivePack::VelvetMint(pack) | ActivePack::Neon(pack) | ActivePack::Custom(pack) => {
                     let filename = pack.config.sounds.get(key_id).or_else(|| pack.config.sounds.get("Default"));
 
                     if let Some(fname) = filename {

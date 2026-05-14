@@ -67,6 +67,8 @@ pub fn setup_tray(app: &tauri::AppHandle) -> tauri::Result<()> {
     let pack_configs = [
         ("Zenith (Smooth Linear)", ActivePackType::Zenith),
         ("Velvet (Creamy Linear)", ActivePackType::Velvet),
+        ("Velvet Cocoa (Deeper)", ActivePackType::VelvetCocoa),
+        ("Velvet Mint (Snappier)", ActivePackType::VelvetMint),
         ("Neon (Retro 8-bit)", ActivePackType::Neon),
         ("Obsidian (Crisp Tactile)", ActivePackType::Obsidian),
         ("Sapphire (Sharp Clicky)", ActivePackType::Sapphire),
@@ -140,6 +142,8 @@ pub fn setup_tray(app: &tauri::AppHandle) -> tauri::Result<()> {
                     let pt = match pt_str {
                         "Zenith" => ActivePackType::Zenith,
                         "Velvet" => ActivePackType::Velvet,
+                        "VelvetCocoa" => ActivePackType::VelvetCocoa,
+                        "VelvetMint" => ActivePackType::VelvetMint,
                         "Neon" => ActivePackType::Neon,
                         "Obsidian" => ActivePackType::Obsidian,
                         "Sapphire" => ActivePackType::Sapphire,

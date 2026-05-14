@@ -79,6 +79,8 @@ pub fn set_sound_pack(app: AppHandle, pack_type: ActivePackType) {
         ActivePackType::Obsidian => ActivePack::Obsidian,
         ActivePackType::Sapphire => ActivePack::Sapphire,
         ActivePackType::Velvet => ActivePack::Velvet(crate::builtin_packs::get_velvet_pack()),
+        ActivePackType::VelvetCocoa => ActivePack::VelvetCocoa(crate::builtin_packs::get_velvet_cocoa_pack()),
+        ActivePackType::VelvetMint => ActivePack::VelvetMint(crate::builtin_packs::get_velvet_mint_pack()),
         ActivePackType::Neon => ActivePack::Neon(crate::builtin_packs::get_neon_pack()),
         ActivePackType::Custom => return,
     };
@@ -203,6 +205,8 @@ pub fn play_pack_preview(app: tauri::AppHandle, pack_type: ActivePackType) {
         // Pre-load built-in packs for the preview
         let builtin_pack = match pack_type {
             ActivePackType::Velvet => Some(crate::builtin_packs::get_velvet_pack()),
+            ActivePackType::VelvetCocoa => Some(crate::builtin_packs::get_velvet_cocoa_pack()),
+            ActivePackType::VelvetMint => Some(crate::builtin_packs::get_velvet_mint_pack()),
             ActivePackType::Neon => Some(crate::builtin_packs::get_neon_pack()),
             _ => None,
         };

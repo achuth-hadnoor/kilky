@@ -51,6 +51,8 @@ pub struct ExternalPack {
 pub enum ActivePackType {
     Zenith,   // Smooth Linear
     Velvet,   // Creamy (New)
+    VelvetCocoa, // Deeper, Thockier
+    VelvetMint,  // Crisper, Snappier
     Neon,     // 8-bit (New)
     Obsidian, // Crisp Tactile
     Sapphire, // Sharp Clicky
@@ -61,6 +63,8 @@ pub enum ActivePackType {
 pub enum ActivePack {
     Zenith,
     Velvet(ExternalPack),
+    VelvetCocoa(ExternalPack),
+    VelvetMint(ExternalPack),
     Neon(ExternalPack),
     Obsidian,
     Sapphire,
@@ -133,6 +137,8 @@ impl AppState {
             ActivePackType::Obsidian => ActivePack::Obsidian,
             ActivePackType::Sapphire => ActivePack::Sapphire,
             ActivePackType::Velvet => ActivePack::Velvet(crate::builtin_packs::get_velvet_pack()),
+            ActivePackType::VelvetCocoa => ActivePack::VelvetCocoa(crate::builtin_packs::get_velvet_cocoa_pack()),
+            ActivePackType::VelvetMint => ActivePack::VelvetMint(crate::builtin_packs::get_velvet_mint_pack()),
             ActivePackType::Neon => ActivePack::Neon(crate::builtin_packs::get_neon_pack()),
             ActivePackType::Custom => ActivePack::Zenith, // Fallback for now if custom fails
         };

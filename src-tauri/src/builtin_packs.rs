@@ -63,6 +63,34 @@ pub fn get_velvet_pack() -> ExternalPack {
     }
 }
 
+pub fn get_velvet_cocoa_pack() -> ExternalPack {
+    let mut pack = get_velvet_pack();
+    pack.config.name = "Velvet Cocoa".to_string();
+    pack.config.description = Some("Deeper, thockier version of Velvet with a lower sound profile.".to_string());
+    
+    if let Some(settings) = &mut pack.config.settings {
+        for s in settings.values_mut() {
+            s.pitch *= 0.82; // Lower pitch for thock
+            s.volume *= 1.2; // Slightly louder to compensate
+        }
+    }
+    pack
+}
+
+pub fn get_velvet_mint_pack() -> ExternalPack {
+    let mut pack = get_velvet_pack();
+    pack.config.name = "Velvet Mint".to_string();
+    pack.config.description = Some("Crisper, snappier variation of Velvet with a higher, fresh sound.".to_string());
+    
+    if let Some(settings) = &mut pack.config.settings {
+        for s in settings.values_mut() {
+            s.pitch *= 1.15; // Higher pitch for crispness
+            s.volume *= 0.85; // Slightly softer
+        }
+    }
+    pack
+}
+
 pub fn get_neon_pack() -> ExternalPack {
     let mut sounds = HashMap::new();
     let mut settings = HashMap::new();
