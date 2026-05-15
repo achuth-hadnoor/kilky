@@ -4,17 +4,15 @@ import { Loader2 } from 'lucide-react';
 
 interface AboutSectionProps {
   appVersion: string;
-  platformName: string;
   handleCheckUpdates: () => Promise<void>;
 }
 
-export function AboutSection({ appVersion, platformName, handleCheckUpdates }: AboutSectionProps) {
+export function AboutSection({ appVersion, handleCheckUpdates }: AboutSectionProps) {
   const [isChecking, setIsChecking] = useState(false);
 
   const onCheck = async () => {
     setIsChecking(true);
     await handleCheckUpdates();
-    console.log(platformName);
     setIsChecking(false);
   };
 

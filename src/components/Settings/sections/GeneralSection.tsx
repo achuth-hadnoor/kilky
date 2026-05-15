@@ -12,8 +12,6 @@ interface GeneralSectionProps {
   selectedDevice: string;
   handleDeviceChange: (device: string) => void;
   audioDevices: string[];
-  totalKeystrokes: number;
-  sessionKeystrokes: number;
   hasPermission: boolean;
   platformName: string;
 }

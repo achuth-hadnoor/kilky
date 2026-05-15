@@ -113,7 +113,10 @@ pub fn setup_tray(app: &tauri::AppHandle) -> tauri::Result<()> {
                 } else if id_str == "settings" {
                     crate::window::spawn_window(&handle, crate::window::WindowType::Settings);
                 } else if id_str == "toggle" {
-                    let new_state = !STATE.lock().unwrap().enabled;
+                    let new_state = {
+                        let state = STATE.lock().unwrap();
+                        !state.enabled
+                    };
                     set_enabled(handle.clone(), new_state);
                 } else if id_str == "autostart" {
                     let autostart_manager = handle.autolaunch();

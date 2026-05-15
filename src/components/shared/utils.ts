@@ -1,10 +1,7 @@
 import { invoke } from '@tauri-apps/api/core';
 
-export interface Shortcut {
-  key_code: number;
-  modifiers: number;
-  display: string;
-}
+// Canonical type lives in src/types — re-exported here for backward compatibility
+export type { Shortcut } from '../../types';
 
 let currentPlatform: string = 'macos';
 invoke<string>('get_platform').then((p: string) => {
