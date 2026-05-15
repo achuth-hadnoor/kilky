@@ -9,8 +9,6 @@ import { Sidebar } from './sections/Sidebar';
 import { GeneralSection } from './sections/GeneralSection';
 import { AudioSection } from './sections/AudioSection';
 import { HotkeysSection } from './sections/HotkeysSection';
-import { AdvancedSection } from './sections/AdvancedSection';
-import { AboutSection } from './sections/AboutSection';
 
 import { useSettings } from '../../hooks/useSettings';
 import { useShortcutRecorder } from '../../hooks/useShortcutRecorder';
