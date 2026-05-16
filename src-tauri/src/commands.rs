@@ -1,3 +1,9 @@
+//! `commands.rs` — Tauri IPC command handlers.
+//!
+//! Each `#[tauri::command]` function here is exposed to the frontend via
+//! the invoke handler in `lib.rs`.  They act as a thin bridge between the
+//! JavaScript UI and the Rust application state / audio engine.
+
 use crate::state::{ActivePack, ActivePackType, ExternalPack, PackConfig, TrayState, STATE};
 use rodio::Decoder;
 use serde_json::json;
@@ -134,16 +140,15 @@ pub fn set_audio_device(app: AppHandle, device_name: String) -> Result<(), Strin
 
     if let Some(device) = target_device {
         let audio_state = app.state::<crate::state::AudioState>();
-        
-        println!("Switching to audio device: {}", device_name);
+        log::info!("Switching to audio device: '{}'", device_name);
         
         let new_sink_builder = DeviceSinkBuilder::from_device(device).map_err(|e| {
-            println!("Failed to create sink builder: {}", e);
+            log::error!("Failed to create sink builder: {}", e);
             e.to_string()
         })?;
-        
+
         let new_sink = new_sink_builder.open_stream().map_err(|e| {
-            println!("Failed to open audio stream on {}: {}", device_name, e);
+            log::error!("Failed to open audio stream on {}: {}", device_name, e);
             format!("Failed to open stream: {}", e)
         })?;
         
@@ -158,11 +163,11 @@ pub fn set_audio_device(app: AppHandle, device_name: String) -> Result<(), Strin
             *mixer_lock = new_mixer;
         }
         
-        println!("Audio device switched successfully.");
+        log::info!("Audio device switched to '{}'.", device_name);
         let _ = app.emit("state-update", ());
         Ok(())
     } else {
-        println!("Audio device not found: {}", device_name);
+        log::warn!("Audio device not found: '{}'", device_name);
         Err("Device not found".to_string())
     }
 }
@@ -601,9 +606,9 @@ pub fn start_keyboard_listener(app: tauri::AppHandle) {
         crate::generic_listener::start_generic_listener(tx_clone, running_clone);
         
         *running = true;
-        println!("Keyboard listener started manually.");
+        log::info!("Keyboard listener started.");
     } else {
-        println!("Keyboard listener is already running.");
+        log::info!("Keyboard listener already running — no-op.");
     }
 }
 

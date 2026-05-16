@@ -8,7 +8,7 @@ interface NavItem {
 }
 
 interface SidebarProps {
-  navItems: NavItem[];
+  navItems: ReadonlyArray<NavItem>;
   activeTab: string;
   setActiveTab: (id: string) => void;
 }

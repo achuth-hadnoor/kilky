@@ -1,47 +1,67 @@
+//! `lib.rs` — Application entry point and Tauri builder setup.
+//!
+//! Responsibilities:
+//! - Declare all sub-modules.
+//! - Configure Tauri plugins, the invoke handler, and window event handling.
+//! - Run the `setup` closure that:
+//!   1. Decides whether to show onboarding or boot into the main tray.
+//!   2. Opens the audio sink and starts the audio worker thread.
+//!   3. Optionally starts the keyboard listener (skipped until onboarding is done).
+
 mod state;
 mod audio;
 mod tray;
 mod commands;
 mod window;
 mod worker;
+mod builtin_packs;
+mod db;
+
 #[cfg(target_os = "macos")]
 mod macos_listener;
 #[cfg(target_os = "windows")]
 mod generic_listener;
-mod builtin_packs;
-mod db;
 #[cfg(target_os = "macos")]
 mod keys;
 
+use log::{error, info};
 use rodio::DeviceSinkBuilder;
+use std::sync::{mpsc, Arc, Mutex};
 use tauri::Manager;
 use tauri_plugin_autostart::ManagerExt;
-use log::{info, error};
-use std::sync::{mpsc, Arc, Mutex};
-use crate::state::{STATE, KeyEvent, KeySender};
+use crate::state::{KeyEvent, KeySender, STATE};
 
 #[cfg_attr(mobile, tauri::mobile_entry_point)]
 pub fn run() {
+    // Install a panic hook so crashes are captured in the log file.
     std::panic::set_hook(Box::new(|info| {
         error!("Panic occurred: {:?}", info);
     }));
 
     tauri::Builder::default()
+        // ---- Plugin registrations ----------------------------------------
         .plugin(tauri_plugin_dialog::init())
         .plugin(tauri_plugin_fs::init())
         .plugin(tauri_plugin_updater::Builder::new().build())
         .plugin(tauri_plugin_opener::init())
         .plugin(tauri_plugin_process::init())
-        .plugin(tauri_plugin_autostart::init(tauri_plugin_autostart::MacosLauncher::LaunchAgent, Some(vec!["--minimized"])))
-        .plugin(tauri_plugin_log::Builder::new()
-            .targets([
-                tauri_plugin_log::Target::new(tauri_plugin_log::TargetKind::Stdout),
-                tauri_plugin_log::Target::new(tauri_plugin_log::TargetKind::LogDir { file_name: None }),
-                tauri_plugin_log::Target::new(tauri_plugin_log::TargetKind::Webview),
-            ])
-            .level(log::LevelFilter::Info)
-            .build())
-
+        .plugin(tauri_plugin_autostart::init(
+            tauri_plugin_autostart::MacosLauncher::LaunchAgent,
+            Some(vec!["--minimized"]),
+        ))
+        .plugin(
+            tauri_plugin_log::Builder::new()
+                .targets([
+                    tauri_plugin_log::Target::new(tauri_plugin_log::TargetKind::Stdout),
+                    tauri_plugin_log::Target::new(tauri_plugin_log::TargetKind::LogDir {
+                        file_name: None,
+                    }),
+                    tauri_plugin_log::Target::new(tauri_plugin_log::TargetKind::Webview),
+                ])
+                .level(log::LevelFilter::Info)
+                .build(),
+        )
+        // ---- IPC command handler -----------------------------------------
         .invoke_handler(tauri::generate_handler![
             commands::load_sound_pack,
             commands::get_app_state,
@@ -70,106 +90,129 @@ pub fn run() {
             commands::set_buffer_size,
             commands::set_hardware_acceleration,
             commands::reset_settings,
-            commands::set_speed_volume_scaling
+            commands::set_speed_volume_scaling,
         ])
         .on_window_event(window::handle_window_event)
+        // ---- Application setup ------------------------------------------
         .setup(|app| {
-            info!("Starting setup...");
+            info!("Starting setup…");
 
+            // Determine whether the user has completed onboarding. If not,
+            // clear any stale shortcuts and disable autostart so the initial
+            // experience is clean.
             let has_onboarded = {
                 let mut state = STATE.lock().unwrap();
-                
                 if !state.has_onboarded {
-                    // Reset to new defaults if not onboarded
                     state.shortcuts.clear();
                     let _ = app.autolaunch().disable();
                     state.save();
                 }
-                
                 state.has_onboarded
             };
 
+            // ---- Window routing ------------------------------------------
+            // On macOS we also manage the Dock icon visibility.
             #[cfg(target_os = "macos")]
             {
                 if !has_onboarded {
+                    // Show the app in the Dock so the user can interact during setup.
                     let _ = app.set_activation_policy(tauri::ActivationPolicy::Regular);
-                    info!("Showing onboarding window...");
-                    crate::window::spawn_window(app.handle(), crate::window::WindowType::Onboarding);
+                    info!("Showing onboarding window…");
+                    crate::window::spawn_window(
+                        app.handle(),
+                        crate::window::WindowType::Onboarding,
+                    );
                 } else {
+                    // Hide from Dock (menu-bar-only app).
                     let _ = app.set_activation_policy(tauri::ActivationPolicy::Accessory);
+
+                    // Prompt for accessibility permission if not yet granted.
                     if !macos_accessibility_client::accessibility::application_is_trusted() {
-                        info!("Accessibility permissions missing! Prompting user...");
+                        info!("Accessibility permission missing — prompting user…");
                         let _ = macos_accessibility_client::accessibility::application_is_trusted_with_prompt();
                     } else {
-                        info!("Accessibility permissions confirmed.");
+                        info!("Accessibility permission confirmed.");
                     }
+
                     tray::setup_tray(app.handle())?;
                 }
             }
-            
+
             #[cfg(not(target_os = "macos"))]
             {
                 if !has_onboarded {
-                    info!("Showing onboarding window...");
-                    crate::window::spawn_window(app.handle(), crate::window::WindowType::Onboarding);
+                    info!("Showing onboarding window…");
+                    crate::window::spawn_window(
+                        app.handle(),
+                        crate::window::WindowType::Onboarding,
+                    );
                 } else {
                     tray::setup_tray(app.handle())?;
                 }
             }
 
+            // ---- Audio subsystem ----------------------------------------
 
-            let sink_handle = DeviceSinkBuilder::open_default_sink().expect("Failed to open audio");
+            // Open the default audio output sink. This must succeed for the
+            // app to function, so we panic with a descriptive message if it
+            // fails.
+            let sink_handle = DeviceSinkBuilder::open_default_sink()
+                .expect("Failed to open default audio sink");
             let mixer = sink_handle.mixer().clone();
-            
+
             let audio_state = crate::state::AudioState {
                 mixer: Arc::new(Mutex::new(mixer)),
-                sink: Arc::new(Mutex::new(Some(sink_handle))),
+                sink:  Arc::new(Mutex::new(Some(sink_handle))),
             };
-            app.manage(audio_state.clone());
-            
+            app.manage(audio_state);
+
+            // ---- Keyboard listener channel -------------------------------
 
             let (tx, rx) = mpsc::channel::<KeyEvent>();
-            app.manage(KeySender { 
-                tx: tx.clone(), 
-                is_running: Arc::new(Mutex::new(false)) 
+            app.manage(KeySender {
+                tx:         tx.clone(),
+                is_running: Arc::new(Mutex::new(false)),
             });
 
-            // Sound Worker Thread
+            // Start the audio worker that consumes key events from `rx`.
             worker::spawn_audio_worker(app.handle().clone(), rx);
 
+            // Start the keyboard listener only after onboarding is complete
+            // so we don't request accessibility permissions prematurely.
             if has_onboarded {
-                info!("User has onboarded, starting keyboard listener...");
+                info!("User has onboarded — starting keyboard listener…");
                 let sender_state = app.state::<KeySender>();
-                let mut running = sender_state.is_running.lock().unwrap();
+                let mut running  = sender_state.is_running.lock().unwrap();
                 if !*running {
-                    let tx_clone = sender_state.tx.clone();
+                    let tx_clone      = sender_state.tx.clone();
                     let running_clone = sender_state.is_running.clone();
-                    
+
                     #[cfg(target_os = "macos")]
                     crate::macos_listener::start_macos_listener(tx_clone, running_clone);
 
                     #[cfg(target_os = "windows")]
                     crate::generic_listener::start_generic_listener(tx_clone, running_clone);
-                    
+
                     *running = true;
                 }
             } else {
-                info!("User has not onboarded, delaying keyboard listener...");
+                info!("Skipping keyboard listener until onboarding is complete.");
             }
 
             Ok(())
         })
         .build(tauri::generate_context!())
-        .expect("error while building tauri application")
+        .expect("Error while building the Tauri application")
         .run(|_app_handle, event| {
+            // On exit, flush any remaining keystroke analytics that haven't
+            // been written yet (we batch writes every 100 keystrokes).
             if let tauri::RunEvent::ExitRequested { .. } = event {
-                let state = crate::state::STATE.lock().unwrap();
-                state.save();
-                // Sync remaining keystrokes to daily analytics
+                let state    = crate::state::STATE.lock().unwrap();
                 let remaining = state.total_keystrokes % 100;
                 if remaining > 0 {
                     state.sync_keystrokes(remaining);
                 }
+                state.save();
             }
         });
 }

@@ -14,6 +14,7 @@ import { useSettings } from '../../hooks/useSettings';
 import { useShortcutRecorder } from '../../hooks/useShortcutRecorder';
 
 import './Settings.css';
+import { AboutSection } from './sections/AboutSection';
 
 const NAV_ITEMS = [
   { id: 'general', label: 'General', icon: SettingsIcon, color: 'bg-blue-500' },

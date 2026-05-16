@@ -1,3 +1,12 @@
+//! `worker.rs` — Audio worker thread.
+//!
+//! Receives `KeyEvent`s from the keyboard listener via an `mpsc` channel and
+//! dispatches the appropriate audio output.  Also handles:
+//! - Analytics keystroke counting
+//! - Global shortcut matching (toggle engine, etc.)
+//! - macOS tray title update (shows the pressed key briefly)
+//! - Speed-based volume scaling (optional, user-configurable)
+
 use rodio::{buffer::SamplesBuffer, source::Source};
 use rodio::source::Spatial;
 use tauri::{AppHandle, Emitter, Manager};
