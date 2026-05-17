@@ -10,7 +10,7 @@ interface NavItem {
 interface SidebarProps {
   navItems: ReadonlyArray<NavItem>;
   activeTab: string;
-  setActiveTab: (id: any) => void;
+  setActiveTab: (id: string) => void;
 }
 
 export function Sidebar({ navItems, activeTab, setActiveTab }: SidebarProps) {

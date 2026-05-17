@@ -116,7 +116,7 @@ pub fn run() {
             {
                 if !has_onboarded {
                     // Show the app in the Dock so the user can interact during setup.
-                    let _ = app.set_activation_policy(tauri::ActivationPolicy::Regular);
+                    app.set_activation_policy(tauri::ActivationPolicy::Regular);
                     info!("Showing onboarding window…");
                     crate::window::spawn_window(
                         app.handle(),
@@ -124,7 +124,7 @@ pub fn run() {
                     );
                 } else {
                     // Hide from Dock (menu-bar-only app).
-                    let _ = app.set_activation_policy(tauri::ActivationPolicy::Accessory);
+                    app.set_activation_policy(tauri::ActivationPolicy::Accessory);
 
                     // Prompt for accessibility permission if not yet granted.
                     if !macos_accessibility_client::accessibility::application_is_trusted() {

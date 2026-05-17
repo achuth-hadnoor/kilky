@@ -55,6 +55,7 @@ export function Onboarding() {
   };
 
   useEffect(() => {
+    // eslint-disable-next-line react-hooks/set-state-in-effect
     fetchState();
 
     let lastTrusted = false;
@@ -75,6 +76,7 @@ export function Onboarding() {
 
   // Stop audio preview whenever the user moves between steps
   useEffect(() => {
+    // eslint-disable-next-line react-hooks/set-state-in-effect
     setPreviewingPack(null);
     invoke('stop_pack_preview');
   }, [step]);

@@ -135,23 +135,20 @@ pub fn spawn_audio_worker(app_handle: AppHandle, rx: mpsc::Receiver<KeyEvent>) {
             let _ = app_handle_clone.emit("raw-key-event", key_event);
 
             if let Some(action) = action_to_trigger {
-                match action.as_str() {
-                    "toggle_engine" => {
-                        let new_enabled = {
-                            let mut s = STATE.lock().unwrap();
-                            s.enabled = !s.enabled;
-                            s.save();
-                            s.enabled
-                        };
-                        let _ = app_handle_clone.emit("state-update", ());
-                        if let Some(tray) = app_handle_clone.try_state::<crate::state::TrayState>() {
-                            let toggle = tray.toggle.clone();
-                            let _ = app_handle_clone.run_on_main_thread(move || {
-                                let _ = toggle.set_checked(new_enabled);
-                            });
-                        }
+                if action.as_str() == "toggle_engine" {
+                    let new_enabled = {
+                        let mut s = STATE.lock().unwrap();
+                        s.enabled = !s.enabled;
+                        s.save();
+                        s.enabled
+                    };
+                    let _ = app_handle_clone.emit("state-update", ());
+                    if let Some(tray) = app_handle_clone.try_state::<crate::state::TrayState>() {
+                        let toggle = tray.toggle.clone();
+                        let _ = app_handle_clone.run_on_main_thread(move || {
+                            let _ = toggle.set_checked(new_enabled);
+                        });
                     }
-                    _ => {}
                 }
                 continue;
             }
