@@ -1,19 +1,19 @@
 import { LucideIcon } from 'lucide-react';
 
-interface NavItem {
-  id: string;
+interface NavItem<T extends string = string> {
+  id: T;
   label: string;
   icon: LucideIcon;
   color: string;
 }
 
-interface SidebarProps {
-  navItems: ReadonlyArray<NavItem>;
-  activeTab: string;
-  setActiveTab: (id: string) => void;
+interface SidebarProps<T extends string = string> {
+  navItems: ReadonlyArray<NavItem<T>>;
+  activeTab: T;
+  setActiveTab: (id: T) => void;
 }
 
-export function Sidebar({ navItems, activeTab, setActiveTab }: SidebarProps) {
+export function Sidebar<T extends string = string>({ navItems, activeTab, setActiveTab }: SidebarProps<T>) {
   const handleKeyDown = (e: React.KeyboardEvent, index: number) => {
     if (e.key === 'ArrowDown') {
       e.preventDefault();
