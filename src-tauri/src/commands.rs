@@ -603,7 +603,7 @@ pub fn start_keyboard_listener(app: tauri::AppHandle) {
         crate::macos_listener::start_macos_listener(tx_clone, running_clone);
 
         #[cfg(target_os = "windows")]
-        crate::generic_listener::start_generic_listener(tx_clone, running_clone);
+        crate::windows_listener::start_windows_listener(tx_clone, running_clone);
         
         *running = true;
         log::info!("Keyboard listener started.");

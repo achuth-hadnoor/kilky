@@ -20,7 +20,7 @@ mod db;
 #[cfg(target_os = "macos")]
 mod macos_listener;
 #[cfg(target_os = "windows")]
-mod generic_listener;
+mod windows_listener;
 #[cfg(target_os = "macos")]
 mod keys;
 
@@ -191,7 +191,7 @@ pub fn run() {
                     crate::macos_listener::start_macos_listener(tx_clone, running_clone);
 
                     #[cfg(target_os = "windows")]
-                    crate::generic_listener::start_generic_listener(tx_clone, running_clone);
+                    crate::windows_listener::start_windows_listener(tx_clone, running_clone);
 
                     *running = true;
                 }
