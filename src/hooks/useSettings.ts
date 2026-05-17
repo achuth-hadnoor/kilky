@@ -13,6 +13,7 @@ import { getVersion } from '@tauri-apps/api/app';
 import { Shortcut, AppState } from '../types';
 
 export function useSettings() {
+  const [isLoading, setIsLoading] = useState(true);
   const [volume, setVolume] = useState(0.1);
   const [enabled, setEnabled] = useState(true);
   const [isAutostart, setIsAutostart] = useState(false);
@@ -65,6 +66,7 @@ export function useSettings() {
 
   useEffect(() => {
     const init = async () => {
+      setIsLoading(true);
       await Promise.all([fetchState(), fetchDevices()]);
       const [version, platform] = await Promise.all([
         getVersion(),
@@ -72,6 +74,7 @@ export function useSettings() {
       ]);
       setAppVersion(version);
       setPlatformName(platform);
+      setIsLoading(false);
     };
     init();
 
@@ -123,6 +126,24 @@ export function useSettings() {
     }
   };
 
+  const handleStopPreview = async () => {
+    if (previewingPack) {
+      setPreviewingPack(null);
+      await invoke('stop_pack_preview');
+    }
+  };
+
+  useEffect(() => {
+    const handleBlur = () => {
+      if (previewingPack) {
+        setPreviewingPack(null);
+        invoke('stop_pack_preview').catch(console.error);
+      }
+    };
+    window.addEventListener('blur', handleBlur);
+    return () => window.removeEventListener('blur', handleBlur);
+  }, [previewingPack]);
+
   const handleDeviceChange = async (deviceName: string) => {
     setSelectedDevice(deviceName);
     await invoke('set_audio_device', { deviceName });
@@ -145,6 +166,7 @@ export function useSettings() {
 
   return {
     state: {
+      isLoading,
       volume,
       enabled,
       isAutostart,
@@ -169,6 +191,7 @@ export function useSettings() {
       handleVolumeUpdate,
       handlePackChange,
       handlePlayPreview,
+      handleStopPreview,
       handleDeviceChange,
       handleBufferSizeChange,
       handleHardwareAccelerationToggle,

@@ -4,6 +4,7 @@ import { ShortcutRecorder } from "../../shared/ShortcutRecorder";
 import { Shortcut } from "../../shared/utils";
 
 interface HotkeysSectionProps {
+  isLoading?: boolean;
   recordingAction: string | null;
   shortcuts: Record<string, Shortcut>;
   previewShortcut: string | null;
@@ -14,7 +15,25 @@ interface HotkeysSectionProps {
   hyperKeyEnabled: boolean;
 }
 
+export function HotkeysSectionSkeleton() {
+  return (
+    <div className="space-y-8 animate-pulse">
+      <div>
+        <div className="h-8 w-48 bg-black/10 dark:bg-white/10 rounded-lg mb-2" />
+        <div className="h-4 w-72 bg-black/5 dark:bg-white/5 rounded-lg" />
+      </div>
+
+      <div className="space-y-4">
+        {[...Array(4)].map((_, i) => (
+          <div key={i} className="h-16 bg-black/5 dark:bg-white/5 rounded-2xl border border-black/5 dark:border-white/5" />
+        ))}
+      </div>
+    </div>
+  );
+}
+
 export function HotkeysSection({
+  isLoading,
   recordingAction,
   shortcuts,
   previewShortcut,
@@ -24,6 +43,10 @@ export function HotkeysSection({
   handleClearShortcut,
   hyperKeyEnabled,
 }: HotkeysSectionProps) {
+  if (isLoading) {
+    return <HotkeysSectionSkeleton />;
+  }
+
   return (
     <div className="space-y-8 ">
       <div>

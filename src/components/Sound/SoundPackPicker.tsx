@@ -17,12 +17,12 @@ export function SoundPackPicker({
 }: SoundPackPickerProps) {
 
   return (
-    <div className="grid grid-cols-2 gap-3">
+    <div className="grid grid-cols-2 gap-4">
       {SOUND_PACKS.map((pack) => (
         <button
           key={pack.id}
           onClick={() => onPackChange(pack.id)}
-          className={`flex items-center justify-between w-full p-1 rounded-2xl border   duration-200 group ${activePack === pack.id
+          className={`flex items-center justify-between w-full p-3 rounded-2xl border cursor-pointer duration-200 group focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-indigo-500 dark:focus-visible:ring-white/80 focus-visible:ring-offset-2 dark:focus-visible:ring-offset-black/50 ${activePack === pack.id
             ? "bg-indigo-600/10 border-indigo-500/50 dark:bg-white/10 dark:border-white/20 shadow-xl"
             : "bg-black/5 border-transparent hover:bg-black/10 dark:bg-white/5 dark:hover:bg-white/10"
             }`}
@@ -39,7 +39,7 @@ export function SoundPackPicker({
           <Button
             size="icon"
             variant="ghost"
-            className={`w-8 h-8 rounded-full bg-black/5 dark:bg-white/5 hover:bg-indigo-500 hover:text-white dark:hover:bg-white/20 text-black dark:text-white ${previewingPack === pack.id ? "opacity-100" : "opacity-0 group-hover:opacity-100"
+            className={`w-8 h-8 rounded-full bg-black/5 dark:bg-white/5 hover:bg-indigo-500 hover:text-white dark:hover:bg-white/20 text-black dark:text-white focus-visible:ring-2 focus-visible:ring-indigo-500 dark:focus-visible:ring-white/80 ${previewingPack === pack.id ? "opacity-100" : "opacity-0 group-hover:opacity-100"
               }`}
             onClick={(e) => onPlayPreview(e, pack.id)}
           >
@@ -52,7 +52,7 @@ export function SoundPackPicker({
         </button>
       ))}
       <button
-        className="flex items-center justify-between w-full p-1 rounded-2xl border   duration-200 group border-dotted  border-black/20  dark:border-white/20 cursor-not-allowed">
+        className="flex items-center justify-between w-full p-3 rounded-2xl border duration-200 group border-dotted border-black/20 dark:border-white/20 cursor-not-allowed">
         <div className="flex items-center gap-3">
           <div className="w-10 h-10 rounded-xl dark:bg-grey-600/10 bg-black/10 flex items-center justify-center text-black/40 dark:text-white/30 ">
             <Volume2 className="w-5 h-5" />

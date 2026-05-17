@@ -5,6 +5,7 @@ import { Rocket, Shield, AlertCircle } from 'lucide-react';
 import { invoke } from '@tauri-apps/api/core';
 
 interface GeneralSectionProps {
+  isLoading?: boolean;
   enabled: boolean;
   handleToggle: (checked: boolean) => void;
   isAutostart: boolean;
@@ -16,7 +17,31 @@ interface GeneralSectionProps {
   platformName: string;
 }
 
+export function GeneralSectionSkeleton() {
+  return (
+    <div className="space-y-8 animate-pulse">
+      <div>
+        <div className="h-8 w-48 bg-black/10 dark:bg-white/10 rounded-lg mb-2" />
+        <div className="h-4 w-72 bg-black/5 dark:bg-white/5 rounded-lg" />
+      </div>
+
+      <div className="space-y-6">
+        {[...Array(4)].map((_, i) => (
+          <div key={i} className="flex items-center justify-between p-4 bg-black/5 dark:bg-white/5 rounded-xl border border-black/5 dark:border-white/5">
+            <div className="space-y-2 flex-1">
+              <div className="h-5 w-32 bg-black/10 dark:bg-white/10 rounded-md" />
+              <div className="h-3 w-56 bg-black/5 dark:bg-white/5 rounded-md" />
+            </div>
+            <div className="h-6 w-11 bg-black/10 dark:bg-white/10 rounded-full" />
+          </div>
+        ))}
+      </div>
+    </div>
+  );
+}
+
 export function GeneralSection({
+  isLoading,
   enabled,
   handleToggle,
   isAutostart,
@@ -28,6 +53,10 @@ export function GeneralSection({
   platformName,
 }: GeneralSectionProps) {
   const isMac = platformName === "macos";
+
+  if (isLoading) {
+    return <GeneralSectionSkeleton />;
+  }
 
   return (
     <div className="space-y-8">
@@ -67,6 +96,7 @@ export function GeneralSection({
                   invoke("request_permissions");
                 }
               }}
+              className="focus-visible:ring-2 focus-visible:ring-indigo-500 dark:focus-visible:ring-white/80 focus-visible:ring-offset-2 dark:focus-visible:ring-offset-black/50"
             />
           </div>
         )}
@@ -76,7 +106,11 @@ export function GeneralSection({
             <Label className="text-base">Enable Kliky</Label>
             <p className="text-xs text-black/40 dark:text-white/40">Turn all keyboard sounds on or off globally.</p>
           </div>
-          <Switch checked={enabled} onCheckedChange={handleToggle} />
+          <Switch 
+            checked={enabled} 
+            onCheckedChange={handleToggle}
+            className="focus-visible:ring-2 focus-visible:ring-indigo-500 dark:focus-visible:ring-white/80 focus-visible:ring-offset-2 dark:focus-visible:ring-offset-black/50"
+          />
         </div>
 
         <div className="flex items-center justify-between p-4 bg-black/5 dark:bg-white/5 rounded-xl border border-black/5 dark:border-white/5">
@@ -84,10 +118,14 @@ export function GeneralSection({
             <Label className="text-base">Launch at Startup</Label>
             <p className="text-xs text-black/40 dark:text-white/40">Automatically start kliky when you log in.</p>
           </div>
-          <Switch checked={isAutostart} onCheckedChange={handleAutoLaunchChange} />
+          <Switch 
+            checked={isAutostart} 
+            onCheckedChange={handleAutoLaunchChange}
+            className="focus-visible:ring-2 focus-visible:ring-indigo-500 dark:focus-visible:ring-white/80 focus-visible:ring-offset-2 dark:focus-visible:ring-offset-black/50"
+          />
         </div>
 
-        <div className="flex flex-col gap-4 p-4 bg-black/5 dark:bg-white/5 rounded-xl border border-black/5 dark:border-white/5">
+        <div className="flex items-center justify-between gap-4 p-4 bg-black/5 dark:bg-white/5 rounded-xl border border-black/5 dark:border-white/5">
           <div className="space-y-1">
             <Label className="text-base">Audio Output Device</Label>
             <p className="text-xs text-black/40 dark:text-white/40">Choose where the keyboard sounds will play.</p>
@@ -95,7 +133,7 @@ export function GeneralSection({
           <select
             value={selectedDevice}
             onChange={(e) => handleDeviceChange(e.target.value)}
-            className="w-full p-2.5 bg-black/10 dark:bg-white/10 rounded-xl border border-black/10 dark:border-white/10 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500/50 appearance-none cursor-pointer"
+            className="w-1/2 max-w-[240px] p-2 bg-black/10 dark:bg-white/10 rounded-lg border border-black/10 dark:border-white/10 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500/50 dark:focus:ring-white/30 focus-visible:ring-2 focus-visible:ring-indigo-500 dark:focus-visible:ring-white/80 focus-visible:ring-offset-2 dark:focus-visible:ring-offset-black/50 appearance-none cursor-pointer truncate"
           >
             <option value="">Default System Device</option>
             {audioDevices.map((device) => (
@@ -112,7 +150,7 @@ export function GeneralSection({
             </div>
             <Button
               variant="outline"
-              className="w-full h-11 rounded-xl border-dashed hover:border-indigo-500/50 hover:bg-indigo-500/5 flex items-center gap-2 group"
+              className="w-full h-11 rounded-xl border-dashed hover:border-indigo-500/50 hover:bg-indigo-500/5 flex items-center gap-2 group focus-visible:ring-2 focus-visible:ring-indigo-500 dark:focus-visible:ring-white/80 focus-visible:ring-offset-2 dark:focus-visible:ring-offset-black/50"
               onClick={() => invoke('show_onboarding')}
             >
               <Rocket className="w-4 h-4 text-black/40 dark:text-white/40 group-hover:text-indigo-500 transition-colors" />

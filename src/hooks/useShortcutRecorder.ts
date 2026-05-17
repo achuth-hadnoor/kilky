@@ -66,7 +66,7 @@ function buildDisplay(modifiers: number, keyName: string | null, isMac: boolean)
 }
 
 export function useShortcutRecorder(
-  shortcuts: Record<string, Shortcut>,
+  _shortcuts: Record<string, Shortcut>,
   setShortcuts: React.Dispatch<React.SetStateAction<Record<string, Shortcut>>>,
   hyperKeyEnabled: boolean,
   platformName: string,
