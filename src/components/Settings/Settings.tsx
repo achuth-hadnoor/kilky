@@ -74,7 +74,7 @@ export function Settings() {
 
   return (
     <div
-      className="flex h-screen w-screen bg-transparent overflow-hidden p-4 gap-4 text-black dark:text-white duration-500 font-sans"
+      className="flex h-screen w-screen bg-transparent overflow-hidden p-2 gap-4 text-black dark:text-white duration-500 font-sans"
       data-tauri-drag-region="true"
     >
       <Sidebar
