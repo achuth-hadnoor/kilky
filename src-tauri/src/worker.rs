@@ -60,7 +60,7 @@ pub fn spawn_audio_worker(app_handle: AppHandle, rx: mpsc::Receiver<KeyEvent>) {
 
             let pan = get_key_pan(key_id);
 
-            let (action_to_trigger, is_enabled, active_pack, volume, speed_scaling) = {
+            let (action_to_trigger, is_enabled, active_pack, volume, speed_scaling, show_key_in_tray) = {
                 let mut state = match STATE.lock() {
                     Ok(s) => s,
                     Err(_) => continue,
@@ -103,7 +103,7 @@ pub fn spawn_audio_worker(app_handle: AppHandle, rx: mpsc::Receiver<KeyEvent>) {
                             }
                         }
                     }
-                    (found_action, state.enabled, state.active_pack.clone(), state.volume, state.speed_volume_scaling)
+                    (found_action, state.enabled, state.active_pack.clone(), state.volume, state.speed_volume_scaling, state.show_key_in_tray)
                 }
 
                 #[cfg(not(target_os = "macos"))]
@@ -128,7 +128,7 @@ pub fn spawn_audio_worker(app_handle: AppHandle, rx: mpsc::Receiver<KeyEvent>) {
                             }
                         }
                     }
-                    (found_action, state.enabled, state.active_pack.clone(), state.volume, state.speed_volume_scaling)
+                    (found_action, state.enabled, state.active_pack.clone(), state.volume, state.speed_volume_scaling, state.show_key_in_tray)
                 }
             };
 
@@ -157,7 +157,7 @@ pub fn spawn_audio_worker(app_handle: AppHandle, rx: mpsc::Receiver<KeyEvent>) {
 
             // Update tray title on macOS
             #[cfg(target_os = "macos")]
-            if is_down {
+            if is_down && show_key_in_tray {
                 let gen = TRAY_TITLE_GEN.fetch_add(1, Ordering::SeqCst) + 1;
                 if let Some(key_name) = crate::keys::get_key_name(keycode_raw) {
                     if let Some(tray) = app_handle_clone.tray_by_id("main") {

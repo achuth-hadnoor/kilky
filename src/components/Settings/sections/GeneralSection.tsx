@@ -15,6 +15,8 @@ interface GeneralSectionProps {
   audioDevices: string[];
   hasPermission: boolean;
   platformName: string;
+  showKeyInTray: boolean;
+  handleShowKeyInTrayToggle: (checked: boolean) => void;
 }
 
 export function GeneralSectionSkeleton() {
@@ -51,6 +53,8 @@ export function GeneralSection({
   audioDevices,
   hasPermission,
   platformName,
+  showKeyInTray,
+  handleShowKeyInTrayToggle,
 }: GeneralSectionProps) {
   const isMac = platformName === "macos";
 
@@ -121,6 +125,18 @@ export function GeneralSection({
           <Switch 
             checked={isAutostart} 
             onCheckedChange={handleAutoLaunchChange}
+            className="focus-visible:ring-2 focus-visible:ring-indigo-500 dark:focus-visible:ring-white/80 focus-visible:ring-offset-2 dark:focus-visible:ring-offset-black/50"
+          />
+        </div>
+
+        <div className="flex items-center justify-between p-4 bg-black/5 dark:bg-white/5 rounded-xl border border-black/5 dark:border-white/5">
+          <div className="space-y-1">
+            <Label className="text-base">Show Keystrokes in {isMac ? "Menu Bar" : "System Tray"}</Label>
+            <p className="text-xs text-black/40 dark:text-white/40">Display the active key pressed in the status bar.</p>
+          </div>
+          <Switch 
+            checked={showKeyInTray} 
+            onCheckedChange={handleShowKeyInTrayToggle}
             className="focus-visible:ring-2 focus-visible:ring-indigo-500 dark:focus-visible:ring-white/80 focus-visible:ring-offset-2 dark:focus-visible:ring-offset-black/50"
           />
         </div>

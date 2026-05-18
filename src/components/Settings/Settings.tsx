@@ -102,6 +102,8 @@ export function Settings() {
                 audioDevices={state.audioDevices}
                 hasPermission={state.hasPermission}
                 platformName={state.platformName}
+                showKeyInTray={state.showKeyInTray}
+                handleShowKeyInTrayToggle={handlers.handleShowKeyInTrayToggle}
               />
             )}
 

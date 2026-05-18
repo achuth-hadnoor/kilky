@@ -1,6 +1,6 @@
 [package]
 name = "kliky"
-version = "0.2.0"
+version = "0.1.0"
 description = "Kliky is a mechanical keyboard sound simulator for macOS and windows."
 authors = ["Achuth"]
 edition = "2021"
@@ -31,6 +31,7 @@ rusqlite = { version = "0.33.0", features = ["bundled"] }
 chrono = { version = "0.4", features = ["serde"] }
 tauri-plugin-log = "2"
 log = "0.4"
+tokio = { version = "1", features = ["time"] }
 
 
 [target.'cfg(target_os = "macos")'.dependencies]

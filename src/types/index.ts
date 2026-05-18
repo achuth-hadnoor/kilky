@@ -22,6 +22,7 @@ export interface AppState {
   total_keystrokes: number;
   session_keystrokes: number;
   speed_volume_scaling: boolean;
+  show_key_in_tray: boolean;
 }
 
 export interface NavItem {

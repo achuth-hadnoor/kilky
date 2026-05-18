@@ -108,6 +108,10 @@ pub enum ActivePack {
     Custom(ExternalPack),
 }
 
+fn default_true() -> bool {
+    true
+}
+
 // ---------------------------------------------------------------------------
 // Persistent configuration (serialised to SQLite / JSON)
 // ---------------------------------------------------------------------------
@@ -126,6 +130,8 @@ pub struct PersistentConfig {
     pub hardware_acceleration: bool,
     pub total_keystrokes:     u64,
     pub speed_volume_scaling: bool,
+    #[serde(default = "default_true")]
+    pub show_key_in_tray:     bool,
 }
 
 // ---------------------------------------------------------------------------
@@ -156,6 +162,7 @@ pub struct AppState {
     pub buffer_size:          u32,
     pub hardware_acceleration: bool,
     pub speed_volume_scaling: bool,
+    pub show_key_in_tray:     bool,
 
     // --- Analytics ---
     pub total_keystrokes:     u64,
@@ -218,6 +225,7 @@ impl AppState {
             total_keystrokes:     config.total_keystrokes,
             session_keystrokes:   0, // Always reset to 0 on launch
             speed_volume_scaling: config.speed_volume_scaling,
+            show_key_in_tray:     config.show_key_in_tray,
         }
     }
 
@@ -235,6 +243,7 @@ impl AppState {
             hardware_acceleration: true,
             total_keystrokes:     0,
             speed_volume_scaling: true,
+            show_key_in_tray:     true,
         }
     }
 
@@ -252,6 +261,7 @@ impl AppState {
             hardware_acceleration: self.hardware_acceleration,
             total_keystrokes:     self.total_keystrokes,
             speed_volume_scaling: self.speed_volume_scaling,
+            show_key_in_tray:     self.show_key_in_tray,
         };
         let _ = crate::db::save_config(&config);
     }

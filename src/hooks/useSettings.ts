@@ -29,6 +29,7 @@ export function useSettings() {
   const [hardwareAcceleration, setHardwareAcceleration] = useState(true);
   const [speedVolumeScaling, setSpeedVolumeScaling] = useState(true);
   const [hasPermission, setHasPermission] = useState(false);
+  const [showKeyInTray, setShowKeyInTray] = useState(true);
 
   // Stable reference — won't change between renders
   const fetchState = useCallback(async () => {
@@ -48,6 +49,7 @@ export function useSettings() {
       setBufferSize(state.buffer_size);
       setHardwareAcceleration(state.hardware_acceleration);
       setSpeedVolumeScaling(state.speed_volume_scaling);
+      setShowKeyInTray(state.show_key_in_tray);
       setIsAutostart(autostart);
       setHasPermission(trusted);
     } catch (err) {
@@ -159,6 +161,11 @@ export function useSettings() {
     await invoke('set_hardware_acceleration', { enabled });
   };
 
+  const handleShowKeyInTrayToggle = async (checked: boolean) => {
+    setShowKeyInTray(checked);
+    await invoke('set_show_key_in_tray', { enabled: checked });
+  };
+
   const handleResetSettings = async () => {
     await invoke('reset_settings');
     await fetchState();
@@ -182,6 +189,7 @@ export function useSettings() {
       hardwareAcceleration,
       speedVolumeScaling,
       hasPermission,
+      showKeyInTray,
     },
     setShortcuts,
     fetchState,
@@ -196,6 +204,7 @@ export function useSettings() {
       handleBufferSizeChange,
       handleHardwareAccelerationToggle,
       handleResetSettings,
+      handleShowKeyInTrayToggle,
     },
   };
 }

@@ -32,6 +32,7 @@ pub struct AppStateResponse {
     pub hardware_acceleration: bool,
     pub total_keystrokes: u64,
     pub session_keystrokes: u64,
+    pub show_key_in_tray: bool,
 }
 
 #[tauri::command]
@@ -48,7 +49,24 @@ pub fn get_app_state() -> AppStateResponse {
         hardware_acceleration: state.hardware_acceleration,
         total_keystrokes: state.total_keystrokes,
         session_keystrokes: state.session_keystrokes,
+        show_key_in_tray: state.show_key_in_tray,
     }
+}
+
+#[tauri::command]
+pub fn set_show_key_in_tray(app: AppHandle, enabled: bool) {
+    let mut state = STATE.lock().unwrap();
+    state.show_key_in_tray = enabled;
+    state.save();
+    
+    // Immediately clear the tray title if disabled
+    if !enabled {
+        if let Some(tray) = app.tray_by_id("main") {
+            let _ = tray.set_title(Some("".to_string()));
+        }
+    }
+    
+    let _ = app.emit("state-update", ());
 }
 
 #[tauri::command]

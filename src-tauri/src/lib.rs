@@ -91,6 +91,7 @@ pub fn run() {
             commands::set_hardware_acceleration,
             commands::reset_settings,
             commands::set_speed_volume_scaling,
+            commands::set_show_key_in_tray,
         ])
         .on_window_event(window::handle_window_event)
         // ---- Application setup ------------------------------------------
@@ -200,6 +201,51 @@ pub fn run() {
             } else {
                 info!("Skipping keyboard listener until onboarding is complete.");
             }
+
+            // ---- Programmatic Background Update Checker -----------------
+            let handle = app.handle().clone();
+            tauri::async_runtime::spawn(async move {
+                // Wait 5 seconds to ensure system startup and other initializations finish cleanly
+                tokio::time::sleep(std::time::Duration::from_secs(5)).await;
+
+                // Only check for updates if the user has completed onboarding
+                let has_onboarded = {
+                    let state = crate::state::STATE.lock().unwrap();
+                    state.has_onboarded
+                };
+
+                if !has_onboarded {
+                    return;
+                }
+
+                info!("Background update checker initiated...");
+                use tauri_plugin_updater::UpdaterExt;
+                use tauri::Emitter;
+                if let Ok(updater) = handle.updater() {
+                    match updater.check().await {
+                        Ok(Some(update)) => {
+                            info!("Update available in background: {}", update.version);
+                            // Bring Settings window to focus (or spawn it if not created)
+                            let w_handle = handle.clone();
+                            tauri::async_runtime::spawn(async move {
+                                crate::window::spawn_window(&w_handle, crate::window::WindowType::Settings);
+                                // Allow some time for React app to mount and register the event listener
+                                tokio::time::sleep(std::time::Duration::from_millis(600)).await;
+                                let _ = w_handle.emit("update-available", serde_json::json!({
+                                    "version": update.version,
+                                    "body": update.body.clone()
+                                }));
+                            });
+                        }
+                        Ok(None) => {
+                            info!("System is up-to-date.");
+                        }
+                        Err(e) => {
+                            error!("Error checking for updates in background: {:?}", e);
+                        }
+                    }
+                }
+            });
 
             Ok(())
         })
