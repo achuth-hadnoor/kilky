@@ -32,7 +32,7 @@ export function Sidebar<T extends string = string>({ navItems, activeTab, setAct
 
   return (
     <aside
-      className="w-64 h-full flex flex-col bg-white/10 dark:bg-black/20 backdrop-blur-xl rounded-2xl border border-black/5 dark:border-white/20 p-4 pt-16"
+      className="w-64 h-full flex flex-col bg-white/10 dark:bg-black/20 backdrop-blur-xl rounded-xl border border-black/5 dark:border-white/20 p-4 pt-16"
       data-tauri-drag-region
     >
       <div className="px-4 mb-10 flex items-center gap-3" data-tauri-drag-region>

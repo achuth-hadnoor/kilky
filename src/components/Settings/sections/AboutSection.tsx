@@ -1,6 +1,7 @@
 import { useState } from "react";
 import { Button } from "@/components/ui/button";
-import { Loader2 } from 'lucide-react';
+import { Loader2, Heart } from 'lucide-react';
+import { openUrl } from '@tauri-apps/plugin-opener';
 
 interface AboutSectionProps {
   appVersion: string;
@@ -16,9 +17,14 @@ export function AboutSection({ appVersion, handleCheckUpdates }: AboutSectionPro
     setIsChecking(false);
   };
 
+  const handleSupport = async () => {
+    // Replace this URL with your actual Polar.sh product or storefront URL
+    await openUrl('https://polar.sh/trychoco');
+  };
+
   return (
-    <div className="space-y-2">
-      <div className="flex flex-col items-center py-8 text-center space-y-6">
+    <div className="space-y-6 pb-8">
+      <div className="flex flex-col items-center pt-8 text-center space-y-6">
         <div className="w-28 h-28 rounded-[32px] overflow-hidden shadow-2xl flex items-center justify-center bg-white dark:bg-zinc-900 border-4 border-black/5 dark:border-white/5">
           <img src="/icon.png" alt="Kliky Logo" className="w-full h-full object-cover" />
         </div>
@@ -49,6 +55,24 @@ export function AboutSection({ appVersion, handleCheckUpdates }: AboutSectionPro
             )}
           </Button>
         </div>
+      </div>
+
+      <div className="p-6 bg-gradient-to-br from-indigo-500/10 to-purple-500/10 dark:from-indigo-500/20 dark:to-purple-500/20 rounded-3xl border border-indigo-500/20 dark:border-indigo-500/30 flex flex-col items-center text-center space-y-4">
+        <div className="w-12 h-12 rounded-full bg-indigo-500/20 flex items-center justify-center text-indigo-600 dark:text-indigo-400">
+          <Heart className="w-6 h-6 fill-current" />
+        </div>
+        <div className="space-y-1">
+          <h4 className="font-semibold text-lg">Support Kliky</h4>
+          <p className="text-sm text-black/60 dark:text-white/60 max-w-[260px]">
+            Kliky is fully free and open source. If you love the app, consider supporting its development!
+          </p>
+        </div>
+        <Button 
+          className="rounded-xl bg-indigo-500 hover:bg-indigo-600 text-white border-0 px-8 cursor-pointer shadow-lg shadow-indigo-500/25 transition-all hover:scale-105"
+          onClick={handleSupport}
+        >
+          Pay What You Want
+        </Button>
       </div>
 
       {/* <div className="p-6 bg-black/5 dark:bg-white/5 rounded-3xl border border-black/5 dark:border-white/5">
