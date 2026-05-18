@@ -135,6 +135,7 @@ pub fn run() {
                     }
 
                     tray::setup_tray(app.handle())?;
+                    crate::window::precreate_settings_window(app.handle());
                 }
             }
 
@@ -148,6 +149,7 @@ pub fn run() {
                     );
                 } else {
                     tray::setup_tray(app.handle())?;
+                    crate::window::precreate_settings_window(app.handle());
                 }
             }
 

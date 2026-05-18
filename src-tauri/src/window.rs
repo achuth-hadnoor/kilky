@@ -18,6 +18,15 @@ pub enum WindowType {
 /// If the window already exists it is shown and focused rather than re-created.
 /// Platform-specific vibrancy / blur effects are applied at build time.
 pub fn spawn_window(handle: &AppHandle, window_type: WindowType) {
+    spawn_window_with_visibility(handle, window_type, true);
+}
+
+/// Spawns a window of the given `window_type` with specific initial visibility.
+///
+/// If the window already exists:
+/// - If `visible` is true, shows and focuses the window.
+/// - If `visible` is false, does nothing.
+pub fn spawn_window_with_visibility(handle: &AppHandle, window_type: WindowType, visible: bool) {
     let (label, url, width, height, resizable) = match window_type {
         WindowType::Settings => (
             "settings",
@@ -35,10 +44,12 @@ pub fn spawn_window(handle: &AppHandle, window_type: WindowType) {
         ),
     };
 
-    // If the window already exists, bring it to the front.
+    // If the window already exists, bring it to the front if we want it visible.
     if let Some(window) = handle.get_webview_window(label) {
-        let _ = window.show();
-        let _ = window.set_focus();
+        if visible {
+            let _ = window.show();
+            let _ = window.set_focus();
+        }
         return;
     }
 
@@ -49,6 +60,7 @@ pub fn spawn_window(handle: &AppHandle, window_type: WindowType) {
         .inner_size(width, height)
         .resizable(resizable)
         .transparent(true)
+        .visible(visible)         // Set visibility based on parameter
         .visible_on_all_workspaces(true)
         .skip_taskbar(matches!(window_type, WindowType::Settings))
         .maximizable(false)
@@ -87,6 +99,11 @@ pub fn spawn_window(handle: &AppHandle, window_type: WindowType) {
     }
 
     let _ = builder.build();
+}
+
+/// Pre-creates the settings window in a hidden state so that it is ready to be shown instantly.
+pub fn precreate_settings_window(handle: &AppHandle) {
+    spawn_window_with_visibility(handle, WindowType::Settings, false);
 }
 
 /// Window event handler registered in `lib.rs`.

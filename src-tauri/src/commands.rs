@@ -627,6 +627,7 @@ pub fn complete_onboarding(app: AppHandle) {
     } else {
         log::info!("Tray setup successfully.");
     }
+    crate::window::precreate_settings_window(&app);
     
     log::info!("Starting keyboard listener...");
     start_keyboard_listener(app.clone());
