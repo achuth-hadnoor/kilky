@@ -1,11 +1,12 @@
 import { useState } from 'react';
 import { Download, Check, RefreshCw, X, Loader2, ArrowUpCircle } from 'lucide-react';
 import { relaunch } from '@tauri-apps/plugin-process';
+import type { Update } from '@tauri-apps/plugin-updater';
 
 interface UpdateModalProps {
   isOpen: boolean;
   onClose: () => void;
-  update: any; // The Tauri Update object
+  update: Update; // The Tauri Update object
 }
 
 export function UpdateModal({ isOpen, onClose, update }: UpdateModalProps) {
@@ -24,7 +25,7 @@ export function UpdateModal({ isOpen, onClose, update }: UpdateModalProps) {
       let currentDownloaded = 0;
       let totalLength = 0;
 
-      await update.downloadAndInstall((event: any) => {
+      await update.downloadAndInstall((event) => {
         switch (event.event) {
           case 'Started':
             totalLength = event.data.contentLength || 0;

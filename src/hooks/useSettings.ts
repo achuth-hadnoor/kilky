@@ -5,7 +5,7 @@
  * Settings window. Subscribes to the `state-update` Tauri event so the UI
  * stays in sync with tray menu changes.
  */
-import { useState, useEffect, useCallback } from 'react';
+import { useState, useEffect, useCallback, useMemo } from 'react';
 import type React from 'react';
 import { invoke } from '@tauri-apps/api/core';
 import { listen } from '@tauri-apps/api/event';
@@ -96,80 +96,119 @@ export function useSettings() {
 
   // ----- Handlers --------------------------------------------------------
 
-  const handleToggle = async (checked: boolean) => {
+  const handleToggle = useCallback(async (checked: boolean) => {
     setEnabled(checked);
     await invoke('set_enabled', { enabled: checked });
-  };
+  }, []);
 
-  const handleAutoLaunchChange = async (checked: boolean) => {
+  const handleAutoLaunchChange = useCallback(async (checked: boolean) => {
     setIsAutostart(checked);
     await invoke('set_autostart_enabled', { enabled: checked });
-  };
+  }, []);
 
-  const handleVolumeUpdate = async (vol: number[]) => {
+  const handleVolumeUpdate = useCallback(async (vol: number[]) => {
     const v = vol[0];
     setVolume(v);
     await invoke('set_volume', { volume: v });
-  };
+  }, []);
 
-  const handlePackChange = async (packType: string) => {
+  const handlePackChange = useCallback(async (packType: string) => {
     setActivePack(packType);
     await invoke('set_sound_pack', { packType });
-  };
+  }, []);
 
-  const handlePlayPreview = async (e: React.MouseEvent, id: string) => {
+  const handlePlayPreview = useCallback(async (e: React.MouseEvent, id: string) => {
     e.stopPropagation();
-    if (previewingPack === id) {
-      setPreviewingPack(null);
-      await invoke('stop_pack_preview');
-    } else {
-      setPreviewingPack(id);
-      await invoke('play_pack_preview', { packType: id });
-    }
-  };
+    setPreviewingPack((prev) => {
+      if (prev === id) {
+        invoke('stop_pack_preview').catch(console.error);
+        return null;
+      } else {
+        invoke('play_pack_preview', { packType: id }).catch(console.error);
+        return id;
+      }
+    });
+  }, []);
 
-  const handleStopPreview = async () => {
-    if (previewingPack) {
-      setPreviewingPack(null);
-      await invoke('stop_pack_preview');
-    }
-  };
+  const handleStopPreview = useCallback(async () => {
+    setPreviewingPack((prev) => {
+      if (prev !== null) {
+        invoke('stop_pack_preview').catch(console.error);
+      }
+      return null;
+    });
+  }, []);
 
   useEffect(() => {
     const handleBlur = () => {
-      if (previewingPack) {
-        setPreviewingPack(null);
-        invoke('stop_pack_preview').catch(console.error);
-      }
+      setPreviewingPack((prev) => {
+        if (prev !== null) {
+          invoke('stop_pack_preview').catch(console.error);
+        }
+        return null;
+      });
     };
     window.addEventListener('blur', handleBlur);
     return () => window.removeEventListener('blur', handleBlur);
-  }, [previewingPack]);
+  }, []);
 
-  const handleDeviceChange = async (deviceName: string) => {
+  const handleDeviceChange = useCallback(async (deviceName: string) => {
     setSelectedDevice(deviceName);
     await invoke('set_audio_device', { deviceName });
-  };
+  }, []);
 
-  const handleBufferSizeChange = async (size: number) => {
+  const handleBufferSizeChange = useCallback(async (size: number) => {
     setBufferSize(size);
     await invoke('set_buffer_size', { bufferSize: size });
-  };
+  }, []);
 
-  const handleHardwareAccelerationToggle = async (enabled: boolean) => {
+  const handleHardwareAccelerationToggle = useCallback(async (enabled: boolean) => {
     setHardwareAcceleration(enabled);
     await invoke('set_hardware_acceleration', { enabled });
-  };
+  }, []);
 
-  const handleShowKeyInTrayToggle = async (checked: boolean) => {
+  const handleShowKeyInTrayToggle = useCallback(async (checked: boolean) => {
     setShowKeyInTray(checked);
     await invoke('set_show_key_in_tray', { enabled: checked });
-  };
+  }, []);
 
-  const handleResetSettings = async () => {
+  const handleHyperKeyToggle = useCallback(async (checked: boolean) => {
+    setHyperKeyEnabled(checked);
+    await invoke('set_hyper_key_enabled', { enabled: checked });
+  }, []);
+
+  const handleResetSettings = useCallback(async () => {
     await invoke('reset_settings');
     await fetchState();
-  };
+  }, [fetchState]);
+
+  const handlers = useMemo(() => ({
+    handleToggle,
+    handleAutoLaunchChange,
+    handleVolumeUpdate,
+    handlePackChange,
+    handlePlayPreview,
+    handleStopPreview,
+    handleDeviceChange,
+    handleBufferSizeChange,
+    handleHardwareAccelerationToggle,
+    handleResetSettings,
+    handleShowKeyInTrayToggle,
+    handleHyperKeyToggle,
+  }), [
+    handleToggle,
+    handleAutoLaunchChange,
+    handleVolumeUpdate,
+    handlePackChange,
+    handlePlayPreview,
+    handleStopPreview,
+    handleDeviceChange,
+    handleBufferSizeChange,
+    handleHardwareAccelerationToggle,
+    handleResetSettings,
+    handleShowKeyInTrayToggle,
+    handleHyperKeyToggle,
+  ]);
 
   return {
     state: {
@@ -193,18 +232,7 @@ export function useSettings() {
     },
     setShortcuts,
     fetchState,
-    handlers: {
-      handleToggle,
-      handleAutoLaunchChange,
-      handleVolumeUpdate,
-      handlePackChange,
-      handlePlayPreview,
-      handleStopPreview,
-      handleDeviceChange,
-      handleBufferSizeChange,
-      handleHardwareAccelerationToggle,
-      handleResetSettings,
-      handleShowKeyInTrayToggle,
-    },
+    handlers,
   };
 }
+

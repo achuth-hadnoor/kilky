@@ -53,7 +53,7 @@ export function LaunchSettingsStep({
               <p className="text-sm font-bold text-black dark:text-white">Hyper Key (Caps Lock)</p>
               <span className="px-1.5 py-0.5 rounded text-[8px] font-bold bg-indigo-500 text-white uppercase tracking-tighter">Enabled</span>
             </div>
-            <p className="text-[10px] text-zinc-500 text-left">Use Caps Lock as ⌘+⌥+⌃+⇧ for powerful shortcuts</p>
+            <p className="text-[10px] text-zinc-500 text-left">Use Caps Lock as ⚡️ for powerful shortcuts</p>
           </div>
         </OnboardingCard>
 
