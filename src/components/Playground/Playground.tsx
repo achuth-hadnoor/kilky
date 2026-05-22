@@ -10,38 +10,32 @@ interface HistoryItem {
 }
 
 export function Playground() {
-  const [targetText, setTargetText] = useState("");
+  const [targetText, setTargetText] = useState(() => QUOTES[Math.floor(Math.random() * QUOTES.length)]);
   const [text, setText] = useState("");
   const [wpm, setWpm] = useState(0);
-  const [history, setHistory] = useState<HistoryItem[]>([]);
+  const [history, setHistory] = useState<HistoryItem[]>(() => {
+    if (typeof window === "undefined") return [];
+    const saved = localStorage.getItem("kliky_typing_history");
+    if (saved) {
+      try {
+        return JSON.parse(saved);
+      } catch (e) {
+        console.error(e);
+      }
+    }
+    return [];
+  });
 
   const textareaRef = useRef<HTMLTextAreaElement>(null);
 
   // WPM Tracking variables
   const startTimeRef = useRef<number | null>(null);
 
-  useEffect(() => {
-    // Load history
-    const saved = localStorage.getItem("kliky_typing_history");
-    if (saved) {
-      try {
-        setHistory(JSON.parse(saved));
-      } catch (e) {
-        console.error(e);
-      }
-    }
-  }, []);
-
   // Focus the input immediately on mount
   useEffect(() => {
     if (textareaRef.current) {
       textareaRef.current.focus();
     }
-  }, []);
-
-  useEffect(() => {
-    // Pick a random quote on mount
-    setTargetText(QUOTES[Math.floor(Math.random() * QUOTES.length)]);
   }, []);
 
   const saveStats = (finalWpm: number, finalStrokes: number, finalAccuracy: number) => {

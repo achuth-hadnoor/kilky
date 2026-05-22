@@ -25,8 +25,8 @@ export function LicenseStep({
       await activateLicense(licenseKey);
       console.log("License successfully activated!");
       if (onSuccess) onSuccess();
-    } catch (err: any) {
-      setError(err.message || "Invalid license key");
+    } catch (err: unknown) {
+      setError(err instanceof Error ? err.message : "Invalid license key");
     } finally {
       setIsLoading(false);
     }

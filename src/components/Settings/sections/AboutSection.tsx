@@ -37,8 +37,8 @@ export function AboutSection({ appVersion, handleCheckUpdates }: AboutSectionPro
       setLicenseKey("");
       // Force a full reload to apply license
       setTimeout(() => window.location.reload(), 1500);
-    } catch (err: any) {
-      setError(err.message || "Invalid license key");
+    } catch (err: unknown) {
+      setError(err instanceof Error ? err.message : "Invalid license key");
     } finally {
       setIsActivating(false);
     }
