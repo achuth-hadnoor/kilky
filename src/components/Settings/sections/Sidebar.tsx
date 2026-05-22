@@ -83,8 +83,8 @@ export function Sidebar<T extends string = string>({ navItems, activeTab, setAct
             Your free trial is active. Upgrade to permanently unlock premium features.
           </p>
           <button 
-            onClick={() => invoke('show_onboarding')}
-            className="w-full py-2 px-3 rounded-lg bg-gradient-to-r from-orange-500 to-rose-500 hover:from-orange-600 hover:to-rose-600 text-white text-[10px] uppercase tracking-wider font-extrabold shadow-md shadow-orange-500/20 transition-all active:scale-[0.98] relative z-10"
+            onClick={() => setActiveTab('about')}
+            className="w-full py-2 px-3 rounded-lg bg-gradient-to-r from-red-500 to-red-500 hover:from-red-600 hover:to-red-600 text-white text-[10px] uppercase tracking-wider font-extrabold shadow-md shadow-red-500/20 transition-all active:scale-[0.98] relative z-10"
           >
             Activate License
           </button>

@@ -1,7 +1,8 @@
 import { useState } from "react";
 import { Button } from "@/components/ui/button";
-import { Loader2, Heart } from 'lucide-react';
+import { Loader2, Heart, Key } from 'lucide-react';
 import { openUrl } from '@tauri-apps/plugin-opener';
+import { activateLicense } from '../../../lib/license';
 
 interface AboutSectionProps {
   appVersion: string;
@@ -10,6 +11,10 @@ interface AboutSectionProps {
 
 export function AboutSection({ appVersion, handleCheckUpdates }: AboutSectionProps) {
   const [isChecking, setIsChecking] = useState(false);
+  const [licenseKey, setLicenseKey] = useState("");
+  const [isActivating, setIsActivating] = useState(false);
+  const [error, setError] = useState("");
+  const [success, setSuccess] = useState(false);
 
   const onCheck = async () => {
     setIsChecking(true);
@@ -20,6 +25,23 @@ export function AboutSection({ appVersion, handleCheckUpdates }: AboutSectionPro
   const handleSupport = async () => {
     // Replace this URL with your actual Polar.sh product or storefront URL
     await openUrl('https://polar.sh/trychoco');
+  };
+
+  const handleActivate = async () => {
+    setError("");
+    setSuccess(false);
+    setIsActivating(true);
+    try {
+      await activateLicense(licenseKey);
+      setSuccess(true);
+      setLicenseKey("");
+      // Force a full reload to apply license
+      setTimeout(() => window.location.reload(), 1500);
+    } catch (err: any) {
+      setError(err.message || "Invalid license key");
+    } finally {
+      setIsActivating(false);
+    }
   };
 
   return (
@@ -54,6 +76,37 @@ export function AboutSection({ appVersion, handleCheckUpdates }: AboutSectionPro
               "Check for Updates"
             )}
           </Button>
+        </div>
+      </div>
+
+      <div className="p-6 bg-black/5 dark:bg-white/5 rounded-3xl border border-black/5 dark:border-white/5 flex flex-col items-center text-center space-y-4">
+        <div className="w-12 h-12 rounded-full bg-red-500/10 flex items-center justify-center border border-red-500/20 text-red-500">
+          <Key className="w-6 h-6" />
+        </div>
+        <div className="space-y-1 w-full max-w-sm">
+          <h4 className="font-semibold text-lg">Activate License</h4>
+          <p className="text-sm text-black/60 dark:text-white/60 mb-4">
+            Enter your license key to permanently unlock all premium features.
+          </p>
+          <div className="flex flex-col gap-2 mt-2">
+            {error && <p className="text-xs text-red-500 font-semibold">{error}</p>}
+            {success && <p className="text-xs text-emerald-500 font-semibold">Activated successfully! Reloading...</p>}
+            <input
+              value={licenseKey}
+              onChange={(e) => setLicenseKey(e.target.value)}
+              placeholder="XXXX-XXXX-XXXX-XXXX"
+              className="w-full text-center tracking-widest font-mono text-sm uppercase dark:text-white border border-black/10 dark:border-white/10 focus-visible:ring-2 focus-visible:ring-red-500 rounded-xl px-3 py-3 outline-none bg-white dark:bg-black/20"
+              disabled={isActivating || success}
+            />
+            <Button 
+              className="w-full rounded-xl bg-neutral-900 hover:bg-black dark:bg-white dark:text-black dark:hover:bg-neutral-200 text-white transition-all flex items-center justify-center gap-2 mt-1"
+              onClick={handleActivate}
+              disabled={isActivating || !licenseKey.trim() || success}
+            >
+              {isActivating && <Loader2 className="w-4 h-4 animate-spin" />}
+              {isActivating ? "Verifying..." : "Verify Key"}
+            </Button>
+          </div>
         </div>
       </div>
 
