@@ -180,7 +180,7 @@ export function Website() {
           <div className="nav-actions">
             <a href="#experience">Experience</a>
             <a href="#settings">Settings</a>
-            <a className="download-link" href="https://github.com/achuth-hadnoor/kilky/releases/latest">
+            <a className="download-link" href="https://github.com/achuthhadnoor/kilky/releases/latest">
               <Download size={16} />
               Download
             </a>
@@ -349,7 +349,7 @@ export function Website() {
             <strong>{typedCount.toLocaleString()} keystrokes</strong>
             <p>{currentPack.name} is active with a {currentPack.character} profile.</p>
           </div>
-          <a className="primary-action" href="https://github.com/achuth-hadnoor/kilky/releases/latest">
+          <a className="primary-action" href="https://github.com/achuthhadnoor/kilky/releases/latest">
             <Apple size={18} />
             Download for desktop
           </a>
