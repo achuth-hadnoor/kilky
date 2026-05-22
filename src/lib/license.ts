@@ -14,20 +14,19 @@ const API_URL = import.meta.env.VITE_API_URL || "http://localhost:3000";
 
 export async function activateLicense(key: string): Promise<boolean> {
   try {
-    const response = await fetch(`${API_URL}/api/license/activate`, {
+    // Some Polar license keys don't track individual device activations,
+    // so we just validate them instead.
+    const response = await fetch(`${API_URL}/api/license/validate`, {
       method: "POST",
       headers: {
         "Content-Type": "application/json",
       },
-      body: JSON.stringify({
-        key,
-        label: "Kliky Desktop",
-      }),
+      body: JSON.stringify({ key }),
     });
 
     if (!response.ok) {
       const errorData = await response.json().catch(() => null);
-      throw new Error(errorData?.error || "Failed to activate license");
+      throw new Error(errorData?.error || "Failed to validate license");
     }
 
     const data = await response.json();
@@ -35,12 +34,13 @@ export async function activateLicense(key: string): Promise<boolean> {
     // Save license data to Tauri store
     const store = await getStore();
     await store.set("license-key", key);
-    await store.set("license-activation", data);
+    await store.set("license-validation", data);
+    await store.set("is-activated", true);
     await store.save();
 
     return true;
   } catch (error) {
-    console.error("License activation error:", error);
+    console.error("License validation error:", error);
     throw error;
   }
 }

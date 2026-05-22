@@ -5,7 +5,7 @@ import { Button } from "@/components/ui/button";
 import { useState } from "react";
 import { activateLicense } from "@/lib/license";
 
-export function LicenseStep() {
+export function LicenseStep({ onSuccess }: { onSuccess?: () => void }) {
   const [licenseKey, setLicenseKey] = useState("");
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState("");
@@ -15,9 +15,8 @@ export function LicenseStep() {
     setIsLoading(true);
     try {
       await activateLicense(licenseKey);
-      // License is valid and saved! Navigate or update state here.
       console.log("License successfully activated!");
-      // TODO: Move to next step
+      if (onSuccess) onSuccess();
     } catch (err: any) {
       setError(err.message || "Invalid license key");
     } finally {

@@ -2,6 +2,7 @@ import { useState, useEffect } from 'react';
 import { invoke } from '@tauri-apps/api/core';
 import { getCurrentWebviewWindow } from '@tauri-apps/api/webviewWindow';
 import { Button } from '@/components/ui/button';
+import { getStoredLicense } from '@/lib/license';
 
 import { useSettings } from '../../hooks/useSettings';
 import { useShortcutRecorder } from '../../hooks/useShortcutRecorder';
@@ -17,7 +18,14 @@ const TOTAL_STEPS = 6;
 
 export function Onboarding() {
   const [step, setStep] = useState(1);
+  const [hasLicense, setHasLicense] = useState(false);
   const { state, setShortcuts, handlers } = useSettings();
+
+  useEffect(() => {
+    getStoredLicense().then((key) => {
+      setHasLicense(!!key);
+    });
+  }, []);
 
   const recorder = useShortcutRecorder(
     state.shortcuts,
@@ -101,7 +109,7 @@ export function Onboarding() {
         <div className="w-full flex-1 overflow-hidden min-h-0 flex flex-col" data-tauri-drag-region>
           {step === 1 && <WelcomeStep />}
 
-          {step === 2 && <LicenseStep />}
+          {step === 2 && <LicenseStep onSuccess={() => { setHasLicense(true); setStep(3); }} />}
 
           {step === 3 && (
             <AccessibilityStep
@@ -164,7 +172,7 @@ export function Onboarding() {
               <Button
                 variant="ghost"
                 className="rounded-xl dark:bg-white/5 bg-black/5 dark:hover:bg-white/10 hover:bg-black/10 dark:text-white text-neutral-900 px-5 h-10 border dark:border-white/5 border-black/5 active:scale-[0.98] transition-all"
-                onClick={() => setStep((s) => s - 1)}
+                onClick={() => setStep((s) => (s === 3 ? 1 : s - 1))}
               >
                 <span className="text-xs font-semibold">Back</span>
               </Button>
@@ -190,7 +198,7 @@ export function Onboarding() {
                   ? 'dark:bg-zinc-800 bg-neutral-200 dark:text-zinc-500 text-neutral-400 cursor-not-allowed dark:border-zinc-800 border-neutral-200'
                   : 'dark:bg-white dark:hover:bg-zinc-200 dark:text-zinc-950 bg-neutral-950 hover:bg-neutral-800 text-white shadow-md dark:shadow-white/5 shadow-neutral-950/20'
                   }`}
-                onClick={() => setStep((s) => s + 1)}
+                onClick={() => setStep((s) => (s === 1 && hasLicense ? 3 : s + 1))}
                 disabled={isContinueDisabled}
               >
                 Continue
