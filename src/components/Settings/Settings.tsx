@@ -1,181 +1,147 @@
-import { useEffect, useState } from 'react';
-import { invoke } from '@tauri-apps/api/core';
-import { listen } from '@tauri-apps/api/event';
-import { SoundPackManager } from '../SoundPackManager';
-import './Settings.css';
+import { useState } from 'react';
+import { check } from '@tauri-apps/plugin-updater';
+import { relaunch } from '@tauri-apps/plugin-process';
+import { message, ask } from '@tauri-apps/plugin-dialog';
+import { Settings as SettingsIcon, Volume2, Keyboard, Info } from 'lucide-react';
+import { ScrollArea } from '@/components/ui/scroll-area';
 
-type Tab = 'general' | 'sounds' | 'permissions' | 'about';
+import { Sidebar } from './sections/Sidebar';
+import { GeneralSection } from './sections/GeneralSection';
+import { AudioSection } from './sections/AudioSection';
+import { HotkeysSection } from './sections/HotkeysSection';
+
+import { useSettings } from '../../hooks/useSettings';
+import { useShortcutRecorder } from '../../hooks/useShortcutRecorder';
+
+import './Settings.css';
+import { AboutSection } from './sections/AboutSection';
+
+const NAV_ITEMS = [
+  { id: 'general', label: 'General', icon: SettingsIcon, color: 'bg-blue-500' },
+  { id: 'audio', label: 'Sounds', icon: Volume2, color: 'bg-emerald-500' },
+  { id: 'hotkeys', label: 'Hotkeys', icon: Keyboard, color: 'bg-amber-500' },
+  { id: 'about', label: 'About', icon: Info, color: 'bg-zinc-500' },
+] as const;
+
+type TabId = typeof NAV_ITEMS[number]['id'];
 
 export function Settings() {
-  const [activeTab, setActiveTab] = useState<Tab>('general');
-  const [isMac, setIsMac] = useState(false);
-  const [volume, setVolume] = useState(50);
-  const [enabled, setEnabled] = useState(true);
+  const [activeTab, setActiveTab] = useState<TabId>('general');
 
-  useEffect(() => {
-    // Check if running on macOS for permissions tab
-    const checkOS = async () => {
-      const platform = window.navigator.platform.toLowerCase();
-      setIsMac(platform.includes('mac'));
-    };
-    checkOS();
+  const { state, setShortcuts, handlers } = useSettings();
+  const recorder = useShortcutRecorder(
+    state.shortcuts,
+    setShortcuts,
+    state.hyperKeyEnabled,
+    state.platformName,
+  );
 
-    // Fetch initial state
-    invoke<[boolean, number]>('get_app_state').then(([en, vol]) => {
-      setEnabled(en);
-      setVolume(Math.round(vol * 100));
-    }).catch(console.error);
-
-    // Listen to updates from backend
-    const unlisten = listen('state-update', async () => {
-      try {
-        const [en, vol] = await invoke<[boolean, number]>('get_app_state');
-        setEnabled(en);
-        setVolume(Math.round(vol * 100));
-      } catch (err) {
-        console.error(err);
+  const handleCheckUpdates = async () => {
+    try {
+      const update = await check();
+      if (update) {
+        const yes = await ask(
+          `Update to ${update.version} is available!\n\n${update.body ?? 'No release notes provided.'}\n\nWould you like to install it now?`,
+          { title: 'Update Available', kind: 'info' },
+        );
+        if (yes) {
+          await update.downloadAndInstall();
+          await relaunch();
+        }
+      } else {
+        await message('You are running the latest version of Kliky.', { title: 'Up to Date', kind: 'info' });
       }
-    });
-
-    return () => {
-      unlisten.then(f => f());
-    };
-  }, []);
-
-  const handleVolumeChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
-    const val = parseInt(e.target.value, 10);
-    setVolume(val);
-    await invoke('set_volume', { volume: val / 100.0 });
-  };
-
-  const handleEnabledChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
-    const val = e.target.checked;
-    setEnabled(val);
-    await invoke('set_enabled', { enabled: val });
-  };
-
-  const renderTabContent = () => {
-    switch (activeTab) {
-      case 'general':
-        return (
-          <div className="tab-content animate-in">
-            <h3>General Settings</h3>
-            <div className="settings-group">
-              <div className="setting-item">
-                <div className="setting-info">
-                  <label>Enable Keyboard Sounds</label>
-                  <p>Toggle the sound engine on or off globally.</p>
-                </div>
-                <input
-                  type="checkbox"
-                  checked={enabled}
-                  onChange={handleEnabledChange}
-                  className="toggle-switch"
-                />
-              </div>
-
-              <div className="setting-item">
-                <div className="setting-info">
-                  <label>Master Volume ({volume}%)</label>
-                  <p>Adjust the playback volume of all key sounds.</p>
-                </div>
-                <input
-                  type="range"
-                  min="0"
-                  max="100"
-                  value={volume}
-                  onChange={handleVolumeChange}
-                  className="volume-slider"
-                />
-              </div>
-
-              <div className="setting-item">
-                <div className="setting-info">
-                  <label>Launch on Startup</label>
-                  <p>Start kliky automatically when you log in.</p>
-                </div>
-                <input type="checkbox" className="toggle-switch" />
-              </div>
-            </div>
-          </div>
+    } catch (e) {
+      const errorMsg = e instanceof Error ? e.message : String(e);
+      if (errorMsg.includes('valid release JSON')) {
+        const note = import.meta.env.DEV ? '\n\nNote: In development, this usually means no GitHub releases exist yet.' : '';
+        await message(`No updates found at this time.${note}`, { title: 'Check Updates', kind: 'info' });
+      } else {
+        await message(
+          `Failed to check for updates: ${errorMsg}\n\nPlease check your internet connection or try again later.`,
+          { title: 'Update Error', kind: 'error' },
         );
-      case 'sounds':
-        return (
-          <div className="tab-content animate-in">
-            <SoundPackManager />
-          </div>
-        );
-      case 'permissions':
-        return (
-          <div className="tab-content animate-in">
-            <h3>Accessibility Permissions</h3>
-            <p>On macOS, kliky requires accessibility permissions to listen for keyboard events globally.</p>
-            <div className="permission-status">
-              <div className="status-indicator success"></div>
-              <span>Permissions Granted</span>
-            </div>
-            <button className="btn-secondary">Check Permissions Again</button>
-          </div>
-        );
-      case 'about':
-        return (
-          <div className="tab-content animate-in about-tab">
-            <div className="about-header">
-              <div className="app-icon-large">⌨️</div>
-              <h2>kliky</h2>
-              <p className="version">Version 1.0.0</p>
-            </div>
-            <div className="about-details">
-              <p>A high-performance mechanical keyboard sound engine built with Rust and Tauri.</p>
-              <div className="links">
-                <a href="#" target="_blank">Website</a>
-                <a href="#" target="_blank">GitHub</a>
-                <a href="#" target="_blank">Discord</a>
-              </div>
-            </div>
-            <p className="credits">Created with ❤️ by Antigravity</p>
-          </div>
-        );
+      }
     }
   };
 
+  const handleTabChange = (id: TabId) => {
+    if (activeTab === 'audio' && id !== 'audio') {
+      handlers.handleStopPreview();
+    }
+    setActiveTab(id);
+  };
+
   return (
-    <div className="settings-container">
-      <aside className="settings-sidebar">
-        <div className="sidebar-header">
-          <h2>Settings</h2>
-        </div>
-        <nav className="sidebar-nav">
-          <button
-            className={activeTab === 'general' ? 'active' : ''}
-            onClick={() => setActiveTab('general')}
+    <div
+      className="flex h-screen w-screen bg-transparent overflow-hidden p-2 gap-4 text-black dark:text-white duration-500 font-sans"
+      data-tauri-drag-region="true"
+    >
+      <Sidebar
+        navItems={NAV_ITEMS}
+        activeTab={activeTab}
+        setActiveTab={handleTabChange}
+      />
+
+      <main className="flex-1 h-full bg-white/5 dark:bg-black/10 backdrop-blur-md rounded-2xl border border-black/5 dark:border-white/5 overflow-hidden flex flex-col min-h-0">
+        <ScrollArea className="flex-1 overflow-y-auto">
+          <div
+            key={activeTab}
+            className="max-w-xl mx-auto p-8 animate-in fade-in slide-in-from-bottom-4 duration-300 ease-out select-none"
           >
-            <span className="icon">⚙️</span> General
-          </button>
-          <button
-            className={activeTab === 'sounds' ? 'active' : ''}
-            onClick={() => setActiveTab('sounds')}
-          >
-            <span className="icon">🔊</span> Sounds
-          </button>
-          {isMac && (
-            <button
-              className={activeTab === 'permissions' ? 'active' : ''}
-              onClick={() => setActiveTab('permissions')}
-            >
-              <span className="icon">🔒</span> Permissions
-            </button>
-          )}
-          <button
-            className={activeTab === 'about' ? 'active' : ''}
-            onClick={() => setActiveTab('about')}
-          >
-            <span className="icon">ℹ️</span> About
-          </button>
-        </nav>
-      </aside>
-      <main className="settings-main">
-        {renderTabContent()}
+
+            {activeTab === 'general' && (
+              <GeneralSection
+                isLoading={state.isLoading}
+                enabled={state.enabled}
+                handleToggle={handlers.handleToggle}
+                isAutostart={state.isAutostart}
+                handleAutoLaunchChange={handlers.handleAutoLaunchChange}
+                selectedDevice={state.selectedDevice}
+                handleDeviceChange={handlers.handleDeviceChange}
+                audioDevices={state.audioDevices}
+                hasPermission={state.hasPermission}
+                platformName={state.platformName}
+                showKeyInTray={state.showKeyInTray}
+                handleShowKeyInTrayToggle={handlers.handleShowKeyInTrayToggle}
+              />
+            )}
+
+            {activeTab === 'audio' && (
+              <AudioSection
+                isLoading={state.isLoading}
+                volume={state.volume}
+                handleVolumeUpdate={handlers.handleVolumeUpdate}
+                activePack={state.activePack}
+                previewingPack={state.previewingPack}
+                handlePackChange={handlers.handlePackChange}
+                handlePlayPreview={handlers.handlePlayPreview}
+              />
+            )}
+
+            {activeTab === 'hotkeys' && (
+              <HotkeysSection
+                isLoading={state.isLoading}
+                recordingAction={recorder.recordingAction}
+                shortcuts={state.shortcuts}
+                previewShortcut={recorder.previewShortcut}
+                setRecordingAction={recorder.setRecordingAction}
+                setPreviewShortcut={recorder.setPreviewShortcut}
+                setBackendRecording={recorder.setBackendRecording}
+                handleClearShortcut={recorder.handleClearShortcut}
+                hyperKeyEnabled={state.hyperKeyEnabled}
+              />
+            )}
+
+            {activeTab === 'about' && (
+              <AboutSection
+                appVersion={state.appVersion}
+                handleCheckUpdates={handleCheckUpdates}
+              />
+            )}
+
+          </div>
+        </ScrollArea>
       </main>
     </div>
   );

@@ -1,29 +1,39 @@
 import { useState } from "react";
 import { getCurrentWindow } from "@tauri-apps/api/window";
 import "./App.css";
-import { SoundPackManager } from "./components/SoundPackManager";
 import { Settings } from "./components/Settings/Settings";
+import { Onboarding } from "./components/Onboarding/Onboarding";
+import { Website } from "./components/Website/Website";
+
+declare global {
+  interface Window {
+    __TAURI_INTERNALS__?: unknown;
+  }
+}
 
 function App() {
-  const [windowLabel] = useState<string>(() => getCurrentWindow().label);
+  const [windowLabel] = useState<string>(() => {
+    if (!window.__TAURI_INTERNALS__) {
+      return "website";
+    }
+
+    return getCurrentWindow().label;
+  });
+
+  if (windowLabel === "website") {
+    return <Website />;
+  }
 
   if (windowLabel === "settings") {
     return <Settings />;
   }
 
+  if (windowLabel === "onboarding") {
+    return <Onboarding />;
+  }
+
   return (
-    <main className="container">
-      <div className="status-card">
-        <h1 className="title">kliky</h1>
-        <p className="subtitle">Mechanical keyboard sounds, globally.</p>
-
-        <SoundPackManager />
-
-        <div className="actions">
-          <p className="hint">The app runs in your <strong>System Tray</strong>.</p>
-        </div>
-      </div>
-    </main>
+    <Onboarding />
   );
 }
 
