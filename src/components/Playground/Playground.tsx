@@ -133,7 +133,7 @@ export function Playground() {
         <div className="flex items-center justify-between pb-3 border-b border-white/10" data-tauri-drag-region>
           <div>
             <h3 className="text-sm font-semibold tracking-wide uppercase text-zinc-400 font-mono flex items-center gap-2" data-tauri-drag-region>
-              <span className="w-2 h-2 rounded-full bg-indigo-500 animate-ping" />
+              <span className="w-2 h-2 rounded-full bg-red-500 animate-ping" />
               Live Typing Sandbox
             </h3>
             <p className="text-[11px] text-zinc-500 font-mono mt-0.5" data-tauri-drag-region>
@@ -145,7 +145,7 @@ export function Playground() {
         {/* Glassmorphic Typing Test Area */}
         <div className="flex-1 relative group" data-tauri-drag-region>
           <div
-            className="w-full relative rounded-2xl bg-black/40 backdrop-blur-xl border border-white/10 p-6 lg:p-10 flex flex-col transition duration-300 focus-within:border-indigo-500/40 focus-within:ring-1 focus-within:ring-indigo-500/30 cursor-text group"
+            className="w-full relative rounded-2xl bg-black/40 backdrop-blur-xl border border-white/10 p-6 lg:p-10 flex flex-col transition duration-300 focus-within:border-red-500/40 focus-within:ring-1 focus-within:ring-red-500/30 cursor-text group"
             onClick={() => textareaRef.current?.focus()}
           >
             <textarea
@@ -173,7 +173,7 @@ export function Playground() {
                 return (
                   <span key={index} className="relative inline-block" data-tauri-drag-region>
                     {isCurrent && (
-                      <span className="absolute left-0 top-0.5 bottom-0.5 w-[2px] bg-indigo-500 animate-pulse shadow-[0_0_8px_rgba(99,102,241,0.8)]" />
+                      <span className="absolute left-0 top-0.5 bottom-0.5 w-[2px] bg-red-500 animate-pulse shadow-[0_0_8px_rgba(99,102,241,0.8)]" />
                     )}
                     <span className={`${colorClass} transition-colors duration-75`}>{char}</span>
                   </span>
@@ -182,7 +182,7 @@ export function Playground() {
 
               {text.length === targetText.length && targetText.length > 0 && (
                 <span className="relative inline-block" data-tauri-drag-region>
-                  <span className="absolute left-0 top-0.5 bottom-0.5 w-[2px] bg-indigo-500 animate-pulse shadow-[0_0_8px_rgba(99,102,241,0.8)]" />
+                  <span className="absolute left-0 top-0.5 bottom-0.5 w-[2px] bg-red-500 animate-pulse shadow-[0_0_8px_rgba(99,102,241,0.8)]" />
                 </span>
               )}
             </div>
@@ -214,7 +214,7 @@ export function Playground() {
           </div>
           <div className="bg-black/40 backdrop-blur-xl border border-white/10 rounded-xl p-4 flex flex-col items-center justify-center text-center" data-tauri-drag-region>
             <span className="text-[10px] uppercase tracking-wider text-zinc-500 font-semibold" data-tauri-drag-region>Latency</span>
-            <span className="text-2xl font-bold text-indigo-400 mt-1" data-tauri-drag-region>
+            <span className="text-2xl font-bold text-red-400 mt-1" data-tauri-drag-region>
               &lt; 3<span className="text-xs font-normal" data-tauri-drag-region>ms</span>
             </span>
           </div>

@@ -100,7 +100,7 @@ export function GeneralSection({
                   invoke("request_permissions");
                 }
               }}
-              className="focus-visible:ring-2 focus-visible:ring-indigo-500 dark:focus-visible:ring-white/80 focus-visible:ring-offset-2 dark:focus-visible:ring-offset-black/50"
+              className="focus-visible:ring-2 focus-visible:ring-red-500 dark:focus-visible:ring-white/80 focus-visible:ring-offset-2 dark:focus-visible:ring-offset-black/50"
             />
           </div>
         )}
@@ -113,7 +113,7 @@ export function GeneralSection({
           <Switch 
             checked={enabled} 
             onCheckedChange={handleToggle}
-            className="focus-visible:ring-2 focus-visible:ring-indigo-500 dark:focus-visible:ring-white/80 focus-visible:ring-offset-2 dark:focus-visible:ring-offset-black/50"
+            className="focus-visible:ring-2 focus-visible:ring-red-500 dark:focus-visible:ring-white/80 focus-visible:ring-offset-2 dark:focus-visible:ring-offset-black/50"
           />
         </div>
 
@@ -125,7 +125,7 @@ export function GeneralSection({
           <Switch 
             checked={isAutostart} 
             onCheckedChange={handleAutoLaunchChange}
-            className="focus-visible:ring-2 focus-visible:ring-indigo-500 dark:focus-visible:ring-white/80 focus-visible:ring-offset-2 dark:focus-visible:ring-offset-black/50"
+            className="focus-visible:ring-2 focus-visible:ring-red-500 dark:focus-visible:ring-white/80 focus-visible:ring-offset-2 dark:focus-visible:ring-offset-black/50"
           />
         </div>
 
@@ -137,7 +137,7 @@ export function GeneralSection({
           <Switch 
             checked={showKeyInTray} 
             onCheckedChange={handleShowKeyInTrayToggle}
-            className="focus-visible:ring-2 focus-visible:ring-indigo-500 dark:focus-visible:ring-white/80 focus-visible:ring-offset-2 dark:focus-visible:ring-offset-black/50"
+            className="focus-visible:ring-2 focus-visible:ring-red-500 dark:focus-visible:ring-white/80 focus-visible:ring-offset-2 dark:focus-visible:ring-offset-black/50"
           />
         </div>
 
@@ -149,7 +149,7 @@ export function GeneralSection({
           <select
             value={selectedDevice}
             onChange={(e) => handleDeviceChange(e.target.value)}
-            className="w-1/2 max-w-[240px] p-2 bg-black/10 dark:bg-white/10 rounded-lg border border-black/10 dark:border-white/10 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500/50 dark:focus:ring-white/30 focus-visible:ring-2 focus-visible:ring-indigo-500 dark:focus-visible:ring-white/80 focus-visible:ring-offset-2 dark:focus-visible:ring-offset-black/50 appearance-none cursor-pointer truncate"
+            className="w-1/2 max-w-[240px] p-2 bg-black/10 dark:bg-white/10 rounded-lg border border-black/10 dark:border-white/10 text-sm focus:outline-none focus:ring-2 focus:ring-red-500/50 dark:focus:ring-white/30 focus-visible:ring-2 focus-visible:ring-red-500 dark:focus-visible:ring-white/80 focus-visible:ring-offset-2 dark:focus-visible:ring-offset-black/50 appearance-none cursor-pointer truncate"
           >
             <option value="">Default System Device</option>
             {audioDevices.map((device) => (
@@ -166,10 +166,10 @@ export function GeneralSection({
             </div>
             <Button
               variant="outline"
-              className="w-full h-11 rounded-xl border-dashed hover:border-indigo-500/50 hover:bg-indigo-500/5 flex items-center gap-2 group focus-visible:ring-2 focus-visible:ring-indigo-500 dark:focus-visible:ring-white/80 focus-visible:ring-offset-2 dark:focus-visible:ring-offset-black/50"
+              className="w-full h-11 rounded-xl border-dashed hover:border-red-500/50 hover:bg-red-500/5 flex items-center gap-2 group focus-visible:ring-2 focus-visible:ring-red-500 dark:focus-visible:ring-white/80 focus-visible:ring-offset-2 dark:focus-visible:ring-offset-black/50"
               onClick={() => invoke('show_onboarding')}
             >
-              <Rocket className="w-4 h-4 text-black/40 dark:text-white/40 group-hover:text-indigo-500 transition-colors" />
+              <Rocket className="w-4 h-4 text-black/40 dark:text-white/40 group-hover:text-red-500 transition-colors" />
               <span>Launch Onboarding Flow</span>
             </Button>
           </div>

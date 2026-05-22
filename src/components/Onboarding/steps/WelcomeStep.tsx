@@ -5,7 +5,7 @@ import { OnboardingCard } from "../shared/OnboardingCard";
 export function WelcomeStep() {
   const features = [
     {
-      icon: <Volume2 className="w-5 h-5 text-indigo-500" />,
+      icon: <Volume2 className="w-5 h-5 text-red-500" />,
       title: "Rich Typing Sound Profiles",
       description: "Choose from vintage typewriters, crisp mechanical switches, bubbles, and more."
     },
@@ -26,13 +26,13 @@ export function WelcomeStep() {
       <div className="flex flex-col items-center text-center space-y-6 flex-1 justify-center py-2 max-w-sm mx-auto">
         {/* Animated glowing app emblem */}
         <div className="relative group mt-2">
-          <div className="absolute -inset-1.5 bg-gradient-to-r from-indigo-500 via-purple-500 to-pink-500 rounded-3xl blur opacity-75 group-hover:opacity-100 transition duration-1000 group-hover:duration-200 animate-pulse"></div>
+          <div className="absolute -inset-1.5 bg-gradient-to-r from-red-500 via-red-500 to-pink-500 rounded-3xl blur opacity-75 group-hover:opacity-100 transition duration-1000 group-hover:duration-200 animate-pulse"></div>
           <div className="relative w-20 h-20  dark:bg-neutral-950 rounded-2xl flex items-center justify-center border border-white/10 shadow-2xl">
             <img src="/icon.png" alt="Kliky Logo" className="w-16 h-16 object-cover rounded-xl" onError={(e) => {
               // Fallback if icon.png isn't there
               e.currentTarget.style.display = 'none';
             }} />
-            <Sparkles className="w-10 h-10 text-indigo-400 absolute animate-bounce" style={{ display: 'none' }} id="logo-fallback" />
+            <Sparkles className="w-10 h-10 text-red-400 absolute animate-bounce" style={{ display: 'none' }} id="logo-fallback" />
           </div>
         </div>
 

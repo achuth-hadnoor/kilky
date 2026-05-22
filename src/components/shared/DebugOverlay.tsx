@@ -62,7 +62,7 @@ ${logs.join("\n")}
     <div className="fixed inset-0 z-[9999] bg-black/80 backdrop-blur-md flex flex-col p-6 animate-in fade-in duration-300">
       <div className="flex items-center justify-between mb-6">
         <div className="flex items-center gap-2">
-          <Terminal className="w-5 h-5 text-indigo-400" />
+          <Terminal className="w-5 h-5 text-red-400" />
           <h2 className="text-xl font-bold">Debug Console</h2>
         </div>
         <Button variant="ghost" size="icon" onClick={onClose} className="rounded-full hover:bg-white/10">
@@ -123,14 +123,14 @@ ${logs.join("\n")}
         </div>
       </div>
 
-      <div className="mt-6 p-4 bg-indigo-500/10 border border-indigo-500/20 rounded-2xl flex items-start gap-3">
-        <Info className="w-5 h-5 text-indigo-400 shrink-0 mt-0.5" />
+      <div className="mt-6 p-4 bg-red-500/10 border border-red-500/20 rounded-2xl flex items-start gap-3">
+        <Info className="w-5 h-5 text-red-400 shrink-0 mt-0.5" />
         <div className="space-y-1">
-          <p className="text-sm font-bold text-indigo-100">Fix Permissions (TCC Reset)</p>
-          <p className="text-xs text-indigo-100/60 leading-normal mb-2">
+          <p className="text-sm font-bold text-red-100">Fix Permissions (TCC Reset)</p>
+          <p className="text-xs text-red-100/60 leading-normal mb-2">
             If the toggle won't turn on, run this in Terminal to clear the system cache for this app:
           </p>
-          <code className="block bg-black/30 p-2 rounded text-[10px] font-mono text-indigo-300 select-all cursor-pointer">
+          <code className="block bg-black/30 p-2 rounded text-[10px] font-mono text-red-300 select-all cursor-pointer">
             tccutil reset Accessibility {debugInfo?.bundle_id}
           </code>
         </div>

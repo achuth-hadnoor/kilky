@@ -36,10 +36,10 @@ export function ShortcutSettingsStep({
 
       <div className="flex-1 overflow-y-auto pr-2 -mr-2 space-y-6 mt-4 pb-10">
         {/* Hyper Key Setting */}
-        <OnboardingCard className="flex items-center justify-between p-5 dark:bg-indigo-500/5 bg-indigo-500/10 dark:border-indigo-500/20 border-indigo-500/30 rounded-2xl">
+        <OnboardingCard className="flex items-center justify-between p-5 dark:bg-red-500/5 bg-red-500/10 dark:border-red-500/20 border-red-500/30 rounded-2xl">
           <div className="space-y-1 text-left flex-1 mr-4">
             <div className="flex items-center gap-2">
-              <KeyRound className="w-4 h-4 dark:text-indigo-400 text-indigo-600" />
+              <KeyRound className="w-4 h-4 dark:text-red-400 text-red-600" />
               <p className="text-sm font-bold dark:text-white text-neutral-900">Hyper Key (Caps Lock)</p>
             </div>
             <p className="text-[10px] dark:text-neutral-400 text-neutral-500 leading-normal">

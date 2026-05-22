@@ -22,8 +22,8 @@ export function SoundPackPicker({
         <button
           key={pack.id}
           onClick={() => onPackChange(pack.id)}
-          className={`flex items-center justify-between w-full p-1 rounded-2xl border cursor-pointer duration-200 group focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-indigo-500 dark:focus-visible:ring-white/80 focus-visible:ring-offset-2 dark:focus-visible:ring-offset-black/50 ${activePack === pack.id
-            ? "bg-indigo-600/10 border-indigo-500/50 dark:bg-white/10 dark:border-white/20 shadow-xl"
+          className={`flex items-center justify-between w-full p-1 rounded-2xl border cursor-pointer duration-200 group focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-red-500 dark:focus-visible:ring-white/80 focus-visible:ring-offset-2 dark:focus-visible:ring-offset-black/50 ${activePack === pack.id
+            ? "bg-red-600/10 border-red-500/50 dark:bg-white/10 dark:border-white/20 shadow-xl"
             : "bg-black/5 border-transparent hover:bg-black/10 dark:bg-white/5 dark:hover:bg-white/10"
             }`}
         >
@@ -39,7 +39,7 @@ export function SoundPackPicker({
           <Button
             size="icon"
             variant="ghost"
-            className={`w-8 h-8 rounded-full bg-black/5 dark:bg-white/5 hover:bg-indigo-500 hover:text-white dark:hover:bg-white/20 text-black dark:text-white focus-visible:ring-2 focus-visible:ring-indigo-500 dark:focus-visible:ring-white/80 ${previewingPack === pack.id ? "opacity-100" : "opacity-0 group-hover:opacity-100"
+            className={`w-8 h-8 rounded-full bg-black/5 dark:bg-white/5 hover:bg-red-500 hover:text-white dark:hover:bg-white/20 text-black dark:text-white focus-visible:ring-2 focus-visible:ring-red-500 dark:focus-visible:ring-white/80 ${previewingPack === pack.id ? "opacity-100" : "opacity-0 group-hover:opacity-100"
               }`}
             onClick={(e) => onPlayPreview(e, pack.id)}
           >

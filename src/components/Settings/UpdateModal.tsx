@@ -63,7 +63,7 @@ export function UpdateModal({ isOpen, onClose, update }: UpdateModalProps) {
         onClick={(e) => e.stopPropagation()}
       >
         {/* Glow backdrop decorative circles */}
-        <div className="absolute -top-24 -left-24 w-48 h-48 rounded-full bg-indigo-500/20 blur-3xl" />
+        <div className="absolute -top-24 -left-24 w-48 h-48 rounded-full bg-red-500/20 blur-3xl" />
         <div className="absolute -bottom-24 -right-24 w-48 h-48 rounded-full bg-emerald-500/10 blur-3xl" />
 
         {stage !== 'downloading' && stage !== 'finished' && (
@@ -79,8 +79,8 @@ export function UpdateModal({ isOpen, onClose, update }: UpdateModalProps) {
           {/* Icon Header */}
           {stage === 'prompt' && (
             <div className="relative">
-              <div className="absolute inset-0 bg-indigo-500/20 rounded-full blur-xl scale-125 animate-pulse" />
-              <div className="relative w-16 h-16 rounded-2xl bg-indigo-500 flex items-center justify-center text-white shadow-lg animate-bounce duration-1000">
+              <div className="absolute inset-0 bg-red-500/20 rounded-full blur-xl scale-125 animate-pulse" />
+              <div className="relative w-16 h-16 rounded-2xl bg-red-500 flex items-center justify-center text-white shadow-lg animate-bounce duration-1000">
                 <ArrowUpCircle className="w-8 h-8" />
               </div>
             </div>
@@ -88,8 +88,8 @@ export function UpdateModal({ isOpen, onClose, update }: UpdateModalProps) {
 
           {stage === 'downloading' && (
             <div className="relative">
-              <div className="absolute inset-0 bg-indigo-500/30 rounded-full blur-xl scale-150 animate-pulse" />
-              <div className="relative w-16 h-16 rounded-2xl bg-gradient-to-tr from-indigo-500 to-violet-500 flex items-center justify-center text-white shadow-lg">
+              <div className="absolute inset-0 bg-red-500/30 rounded-full blur-xl scale-150 animate-pulse" />
+              <div className="relative w-16 h-16 rounded-2xl bg-gradient-to-tr from-red-500 to-red-500 flex items-center justify-center text-white shadow-lg">
                 <Loader2 className="w-8 h-8 animate-spin" />
               </div>
             </div>
@@ -121,7 +121,7 @@ export function UpdateModal({ isOpen, onClose, update }: UpdateModalProps) {
               {stage === 'finished' && "Restarting Kliky..."}
               {stage === 'error' && "Update Failed"}
             </h3>
-            <p className="text-sm font-semibold text-indigo-500 dark:text-indigo-400">
+            <p className="text-sm font-semibold text-red-500 dark:text-red-400">
               Version {update.version} is ready.
             </p>
           </div>
@@ -144,7 +144,7 @@ export function UpdateModal({ isOpen, onClose, update }: UpdateModalProps) {
                 </button>
                 <button
                   onClick={handleUpdate}
-                  className="flex-1 h-12 rounded-2xl bg-gradient-to-r from-indigo-500 to-violet-600 hover:from-indigo-600 hover:to-violet-700 text-sm font-semibold text-white shadow-md hover:shadow-lg cursor-pointer transform hover:-translate-y-0.5 transition-all duration-200 flex items-center justify-center gap-2"
+                  className="flex-1 h-12 rounded-2xl bg-gradient-to-r from-red-500 to-red-600 hover:from-red-600 hover:to-red-700 text-sm font-semibold text-white shadow-md hover:shadow-lg cursor-pointer transform hover:-translate-y-0.5 transition-all duration-200 flex items-center justify-center gap-2"
                 >
                   <Download className="w-4 h-4" />
                   Update Now
@@ -157,7 +157,7 @@ export function UpdateModal({ isOpen, onClose, update }: UpdateModalProps) {
             <div className="w-full space-y-4">
               <div className="w-full bg-black/10 dark:bg-white/10 rounded-full h-3 overflow-hidden p-[2px]">
                 <div 
-                  className="bg-gradient-to-r from-indigo-500 to-violet-600 h-full rounded-full transition-all duration-300 ease-out animate-pulse"
+                  className="bg-gradient-to-r from-red-500 to-red-600 h-full rounded-full transition-all duration-300 ease-out animate-pulse"
                   style={{ width: `${progressPercent}%` }}
                 />
               </div>
@@ -193,7 +193,7 @@ export function UpdateModal({ isOpen, onClose, update }: UpdateModalProps) {
                 </button>
                 <button
                   onClick={handleUpdate}
-                  className="flex-1 h-12 rounded-2xl bg-indigo-500 hover:bg-indigo-600 text-sm font-semibold text-white cursor-pointer transition-all duration-200"
+                  className="flex-1 h-12 rounded-2xl bg-red-500 hover:bg-red-600 text-sm font-semibold text-white cursor-pointer transition-all duration-200"
                 >
                   Retry
                 </button>

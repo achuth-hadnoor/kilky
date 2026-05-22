@@ -53,7 +53,7 @@ export function Sidebar<T extends string = string>({ navItems, activeTab, setAct
             id={`nav-item-${item.id}`}
             onClick={() => setActiveTab(item.id)}
             onKeyDown={(e) => handleKeyDown(e, index)}
-            className={`w-full flex items-center gap-3 p-1  pr-4 rounded-xl group transition-all duration-200 border cursor-pointer focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-indigo-500 dark:focus-visible:ring-white/80 focus-visible:ring-offset-2 dark:focus-visible:ring-offset-black/50 ${activeTab === item.id
+            className={`w-full flex items-center gap-3 p-1  pr-4 rounded-xl group transition-all duration-200 border cursor-pointer focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-red-500 dark:focus-visible:ring-white/80 focus-visible:ring-offset-2 dark:focus-visible:ring-offset-black/50 ${activeTab === item.id
               ? 'bg-black/10 dark:bg-white/10 text-black dark:text-white border-black/10 dark:border-white/10 shadow-sm'
               : 'text-black/40 dark:text-white/40 hover:text-black/70 dark:hover:text-white/70 hover:bg-black/5 dark:hover:bg-white/5 border-transparent'
               }`}

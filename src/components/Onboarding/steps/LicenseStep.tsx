@@ -5,11 +5,11 @@ import { Button } from "@/components/ui/button";
 import { useState } from "react";
 import { activateLicense } from "@/lib/license";
 
-export function LicenseStep({ 
+export function LicenseStep({
   onSuccess,
   trialInfo,
   onStartTrial
-}: { 
+}: {
   onSuccess?: () => void,
   trialInfo?: { isTrialStarted: boolean; isTrialActive: boolean; daysLeft: number },
   onStartTrial?: () => void
@@ -37,7 +37,7 @@ export function LicenseStep({
       <div className="flex flex-col items-center text-center space-y-6 flex-1 justify-center py-2 max-w-sm mx-auto">
         <div className="relative group mt-2">
           <div className="w-16 h-16 dark:bg-neutral-900 bg-white rounded-2xl flex items-center justify-center border border-black/10 dark:border-white/10 shadow-lg">
-            <Key className="w-8 h-8 text-indigo-500" />
+            <Key className="w-8 h-8 text-red-500" />
           </div>
         </div>
 
@@ -67,24 +67,24 @@ export function LicenseStep({
                 value={licenseKey}
                 onChange={(e: React.ChangeEvent<HTMLInputElement>) => setLicenseKey(e.target.value)}
                 placeholder="XXXX-XXXX-XXXX-XXXX"
-                className="w-full text-center tracking-widest font-mono text-sm uppercase dark:text-white border border-black/10 dark:border-white/10 focus-visible:ring-2 focus-visible:ring-indigo-500 rounded-md px-3 py-2 outline-none"
+                className="w-full text-center tracking-widest font-mono text-sm uppercase dark:text-white border border-black/10 dark:border-white/10 focus-visible:ring-2 focus-visible:ring-red-500 rounded-md px-3 py-2 outline-none"
                 disabled={isLoading}
               />
             </div>
             <Button
               onClick={handleVerify}
               disabled={isLoading || !licenseKey.trim()}
-              className="w-full rounded-xl bg-indigo-500 hover:bg-indigo-600 text-white border-0 shadow-lg shadow-indigo-500/25 transition-all flex items-center justify-center gap-2"
+              className="w-full rounded-xl bg-red-500 hover:bg-red-600 text-white border-0 shadow-lg shadow-red-500/25 transition-all flex items-center justify-center gap-2"
             >
               {isLoading && <Loader2 className="w-4 h-4 animate-spin" />}
               {isLoading ? "Verifying..." : "Verify License"}
             </Button>
-            
+
             {trialInfo && !trialInfo.isTrialStarted && onStartTrial && (
               <Button
                 variant="outline"
                 onClick={onStartTrial}
-                className="w-full rounded-xl dark:bg-neutral-800 bg-neutral-100 dark:hover:bg-neutral-700 hover:bg-neutral-200 border-none transition-all flex items-center justify-center"
+                className="w-full rounded-xl  bg-neutral-100 dark:text-white dark:bg-neutral-700 hover:bg-neutral-200 border-none transition-all flex items-center justify-center"
               >
                 Start 7-Day Free Trial
               </Button>

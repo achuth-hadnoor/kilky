@@ -30,7 +30,7 @@ export function AboutSection({ appVersion, handleCheckUpdates }: AboutSectionPro
         </div>
         <div className="flex flex-col gap-1">
           <h3 className="text-4xl font-bold tracking-tighter">kliky</h3>
-          <p className="text-indigo-500 font-bold text-xs uppercase tracking-widest">Version {appVersion}</p>
+          <p className="text-red-500 font-bold text-xs uppercase tracking-widest">Version {appVersion}</p>
         </div>
 
         <div className="max-w-xs text-sm text-black/40 dark:text-white/40">
@@ -38,10 +38,10 @@ export function AboutSection({ appVersion, handleCheckUpdates }: AboutSectionPro
         </div>
 
         <div className="flex gap-2">
-          <Button variant="outline" className="rounded-xl border-black/10 dark:border-white/10 px-6 cursor-pointer focus-visible:ring-2 focus-visible:ring-indigo-500 dark:focus-visible:ring-white/80 focus-visible:ring-offset-2 dark:focus-visible:ring-offset-black/50">Release Notes</Button>
+          <Button variant="outline" className="rounded-xl border-black/10 dark:border-white/10 px-6 cursor-pointer focus-visible:ring-2 focus-visible:ring-red-500 dark:focus-visible:ring-white/80 focus-visible:ring-offset-2 dark:focus-visible:ring-offset-black/50">Release Notes</Button>
           <Button
             variant="outline"
-            className="rounded-xl border-black/10 dark:border-white/10 px-6 min-w-[160px] cursor-pointer focus-visible:ring-2 focus-visible:ring-indigo-500 dark:focus-visible:ring-white/80 focus-visible:ring-offset-2 dark:focus-visible:ring-offset-black/50"
+            className="rounded-xl border-black/10 dark:border-white/10 px-6 min-w-[160px] cursor-pointer focus-visible:ring-2 focus-visible:ring-red-500 dark:focus-visible:ring-white/80 focus-visible:ring-offset-2 dark:focus-visible:ring-offset-black/50"
             onClick={onCheck}
             disabled={isChecking}
           >
@@ -57,8 +57,8 @@ export function AboutSection({ appVersion, handleCheckUpdates }: AboutSectionPro
         </div>
       </div>
 
-      <div className="p-6 bg-gradient-to-br from-indigo-500/10 to-purple-500/10 dark:from-indigo-500/20 dark:to-purple-500/20 rounded-3xl border border-indigo-500/20 dark:border-indigo-500/30 flex flex-col items-center text-center space-y-4">
-        <div className="w-12 h-12 rounded-full bg-indigo-500/20 flex items-center justify-center text-indigo-600 dark:text-indigo-400">
+      <div className="p-6 bg-gradient-to-br from-red-500/10 to-red-500/10 dark:from-red-500/20 dark:to-red-500/20 rounded-3xl border border-red-500/20 dark:border-red-500/30 flex flex-col items-center text-center space-y-4">
+        <div className="w-12 h-12 rounded-full bg-red-500/20 flex items-center justify-center text-red-600 dark:text-red-400">
           <Heart className="w-6 h-6 fill-current" />
         </div>
         <div className="space-y-1">
@@ -68,7 +68,7 @@ export function AboutSection({ appVersion, handleCheckUpdates }: AboutSectionPro
           </p>
         </div>
         <Button 
-          className="rounded-xl bg-indigo-500 hover:bg-indigo-600 text-white border-0 px-8 cursor-pointer shadow-lg shadow-indigo-500/25 transition-all hover:scale-105"
+          className="rounded-xl bg-red-500 hover:bg-red-600 text-white border-0 px-8 cursor-pointer shadow-lg shadow-red-500/25 transition-all hover:scale-105"
           onClick={handleSupport}
         >
           Pay What You Want
@@ -91,7 +91,7 @@ export function AboutSection({ appVersion, handleCheckUpdates }: AboutSectionPro
           </div>
           <div className="flex justify-between">
             <span className="text-black/40 dark:text-white/40">License</span>
-            <span className="font-mono text-indigo-500">Premium Lifetime</span>
+            <span className="font-mono text-red-500">Premium Lifetime</span>
           </div>
         </div>
       </div> */}

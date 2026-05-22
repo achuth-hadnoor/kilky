@@ -87,7 +87,7 @@ export function Onboarding({ initialStep = 1, forceLicense = false }: { initialS
     return (
       <div className="w-screen h-screen flex flex-col items-center justify-center bg-zinc-950 text-white select-none">
         <div className="relative flex items-center justify-center">
-          <div className="w-12 h-12 rounded-full border-4 border-indigo-500/20 border-t-indigo-500 animate-spin" />
+          <div className="w-12 h-12 rounded-full border-4 border-red-500/20 border-t-red-500 animate-spin" />
           <div className="absolute w-6 h-6 rounded-full bg-zinc-900 border border-white/10" />
         </div>
         <p className="mt-4 text-xs font-semibold text-zinc-400 tracking-wider animate-pulse uppercase">
@@ -194,7 +194,7 @@ export function Onboarding({ initialStep = 1, forceLicense = false }: { initialS
             {Array.from({ length: TOTAL_STEPS }, (_, i) => i + 1).map((s) => (
               <div
                 key={s}
-                className={`h-1.5 rounded-full duration-300 ${step === s ? 'w-6 bg-indigo-500' : 'w-1.5 bg-neutral-500'
+                className={`h-1.5 rounded-full duration-300 ${step === s ? 'w-6 bg-red-500' : 'w-1.5 bg-neutral-500'
                   }`}
               />
             ))}

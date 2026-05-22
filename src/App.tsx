@@ -47,7 +47,7 @@ function App() {
   if (!isReady) {
     return (
       <div className="flex h-screen w-screen items-center justify-center bg-zinc-950 text-white">
-        <Loader2 className="w-6 h-6 animate-spin text-indigo-500" />
+        <Loader2 className="w-6 h-6 animate-spin text-red-500" />
       </div>
     );
   }

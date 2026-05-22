@@ -38,8 +38,8 @@ export function SoundSelectionStep({
       <StepHeader
         title="Choose Sound Pack"
         description="Select and preview your system-wide sound profile"
-        icon={<Speaker className="w-8 h-8 dark:text-indigo-400 text-indigo-600" />}
-        iconBgColor="dark:bg-indigo-500/10 bg-indigo-500/15"
+        icon={<Speaker className="w-8 h-8 dark:text-red-400 text-red-600" />}
+        iconBgColor="dark:bg-red-500/10 bg-red-500/15"
       />
 
       <div className="flex-1 overflow-y-auto pr-2 -mr-2 space-y-5 py-2 min-h-0">
@@ -67,7 +67,7 @@ export function SoundSelectionStep({
             <select
               value={selectedDevice}
               onChange={(e) => onDeviceChange(e.target.value)}
-              className="w-full p-3 dark:bg-black/30 bg-white rounded-xl border dark:border-zinc-800 border-zinc-300 text-xs focus:outline-none focus:ring-2 focus:ring-indigo-500/30 appearance-none cursor-pointer dark:text-white text-neutral-900"
+              className="w-full p-3 dark:bg-black/30 bg-white rounded-xl border dark:border-zinc-800 border-zinc-300 text-xs focus:outline-none focus:ring-2 focus:ring-red-500/30 appearance-none cursor-pointer dark:text-white text-neutral-900"
             >
               <option value="" className="dark:bg-zinc-950 bg-white dark:text-white text-neutral-900">Default System Device</option>
               {audioDevices.map((device) => (

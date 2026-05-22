@@ -54,7 +54,7 @@ export function LaunchConfirmationStep({
             {/* Sound Pack */}
             <div className="flex items-center justify-between text-xs">
               <div className="flex items-center gap-2.5 dark:text-neutral-400 text-neutral-600">
-                <Volume2 className="w-4 h-4 dark:text-indigo-400 text-indigo-600" />
+                <Volume2 className="w-4 h-4 dark:text-red-400 text-red-600" />
                 <span>Sound Profile</span>
               </div>
               <span className="font-bold dark:text-white text-neutral-950">{activePack} ({volumePercentage}%)</span>
@@ -97,7 +97,7 @@ export function LaunchConfirmationStep({
         <div className="w-full pt-2">
           <button
             onClick={finish}
-            className="w-full py-4 px-6 rounded-2xl dark:bg-white bg-black  font-bold text-sm tracking-wider dark:shadow-xl dark:shadow-indigo-950/40 shadow-indigo-500/20 flex items-center justify-center gap-2 transition-all duration-300 active:scale-[0.98] text-white dark:text-black"
+            className="w-full py-4 px-6 rounded-2xl dark:bg-white bg-black  font-bold text-sm tracking-wider dark:shadow-xl dark:shadow-red-950/40 shadow-red-500/20 flex items-center justify-center gap-2 transition-all duration-300 active:scale-[0.98] text-white dark:text-black"
           >
             <Play className="w-4 h-4 fill-white dark:fill-black" />
             <span>Launch Cliky</span>
