@@ -2,7 +2,7 @@ import { useState, useEffect } from 'react';
 import { invoke } from '@tauri-apps/api/core';
 import { getCurrentWebviewWindow } from '@tauri-apps/api/webviewWindow';
 import { Button } from '@/components/ui/button';
-import { getStoredLicense, getTrialInfo, startTrial, TrialInfo } from '@/lib/license';
+import { getIsActivated, getTrialInfo, startTrial, TrialInfo } from '@/lib/license';
 
 import { useSettings } from '../../hooks/useSettings';
 import { useShortcutRecorder } from '../../hooks/useShortcutRecorder';
@@ -23,9 +23,7 @@ export function Onboarding({ initialStep = 1, forceLicense = false }: { initialS
   const { state, setShortcuts, handlers } = useSettings();
 
   useEffect(() => {
-    getStoredLicense().then((key) => {
-      setHasLicense(!!key);
-    });
+    getIsActivated().then(setHasLicense);
     getTrialInfo().then(setTrialInfo);
   }, []);
 
@@ -210,7 +208,13 @@ export function Onboarding({ initialStep = 1, forceLicense = false }: { initialS
                   ? 'dark:bg-zinc-800 bg-neutral-200 dark:text-zinc-500 text-neutral-400 cursor-not-allowed dark:border-zinc-800 border-neutral-200'
                   : 'dark:bg-white dark:hover:bg-zinc-200 dark:text-zinc-950 bg-neutral-950 hover:bg-neutral-800 text-white shadow-md dark:shadow-white/5 shadow-neutral-950/20'
                   }`}
-                onClick={() => setStep((s) => (s === 1 && hasLicense ? 3 : s + 1))}
+                onClick={() => setStep((s) => {
+                  if (s === 1) {
+                    const hasAccess = hasLicense || (trialInfo?.isTrialStarted && trialInfo?.isTrialActive);
+                    return hasAccess ? 3 : 2;
+                  }
+                  return s + 1;
+                })}
                 disabled={isContinueDisabled}
               >
                 Continue
