@@ -13,7 +13,6 @@ import { HotkeysSection } from './sections/HotkeysSection';
 import { useSettings } from '../../hooks/useSettings';
 import { useShortcutRecorder } from '../../hooks/useShortcutRecorder';
 import { getTrialInfo, getIsActivated, TrialInfo } from '../../lib/license';
-import { invoke } from '@tauri-apps/api/core';
 
 import './Settings.css';
 import { AboutSection } from './sections/AboutSection';

@@ -24,7 +24,7 @@ export function AboutSection({ appVersion, handleCheckUpdates }: AboutSectionPro
 
   const handleSupport = async () => {
     // Replace this URL with your actual Polar.sh product or storefront URL
-    await openUrl('https://polar.sh/trychoco');
+    await openUrl('https://buy.polar.sh/polar_cl_O7avncCbfK2g8xhHOIF2cKRo1Gw9YsvmUVmja28WeJ3');
   };
 
   const handleActivate = async () => {
@@ -98,7 +98,7 @@ export function AboutSection({ appVersion, handleCheckUpdates }: AboutSectionPro
               className="w-full text-center tracking-widest font-mono text-sm uppercase dark:text-white border border-black/10 dark:border-white/10 focus-visible:ring-2 focus-visible:ring-red-500 rounded-xl px-3 py-3 outline-none bg-white dark:bg-black/20"
               disabled={isActivating || success}
             />
-            <Button 
+            <Button
               className="w-full rounded-xl bg-neutral-900 hover:bg-black dark:bg-white dark:text-black dark:hover:bg-neutral-200 text-white transition-all flex items-center justify-center gap-2 mt-1"
               onClick={handleActivate}
               disabled={isActivating || !licenseKey.trim() || success}
@@ -120,7 +120,7 @@ export function AboutSection({ appVersion, handleCheckUpdates }: AboutSectionPro
             Kliky is fully free and open source. If you love the app, consider supporting its development!
           </p>
         </div>
-        <Button 
+        <Button
           className="rounded-xl bg-red-500 hover:bg-red-600 text-white border-0 px-8 cursor-pointer shadow-lg shadow-red-500/25 transition-all hover:scale-105"
           onClick={handleSupport}
         >
