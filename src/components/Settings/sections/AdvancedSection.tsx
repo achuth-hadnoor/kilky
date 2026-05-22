@@ -79,7 +79,7 @@ export function AdvancedSection({
           <Switch
             checked={hardwareAcceleration}
             onCheckedChange={handleHardwareAccelerationToggle}
-            className="focus-visible:ring-2 focus-visible:ring-indigo-500 dark:focus-visible:ring-white/80 focus-visible:ring-offset-2 dark:focus-visible:ring-offset-black/50"
+            className="focus-visible:ring-2 focus-visible:ring-red-500 dark:focus-visible:ring-white/80 focus-visible:ring-offset-2 dark:focus-visible:ring-offset-black/50"
           />
         </div>
 
@@ -98,8 +98,8 @@ export function AdvancedSection({
                       handleBufferSizeChange(opt);
                       setIsChanging(false);
                     }}
-                    className={`px-2.5 py-1 rounded-lg text-[10px] font-mono font-bold cursor-pointer focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-indigo-500 dark:focus-visible:ring-white/80 ${bufferSize === opt
-                      ? "bg-indigo-500 text-white shadow-lg shadow-indigo-500/20"
+                    className={`px-2.5 py-1 rounded-lg text-[10px] font-mono font-bold cursor-pointer focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-red-500 dark:focus-visible:ring-white/80 ${bufferSize === opt
+                      ? "bg-red-500 text-white shadow-lg shadow-red-500/20"
                       : "bg-black/5 dark:bg-white/5 text-black/40 dark:text-white/40 hover:bg-black/10 dark:hover:bg-white/10"
                       }`}
                   >
@@ -109,11 +109,11 @@ export function AdvancedSection({
               </div>
             ) : (
               <>
-                <span className="text-xs font-mono font-bold text-indigo-500 bg-indigo-500/10 px-2 py-1 rounded-lg">{bufferSize}ms</span>
+                <span className="text-xs font-mono font-bold text-red-500 bg-red-500/10 px-2 py-1 rounded-lg">{bufferSize}ms</span>
                 <Button
                   variant="ghost"
                   size="sm"
-                  className="h-7 text-[10px] uppercase font-bold tracking-widest text-black/40 hover:text-indigo-500 cursor-pointer focus-visible:ring-2 focus-visible:ring-indigo-500 dark:focus-visible:ring-white/80"
+                  className="h-7 text-[10px] uppercase font-bold tracking-widest text-black/40 hover:text-red-500 cursor-pointer focus-visible:ring-2 focus-visible:ring-red-500 dark:focus-visible:ring-white/80"
                   onClick={() => setIsChanging(true)}
                 >
                   Change
@@ -128,7 +128,7 @@ export function AdvancedSection({
         <div className="pt-4">
           <Button
             variant="outline"
-            className="w-full border-red-500/20 text-red-500 hover:bg-red-500/5 hover:border-red-500/40 rounded-2xl h-12 font-semibold cursor-pointer focus-visible:ring-2 focus-visible:ring-indigo-500 dark:focus-visible:ring-white/80 focus-visible:ring-offset-2 dark:focus-visible:ring-offset-black/50"
+            className="w-full border-red-500/20 text-red-500 hover:bg-red-500/5 hover:border-red-500/40 rounded-2xl h-12 font-semibold cursor-pointer focus-visible:ring-2 focus-visible:ring-red-500 dark:focus-visible:ring-white/80 focus-visible:ring-offset-2 dark:focus-visible:ring-offset-black/50"
             onClick={handleResetSettings}
           >
             Reset All Settings to Factory

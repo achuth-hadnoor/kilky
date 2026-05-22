@@ -2,21 +2,36 @@ import { useState, useEffect } from 'react';
 import { invoke } from '@tauri-apps/api/core';
 import { getCurrentWebviewWindow } from '@tauri-apps/api/webviewWindow';
 import { Button } from '@/components/ui/button';
+import { getIsActivated, getTrialInfo, startTrial, TrialInfo } from '@/lib/license';
 
 import { useSettings } from '../../hooks/useSettings';
 import { useShortcutRecorder } from '../../hooks/useShortcutRecorder';
 
 import { WelcomeStep } from './steps/WelcomeStep';
+import { LicenseStep } from './steps/LicenseStep';
 import { AccessibilityStep } from './steps/AccessibilityStep';
 import { SoundSelectionStep } from './steps/SoundSelectionStep';
 import { ShortcutSettingsStep } from './steps/ShortcutSettingsStep';
 import { LaunchConfirmationStep } from './steps/LaunchConfirmationStep';
 
-const TOTAL_STEPS = 5;
+const TOTAL_STEPS = 6;
 
-export function Onboarding() {
-  const [step, setStep] = useState(1);
+export function Onboarding({ initialStep = 1, forceLicense = false }: { initialStep?: number, forceLicense?: boolean }) {
+  const [step, setStep] = useState(initialStep);
+  const [hasLicense, setHasLicense] = useState(false);
+  const [trialInfo, setTrialInfo] = useState<TrialInfo | null>(null);
   const { state, setShortcuts, handlers } = useSettings();
+
+  useEffect(() => {
+    getIsActivated().then(setHasLicense);
+    getTrialInfo().then(setTrialInfo);
+  }, []);
+
+  const handleStartTrial = async () => {
+    await startTrial();
+    setTrialInfo(await getTrialInfo());
+    setStep(6);
+  };
 
   const recorder = useShortcutRecorder(
     state.shortcuts,
@@ -72,7 +87,7 @@ export function Onboarding() {
     return (
       <div className="w-screen h-screen flex flex-col items-center justify-center bg-zinc-950 text-white select-none">
         <div className="relative flex items-center justify-center">
-          <div className="w-12 h-12 rounded-full border-4 border-indigo-500/20 border-t-indigo-500 animate-spin" />
+          <div className="w-12 h-12 rounded-full border-4 border-red-500/20 border-t-red-500 animate-spin" />
           <div className="absolute w-6 h-6 rounded-full bg-zinc-900 border border-white/10" />
         </div>
         <p className="mt-4 text-xs font-semibold text-zinc-400 tracking-wider animate-pulse uppercase">
@@ -85,7 +100,7 @@ export function Onboarding() {
   // ----- Render ----------------------------------------------------------
 
   const isMac = state.platformName === 'macos';
-  const isContinueDisabled = step === 2 && !state.hasPermission && isMac;
+  const isContinueDisabled = (step === 2 && !state.hasPermission && isMac) || (step === 5 && !hasLicense);
 
   return (
     <div
@@ -140,7 +155,13 @@ export function Onboarding() {
             />
           )}
 
-          {step === 5 && (
+          {step === 5 && <LicenseStep 
+            onSuccess={() => { setHasLicense(true); setStep(6); }} 
+            trialInfo={trialInfo || undefined}
+            onStartTrial={handleStartTrial}
+          />}
+
+          {step === 6 && (
             <LaunchConfirmationStep
               activePack={state.activePack}
               volume={state.volume}
@@ -157,11 +178,17 @@ export function Onboarding() {
         <div className="w-full flex items-center justify-between mt-auto pt-6 pb-2 px-6 shrink-0 border-t dark:border-white/5 border-black/5">
           {/* Back Button */}
           <div className="w-24">
-            {step > 1 && (
+            {step > 1 && !(forceLicense && step === 5) && (
               <Button
                 variant="ghost"
                 className="rounded-xl dark:bg-white/5 bg-black/5 dark:hover:bg-white/10 hover:bg-black/10 dark:text-white text-neutral-900 px-5 h-10 border dark:border-white/5 border-black/5 active:scale-[0.98] transition-all"
-                onClick={() => setStep((s) => s - 1)}
+                onClick={() => setStep((s) => {
+                  if (s === 6) {
+                    const hasAccess = hasLicense || (trialInfo?.isTrialStarted && trialInfo?.isTrialActive);
+                    return hasAccess ? 4 : 5;
+                  }
+                  return s - 1;
+                })}
               >
                 <span className="text-xs font-semibold">Back</span>
               </Button>
@@ -173,7 +200,7 @@ export function Onboarding() {
             {Array.from({ length: TOTAL_STEPS }, (_, i) => i + 1).map((s) => (
               <div
                 key={s}
-                className={`h-1.5 rounded-full duration-300 ${step === s ? 'w-6 bg-indigo-500' : 'w-1.5 bg-neutral-500'
+                className={`h-1.5 rounded-full duration-300 ${step === s ? 'w-6 bg-red-500' : 'w-1.5 bg-neutral-500'
                   }`}
               />
             ))}
@@ -181,13 +208,19 @@ export function Onboarding() {
 
           {/* Next Button */}
           <div className="w-24 flex justify-end">
-            {step < TOTAL_STEPS && (
+            {step < TOTAL_STEPS && !(forceLicense && step === 5) && (
               <Button
                 className={`px-5 h-10 rounded-xl font-bold text-xs transition-all active:scale-[0.98] ${isContinueDisabled
                   ? 'dark:bg-zinc-800 bg-neutral-200 dark:text-zinc-500 text-neutral-400 cursor-not-allowed dark:border-zinc-800 border-neutral-200'
                   : 'dark:bg-white dark:hover:bg-zinc-200 dark:text-zinc-950 bg-neutral-950 hover:bg-neutral-800 text-white shadow-md dark:shadow-white/5 shadow-neutral-950/20'
                   }`}
-                onClick={() => setStep((s) => s + 1)}
+                onClick={() => setStep((s) => {
+                  if (s === 4) {
+                    const hasAccess = hasLicense || (trialInfo?.isTrialStarted && trialInfo?.isTrialActive);
+                    return hasAccess ? 6 : 5;
+                  }
+                  return s + 1;
+                })}
                 disabled={isContinueDisabled}
               >
                 Continue

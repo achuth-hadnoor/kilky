@@ -1,11 +1,11 @@
 use crate::state::ExternalPack;
-use std::collections::HashMap;
 use rodio::Source;
+use std::collections::HashMap;
 
 pub fn get_velvet_pack() -> ExternalPack {
     let mut sounds = HashMap::new();
     let mut settings = HashMap::new();
-    
+
     // Key groups for mapping
     let spacebar = "57";
     let enter = "28";
@@ -15,19 +15,43 @@ pub fn get_velvet_pack() -> ExternalPack {
 
     for i in 1..=126 {
         let key_id = i.to_string();
-        
+
         if key_id == spacebar {
             sounds.insert(key_id.clone(), "banana-l-2.wav".to_string());
-            settings.insert(key_id, crate::state::KeySettings { pitch: 0.85, volume: 1.2 });
+            settings.insert(
+                key_id,
+                crate::state::KeySettings {
+                    pitch: 0.85,
+                    volume: 1.2,
+                },
+            );
         } else if key_id == enter || key_id == backspace {
             sounds.insert(key_id.clone(), "banana-l-4.wav".to_string());
-            settings.insert(key_id, crate::state::KeySettings { pitch: 0.95, volume: 1.1 });
+            settings.insert(
+                key_id,
+                crate::state::KeySettings {
+                    pitch: 0.95,
+                    volume: 1.1,
+                },
+            );
         } else if modifiers.contains(&key_id.as_str()) {
             sounds.insert(key_id.clone(), "banana-l-1.wav".to_string());
-            settings.insert(key_id, crate::state::KeySettings { pitch: 1.0, volume: 0.7 });
+            settings.insert(
+                key_id,
+                crate::state::KeySettings {
+                    pitch: 1.0,
+                    volume: 0.7,
+                },
+            );
         } else if arrows.contains(&key_id.as_str()) {
             sounds.insert(key_id.clone(), "banana-l-3.wav".to_string());
-            settings.insert(key_id, crate::state::KeySettings { pitch: 1.05, volume: 0.9 });
+            settings.insert(
+                key_id,
+                crate::state::KeySettings {
+                    pitch: 1.05,
+                    volume: 0.9,
+                },
+            );
         } else {
             // Alphas and everything else - cycle through 1, 3, 5, 6, 7
             let alpha_samples = [1, 3, 5, 6, 7];
@@ -74,10 +98,22 @@ pub fn get_neon_pack() -> ExternalPack {
         let key_id = i.to_string();
         if key_id == spacebar {
             sounds.insert(key_id.clone(), "2.wav".to_string());
-            settings.insert(key_id, crate::state::KeySettings { pitch: 0.7, volume: 1.3 });
+            settings.insert(
+                key_id,
+                crate::state::KeySettings {
+                    pitch: 0.7,
+                    volume: 1.3,
+                },
+            );
         } else if modifiers.contains(&key_id.as_str()) {
             sounds.insert(key_id.clone(), "1.wav".to_string());
-            settings.insert(key_id, crate::state::KeySettings { pitch: 1.0, volume: 0.6 });
+            settings.insert(
+                key_id,
+                crate::state::KeySettings {
+                    pitch: 1.0,
+                    volume: 0.6,
+                },
+            );
         } else {
             let sample_num = if i % 2 == 0 { 2 } else { 1 };
             sounds.insert(key_id, format!("{}.wav", sample_num));
@@ -85,8 +121,14 @@ pub fn get_neon_pack() -> ExternalPack {
     }
 
     let mut audio_data = HashMap::new();
-    audio_data.insert("1.wav".to_string(), decode_wav(include_bytes!("../assets/packs/8bit/1.wav")));
-    audio_data.insert("2.wav".to_string(), decode_wav(include_bytes!("../assets/packs/8bit/2.wav")));
+    audio_data.insert(
+        "1.wav".to_string(),
+        decode_wav(include_bytes!("../assets/packs/8bit/1.wav")),
+    );
+    audio_data.insert(
+        "2.wav".to_string(),
+        decode_wav(include_bytes!("../assets/packs/8bit/2.wav")),
+    );
 
     ExternalPack {
         config: crate::state::PackConfig {
@@ -100,8 +142,8 @@ pub fn get_neon_pack() -> ExternalPack {
 }
 
 fn decode_wav(bytes: &'static [u8]) -> Vec<f32> {
-    use std::io::Cursor;
     use rodio::Decoder;
+    use std::io::Cursor;
     let cursor = Cursor::new(bytes);
     let source = Decoder::try_from(cursor).expect("Failed to decode WAV");
     let channels = source.channels().get();

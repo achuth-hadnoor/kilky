@@ -42,7 +42,7 @@ export const ShortcutRecorder = ({
           <Button
             variant="ghost"
             size="sm"
-            className="h-8 px-2 text-black/20 dark:text-white/20 hover:text-red-500 transition-colors focus-visible:ring-2 focus-visible:ring-indigo-500 dark:focus-visible:ring-white/80"
+            className="h-8 px-2 text-black/20 dark:text-white/20 hover:text-red-500 transition-colors focus-visible:ring-2 focus-visible:ring-red-500 dark:focus-visible:ring-white/80"
             onClick={() => onClear(action)}
           >
             Clear
@@ -50,26 +50,26 @@ export const ShortcutRecorder = ({
         )}
         <Button
           variant="outline"
-          className={`min-w-[140px] h-10 font-mono text-xs cursor-pointer relative overflow-hidden focus-visible:ring-2 focus-visible:ring-indigo-500 dark:focus-visible:ring-white/80 focus-visible:ring-offset-2 dark:focus-visible:ring-offset-black/50 ${isRecording ? 'border-indigo-500 bg-indigo-500/10 ring-2 ring-indigo-500/20' : 'hover:border-black/20 dark:hover:border-white/20'}`}
+          className={`min-w-[140px] h-10 font-mono text-xs cursor-pointer relative overflow-hidden focus-visible:ring-2 focus-visible:ring-red-500 dark:focus-visible:ring-white/80 focus-visible:ring-offset-2 dark:focus-visible:ring-offset-black/50 ${isRecording ? 'border-red-500 bg-red-500/10 ring-2 ring-red-500/20' : 'hover:border-black/20 dark:hover:border-white/20'}`}
           onClick={() => onRecord(action, !isRecording)}
         >
           {isRecording ? (
             <div className="flex items-center gap-2">
-              <span className="w-1.5 h-1.5 rounded-full bg-indigo-500 animate-pulse" />
+              <span className="w-1.5 h-1.5 rounded-full bg-red-500 animate-pulse" />
               <span>{previewShortcut || 'Recording...'}</span>
             </div>
           ) : (
-            <div className={shortcut ? 'text-indigo-600 dark:text-indigo-400 font-bold' : 'text-black/40 dark:text-white/40'}>
+            <div className={shortcut ? 'text-red-600 dark:text-red-400 font-bold' : 'text-black/40 dark:text-white/40'}>
               {shortcut ? (
                 shortcut.modifiers === 15 ? (
                   <div className="flex items-center gap-1.5">
-                    <div className="flex items-center gap-1 px-1.5 py-0.5 rounded bg-indigo-500/10 border border-indigo-500/20 text-[10px] tracking-tight uppercase">
-                      <Zap className="w-2.5 h-2.5 fill-indigo-500 text-indigo-500" />
+                    <div className="flex items-center gap-1 px-1.5 py-0.5 rounded bg-red-500/10 border border-red-500/20 text-[10px] tracking-tight uppercase">
+                      <Zap className="w-2.5 h-2.5 fill-red-500 text-red-500" />
                     </div>
                     <span>+ {getMacosKeyName(shortcut.key_code)}</span>
                   </div>
                 ) : (
-                  <span className="w-2.5 h-2.5 fill-indigo-500 text-indigo-500" >{shortcut.display}</span>
+                  <span className="w-2.5 h-2.5 fill-red-500 text-red-500" >{shortcut.display}</span>
                 )
               ) : (
                 'Record Shortcut'

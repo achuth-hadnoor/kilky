@@ -18,17 +18,17 @@ use tauri_plugin_autostart::ManagerExt;
 /// Volume preset options shown in the tray menu.
 const VOLUME_PRESETS: &[(&str, u32)] = &[
     ("Louder (100%)", 100),
-    ("Loud (80%)",    80),
+    ("Loud (80%)", 80),
     ("Balanced (50%)", 50),
-    ("Soft (30%)",    30),
-    ("Softer (10%)",  10),
+    ("Soft (30%)", 30),
+    ("Softer (10%)", 10),
 ];
 
 /// Sound pack options shown in the "Sound Switches" submenu.
 const PACK_CONFIGS: &[(&str, ActivePackType)] = &[
-    ("Zenith (Smooth Linear)",  ActivePackType::Zenith),
-    ("Velvet (Creamy Linear)",  ActivePackType::Velvet),
-    ("Neon (Retro 8-bit)",      ActivePackType::Neon),
+    ("Zenith (Smooth Linear)", ActivePackType::Zenith),
+    ("Velvet (Creamy Linear)", ActivePackType::Velvet),
+    ("Neon (Retro 8-bit)", ActivePackType::Neon),
     ("Obsidian (Crisp Tactile)", ActivePackType::Obsidian),
     ("Sapphire (Sharp Clicky)", ActivePackType::Sapphire),
 ];
@@ -57,16 +57,27 @@ pub fn setup_tray(app: &tauri::AppHandle) -> tauri::Result<()> {
     // ---- Top-level menu items -------------------------------------------
 
     let toggle_item = CheckMenuItem::with_id(
-        app, "toggle", "Enable Kliky", true, initial_enabled, None::<&str>,
+        app,
+        "toggle",
+        "Enable Kliky",
+        true,
+        initial_enabled,
+        None::<&str>,
     )?;
 
     let is_autostart_enabled = app.autolaunch().is_enabled().unwrap_or(false);
     let autostart_item = CheckMenuItem::with_id(
-        app, "autostart", "Launch at Startup", true, is_autostart_enabled, None::<&str>,
+        app,
+        "autostart",
+        "Launch at Startup",
+        true,
+        is_autostart_enabled,
+        None::<&str>,
     )?;
 
     let settings_item = MenuItem::with_id(app, "settings", "Settings...", true, None::<&str>)?;
-    let quit_item     = MenuItem::with_id(app, "quit",     "Quit",        true, None::<&str>)?;
+    let typing_test_item = MenuItem::with_id(app, "playground", "Typing Test", true, None::<&str>)?;
+    let quit_item = MenuItem::with_id(app, "quit", "Quit", true, None::<&str>)?;
 
     // ---- Volume submenu --------------------------------------------------
 
@@ -74,9 +85,14 @@ pub fn setup_tray(app: &tauri::AppHandle) -> tauri::Result<()> {
     let mut vol_items: HashMap<u32, CheckMenuItem<tauri::Wry>> = HashMap::new();
 
     for &(label, vol) in VOLUME_PRESETS {
-        let id   = format!("vol_{}", vol);
+        let id = format!("vol_{}", vol);
         let item = CheckMenuItem::with_id(
-            app, id.clone(), label, true, vol == initial_volume, None::<&str>,
+            app,
+            id.clone(),
+            label,
+            true,
+            vol == initial_volume,
+            None::<&str>,
         )?;
         vol_submenu.append(&item)?;
         vol_items.insert(vol, item);
@@ -89,9 +105,14 @@ pub fn setup_tray(app: &tauri::AppHandle) -> tauri::Result<()> {
 
     for (label, pt) in PACK_CONFIGS {
         let pt = pt.clone();
-        let id   = format!("pack_{:?}", pt);
+        let id = format!("pack_{:?}", pt);
         let item = CheckMenuItem::with_id(
-            app, id.clone(), *label, true, pt == initial_pack, None::<&str>,
+            app,
+            id.clone(),
+            *label,
+            true,
+            pt == initial_pack,
+            None::<&str>,
         )?;
         pack_submenu.append(&item)?;
         pack_items.insert(pt, item);
@@ -105,6 +126,7 @@ pub fn setup_tray(app: &tauri::AppHandle) -> tauri::Result<()> {
     menu.append(&vol_submenu)?;
     menu.append(&pack_submenu)?;
     menu.append(&PredefinedMenuItem::separator(app)?)?;
+    menu.append(&typing_test_item)?;
     menu.append(&settings_item)?;
     menu.append(&quit_item)?;
 
@@ -120,8 +142,8 @@ pub fn setup_tray(app: &tauri::AppHandle) -> tauri::Result<()> {
     let tray = tray_builder
         .on_menu_event(move |app, event| {
             // Dispatch all menu click events back onto the main thread.
-            let id          = event.id.clone();
-            let handle      = app.clone();
+            let id = event.id.clone();
+            let handle = app.clone();
             let autostart_c = autostart_clone.clone();
 
             let _ = app.run_on_main_thread(move || {
@@ -144,12 +166,12 @@ pub fn setup_tray(app: &tauri::AppHandle) -> tauri::Result<()> {
 
     // Register state so other parts of the app can update menu check states.
     app.manage(TrayState {
-        toggle:    toggle_item,
+        toggle: toggle_item,
         autostart: autostart_item,
-        volumes:   vol_items,
-        packs:     pack_items,
-        menu:      menu.clone(),
-        _tray:     tray,
+        volumes: vol_items,
+        packs: pack_items,
+        menu: menu.clone(),
+        _tray: tray,
     });
 
     Ok(())
@@ -159,11 +181,7 @@ pub fn setup_tray(app: &tauri::AppHandle) -> tauri::Result<()> {
 ///
 /// Extracted from the closure so the logic is independently testable and easy
 /// to read at a glance.
-fn handle_menu_event(
-    handle:      &tauri::AppHandle,
-    id:          &str,
-    autostart_c: &CheckMenuItem<tauri::Wry>,
-) {
+fn handle_menu_event(handle: &tauri::AppHandle, id: &str, autostart_c: &CheckMenuItem<tauri::Wry>) {
     match id {
         // Quit the application entirely.
         "quit" => {
@@ -173,6 +191,11 @@ fn handle_menu_event(
         // Open (or focus) the Settings window.
         "settings" => {
             crate::window::spawn_window(handle, crate::window::WindowType::Settings);
+        }
+
+        // Open the Typing Test playground window.
+        "playground" => {
+            crate::window::spawn_window(handle, crate::window::WindowType::Playground);
         }
 
         // Toggle the audio engine on/off.
@@ -213,12 +236,12 @@ fn handle_menu_event(
         // Sound pack: id format is "pack_<PackTypeName>".
         id if id.starts_with("pack_") => {
             let pt = match &id["pack_".len()..] {
-                "Zenith"   => ActivePackType::Zenith,
-                "Velvet"   => ActivePackType::Velvet,
-                "Neon"     => ActivePackType::Neon,
+                "Zenith" => ActivePackType::Zenith,
+                "Velvet" => ActivePackType::Velvet,
+                "Neon" => ActivePackType::Neon,
                 "Obsidian" => ActivePackType::Obsidian,
                 "Sapphire" => ActivePackType::Sapphire,
-                _          => return,
+                _ => return,
             };
             set_sound_pack(handle.clone(), pt);
         }

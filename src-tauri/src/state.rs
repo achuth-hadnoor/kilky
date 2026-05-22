@@ -11,8 +11,8 @@ use rodio::{Decoder, Source};
 use serde::{Deserialize, Serialize};
 use std::collections::HashMap;
 use std::io::Cursor;
-use std::sync::{Arc, Mutex};
 use std::sync::atomic::AtomicBool;
+use std::sync::{Arc, Mutex};
 use tauri::menu::{CheckMenuItem, Menu};
 use tauri::tray::TrayIcon;
 
@@ -24,9 +24,9 @@ use tauri::tray::TrayIcon;
 #[derive(Serialize, Deserialize, Clone, Copy, Debug)]
 pub struct KeyEvent {
     /// Platform-specific key code (macOS virtual key code or Windows VK).
-    pub code:    u32,
+    pub code: u32,
     /// Bitfield of active modifier flags (platform-specific masks).
-    pub flags:   u64,
+    pub flags: u64,
     /// `true` for key-down events, `false` for key-up.
     pub is_down: bool,
 }
@@ -34,7 +34,7 @@ pub struct KeyEvent {
 /// Handle used to send key events from the native listener thread to the
 /// audio worker thread.
 pub struct KeySender {
-    pub tx:         std::sync::mpsc::Sender<KeyEvent>,
+    pub tx: std::sync::mpsc::Sender<KeyEvent>,
     /// Shared flag so we can detect whether the listener is already running.
     pub is_running: Arc<Mutex<bool>>,
 }
@@ -46,36 +46,36 @@ pub struct KeySender {
 /// Per-key audio settings stored inside a pack's `config.json`.
 #[derive(Clone, Serialize, Deserialize)]
 pub struct KeySettings {
-    pub pitch:  f32,
+    pub pitch: f32,
     pub volume: f32,
 }
 
 /// A user-configured keyboard shortcut with its display string.
 #[derive(Clone, Serialize, Deserialize, Debug)]
 pub struct Shortcut {
-    pub key_code:  u32,
+    pub key_code: u32,
     /// Bitmask: bit 0 = Cmd/Win, bit 1 = Shift, bit 2 = Alt/Option, bit 3 = Ctrl.
     /// bit mask 15 (all four) = Hyper Key.
     pub modifiers: u32,
     /// Human-readable representation shown in the UI (e.g. "⌘⇧L").
-    pub display:   String,
+    pub display: String,
 }
 
 /// The JSON structure of a sound pack's `config.json` file.
 #[derive(Clone, Serialize, Deserialize)]
 pub struct PackConfig {
-    pub name:        String,
+    pub name: String,
     pub description: Option<String>,
     /// Maps key identifiers (e.g. `"Default"`, `"Space"`) to audio file names.
-    pub sounds:      HashMap<String, String>,
+    pub sounds: HashMap<String, String>,
     /// Optional per-key volume / pitch overrides.
-    pub settings:    Option<HashMap<String, KeySettings>>,
+    pub settings: Option<HashMap<String, KeySettings>>,
 }
 
 /// A fully-loaded external sound pack (config + decoded PCM samples in memory).
 #[derive(Clone)]
 pub struct ExternalPack {
-    pub config:     PackConfig,
+    pub config: PackConfig,
     /// Key: audio file name → Value: mono f32 PCM samples at 44 100 Hz.
     pub audio_data: HashMap<String, Vec<f32>>,
 }
@@ -119,19 +119,19 @@ fn default_true() -> bool {
 /// The subset of `AppState` that is persisted across launches.
 #[derive(Serialize, Deserialize, Clone)]
 pub struct PersistentConfig {
-    pub enabled:              bool,
-    pub volume:               f32,
-    pub active_pack_type:     ActivePackType,
-    pub audio_device:         Option<String>,
-    pub shortcuts:            HashMap<String, Shortcut>,
-    pub hyper_key_enabled:    bool,
-    pub has_onboarded:        bool,
-    pub buffer_size:          u32,
+    pub enabled: bool,
+    pub volume: f32,
+    pub active_pack_type: ActivePackType,
+    pub audio_device: Option<String>,
+    pub shortcuts: HashMap<String, Shortcut>,
+    pub hyper_key_enabled: bool,
+    pub has_onboarded: bool,
+    pub buffer_size: u32,
     pub hardware_acceleration: bool,
-    pub total_keystrokes:     u64,
+    pub total_keystrokes: u64,
     pub speed_volume_scaling: bool,
     #[serde(default = "default_true")]
-    pub show_key_in_tray:     bool,
+    pub show_key_in_tray: bool,
 }
 
 // ---------------------------------------------------------------------------
@@ -141,32 +141,32 @@ pub struct PersistentConfig {
 /// Complete in-memory state, shared across all threads via `STATE`.
 pub struct AppState {
     // --- Audio engine ---
-    pub enabled:              bool,
-    pub volume:               f32,
-    pub active_pack_type:     ActivePackType,
-    pub active_pack:          ActivePack,
+    pub enabled: bool,
+    pub volume: f32,
+    pub active_pack_type: ActivePackType,
+    pub active_pack: ActivePack,
     /// Stop-signal for the currently running audio preview thread.
-    pub preview_stop_signal:  Option<Arc<AtomicBool>>,
-    pub audio_device:         Option<String>,
+    pub preview_stop_signal: Option<Arc<AtomicBool>>,
+    pub audio_device: Option<String>,
 
     // --- Shortcuts & recording ---
-    pub shortcuts:            HashMap<String, Shortcut>,
-    pub hyper_key_enabled:    bool,
+    pub shortcuts: HashMap<String, Shortcut>,
+    pub hyper_key_enabled: bool,
     /// `true` while the UI shortcut recorder is active; suppresses shortcut triggering.
-    pub is_recording:         bool,
+    pub is_recording: bool,
 
     // --- Lifecycle ---
-    pub has_onboarded:        bool,
+    pub has_onboarded: bool,
 
     // --- Advanced audio settings ---
-    pub buffer_size:          u32,
+    pub buffer_size: u32,
     pub hardware_acceleration: bool,
     pub speed_volume_scaling: bool,
-    pub show_key_in_tray:     bool,
+    pub show_key_in_tray: bool,
 
     // --- Analytics ---
-    pub total_keystrokes:     u64,
-    pub session_keystrokes:   u64,
+    pub total_keystrokes: u64,
+    pub session_keystrokes: u64,
 }
 
 impl AppState {
@@ -200,68 +200,68 @@ impl AppState {
 
         // Resolve the active pack runtime representation from the persisted type.
         let active_pack = match config.active_pack_type {
-            ActivePackType::Zenith   => ActivePack::Zenith,
+            ActivePackType::Zenith => ActivePack::Zenith,
             ActivePackType::Obsidian => ActivePack::Obsidian,
             ActivePackType::Sapphire => ActivePack::Sapphire,
-            ActivePackType::Velvet   => ActivePack::Velvet(crate::builtin_packs::get_velvet_pack()),
-            ActivePackType::Neon     => ActivePack::Neon(crate::builtin_packs::get_neon_pack()),
+            ActivePackType::Velvet => ActivePack::Velvet(crate::builtin_packs::get_velvet_pack()),
+            ActivePackType::Neon => ActivePack::Neon(crate::builtin_packs::get_neon_pack()),
             // Custom packs are loaded on demand; fall back to Zenith until loaded.
-            ActivePackType::Custom   => ActivePack::Zenith,
+            ActivePackType::Custom => ActivePack::Zenith,
         };
 
         Self {
-            enabled:              config.enabled,
-            volume:               config.volume,
-            active_pack_type:     config.active_pack_type,
+            enabled: config.enabled,
+            volume: config.volume,
+            active_pack_type: config.active_pack_type,
             active_pack,
-            preview_stop_signal:  None,
-            audio_device:         config.audio_device,
-            shortcuts:            config.shortcuts,
-            hyper_key_enabled:    config.hyper_key_enabled,
-            is_recording:         false,
-            has_onboarded:        config.has_onboarded,
-            buffer_size:          config.buffer_size,
+            preview_stop_signal: None,
+            audio_device: config.audio_device,
+            shortcuts: config.shortcuts,
+            hyper_key_enabled: config.hyper_key_enabled,
+            is_recording: false,
+            has_onboarded: config.has_onboarded,
+            buffer_size: config.buffer_size,
             hardware_acceleration: config.hardware_acceleration,
-            total_keystrokes:     config.total_keystrokes,
-            session_keystrokes:   0, // Always reset to 0 on launch
+            total_keystrokes: config.total_keystrokes,
+            session_keystrokes: 0, // Always reset to 0 on launch
             speed_volume_scaling: config.speed_volume_scaling,
-            show_key_in_tray:     config.show_key_in_tray,
+            show_key_in_tray: config.show_key_in_tray,
         }
     }
 
     /// Returns the hard-coded defaults used for new installations.
     pub fn default_config() -> PersistentConfig {
         PersistentConfig {
-            enabled:              true,
-            volume:               0.5,
-            active_pack_type:     ActivePackType::Zenith,
-            audio_device:         None,
-            shortcuts:            HashMap::new(),
-            hyper_key_enabled:    true,
-            has_onboarded:        false,
-            buffer_size:          128,
+            enabled: true,
+            volume: 0.5,
+            active_pack_type: ActivePackType::Zenith,
+            audio_device: None,
+            shortcuts: HashMap::new(),
+            hyper_key_enabled: true,
+            has_onboarded: false,
+            buffer_size: 128,
             hardware_acceleration: true,
-            total_keystrokes:     0,
+            total_keystrokes: 0,
             speed_volume_scaling: true,
-            show_key_in_tray:     true,
+            show_key_in_tray: true,
         }
     }
 
     /// Persists the current state to SQLite.
     pub fn save(&self) {
         let config = PersistentConfig {
-            enabled:              self.enabled,
-            volume:               self.volume,
-            active_pack_type:     self.active_pack_type.clone(),
-            audio_device:         self.audio_device.clone(),
-            shortcuts:            self.shortcuts.clone(),
-            hyper_key_enabled:    self.hyper_key_enabled,
-            has_onboarded:        self.has_onboarded,
-            buffer_size:          self.buffer_size,
+            enabled: self.enabled,
+            volume: self.volume,
+            active_pack_type: self.active_pack_type.clone(),
+            audio_device: self.audio_device.clone(),
+            shortcuts: self.shortcuts.clone(),
+            hyper_key_enabled: self.hyper_key_enabled,
+            has_onboarded: self.has_onboarded,
+            buffer_size: self.buffer_size,
             hardware_acceleration: self.hardware_acceleration,
-            total_keystrokes:     self.total_keystrokes,
+            total_keystrokes: self.total_keystrokes,
             speed_volume_scaling: self.speed_volume_scaling,
-            show_key_in_tray:     self.show_key_in_tray,
+            show_key_in_tray: self.show_key_in_tray,
         };
         let _ = crate::db::save_config(&config);
     }
@@ -279,22 +279,22 @@ impl AppState {
 /// Holds handles to all menu items so other commands can update their
 /// checked state without rebuilding the entire menu.
 pub struct TrayState {
-    pub toggle:    CheckMenuItem<tauri::Wry>,
+    pub toggle: CheckMenuItem<tauri::Wry>,
     pub autostart: CheckMenuItem<tauri::Wry>,
     /// Volume preset items keyed by percentage (0–100).
-    pub volumes:   HashMap<u32, CheckMenuItem<tauri::Wry>>,
+    pub volumes: HashMap<u32, CheckMenuItem<tauri::Wry>>,
     /// Sound pack items keyed by `ActivePackType`.
-    pub packs:     HashMap<ActivePackType, CheckMenuItem<tauri::Wry>>,
-    pub menu:      Menu<tauri::Wry>,
+    pub packs: HashMap<ActivePackType, CheckMenuItem<tauri::Wry>>,
+    pub menu: Menu<tauri::Wry>,
     /// The live tray icon handle (prefixed with `_` to suppress unused-field warnings).
-    pub _tray:     TrayIcon<tauri::Wry>,
+    pub _tray: TrayIcon<tauri::Wry>,
 }
 
 /// Audio device handles shared between the audio worker and the device-switch command.
 #[derive(Clone)]
 pub struct AudioState {
     pub mixer: Arc<Mutex<rodio::mixer::Mixer>>,
-    pub sink:  Arc<Mutex<Option<rodio::MixerDeviceSink>>>,
+    pub sink: Arc<Mutex<Option<rodio::MixerDeviceSink>>>,
 }
 
 // ---------------------------------------------------------------------------

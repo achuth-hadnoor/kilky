@@ -5,6 +5,7 @@
 //! JavaScript UI and the Rust application state / audio engine.
 
 use crate::state::{ActivePack, ActivePackType, ExternalPack, PackConfig, TrayState, STATE};
+use rand::RngExt;
 use rodio::Decoder;
 use serde_json::json;
 use std::collections::HashMap;
@@ -18,7 +19,6 @@ use std::thread;
 use std::time::Duration;
 use tauri::{AppHandle, Emitter, Manager};
 use tauri_plugin_autostart::ManagerExt;
-use rand::RngExt;
 
 #[derive(serde::Serialize)]
 pub struct AppStateResponse {
@@ -58,14 +58,14 @@ pub fn set_show_key_in_tray(app: AppHandle, enabled: bool) {
     let mut state = STATE.lock().unwrap();
     state.show_key_in_tray = enabled;
     state.save();
-    
+
     // Immediately clear the tray title if disabled
     if !enabled {
         if let Some(tray) = app.tray_by_id("main") {
             let _ = tray.set_title(Some("".to_string()));
         }
     }
-    
+
     let _ = app.emit("state-update", ());
 }
 
@@ -124,8 +124,8 @@ pub fn set_sound_pack(app: AppHandle, pack_type: ActivePackType) {
 
 #[tauri::command]
 pub fn get_audio_devices() -> Vec<String> {
-    use rodio::cpal::traits::HostTrait;
     use rodio::cpal::traits::DeviceTrait;
+    use rodio::cpal::traits::HostTrait;
     let host = rodio::cpal::default_host();
     match host.output_devices() {
         Ok(devices) => devices
@@ -137,7 +137,7 @@ pub fn get_audio_devices() -> Vec<String> {
 
 #[tauri::command]
 pub fn set_audio_device(app: AppHandle, device_name: String) -> Result<(), String> {
-    use rodio::cpal::traits::{HostTrait, DeviceTrait};
+    use rodio::cpal::traits::{DeviceTrait, HostTrait};
     use rodio::DeviceSinkBuilder;
 
     let mut state = STATE.lock().unwrap();
@@ -159,7 +159,7 @@ pub fn set_audio_device(app: AppHandle, device_name: String) -> Result<(), Strin
     if let Some(device) = target_device {
         let audio_state = app.state::<crate::state::AudioState>();
         log::info!("Switching to audio device: '{}'", device_name);
-        
+
         let new_sink_builder = DeviceSinkBuilder::from_device(device).map_err(|e| {
             log::error!("Failed to create sink builder: {}", e);
             e.to_string()
@@ -169,7 +169,7 @@ pub fn set_audio_device(app: AppHandle, device_name: String) -> Result<(), Strin
             log::error!("Failed to open audio stream on {}: {}", device_name, e);
             format!("Failed to open stream: {}", e)
         })?;
-        
+
         let new_mixer = new_sink.mixer().clone();
 
         {
@@ -180,7 +180,7 @@ pub fn set_audio_device(app: AppHandle, device_name: String) -> Result<(), Strin
             let mut mixer_lock = audio_state.mixer.lock().unwrap();
             *mixer_lock = new_mixer;
         }
-        
+
         log::info!("Audio device switched to '{}'.", device_name);
         let _ = app.emit("state-update", ());
         Ok(())
@@ -217,9 +217,9 @@ pub fn play_pack_preview(app: tauri::AppHandle, pack_type: ActivePackType) {
         // Spelling "kliky", "preview", then cmd + enter
         let sequence = vec![
             "37", "38", "23", "37", "21", // k-l-i-k-y
-            "57",                         // space
+            "57", // space
             "25", "19", "18", "47", "23", "18", "17", // p-r-e-v-i-e-w
-            "55", "28"                    // cmd, enter
+            "55", "28", // cmd, enter
         ];
         let mut idx = 0;
 
@@ -307,7 +307,7 @@ pub fn play_pack_preview(app: tauri::AppHandle, pack_type: ActivePackType) {
                             )
                             .amplify(volume * vol_mult)
                             .speed(speed * pitch_var);
-                            
+
                             audio_state.mixer.lock().unwrap().add(s);
 
                             if pack_type == ActivePackType::Sapphire {
@@ -356,10 +356,10 @@ pub fn play_pack_preview(app: tauri::AppHandle, pack_type: ActivePackType) {
                                 )
                                 .amplify(final_vol)
                                 .speed(final_pitch * pitch_var);
-                            audio_state.mixer.lock().unwrap().add(s);
+                                audio_state.mixer.lock().unwrap().add(s);
+                            }
                         }
                     }
-                }
                 }
             }
 
@@ -612,17 +612,17 @@ pub fn check_permissions() -> bool {
 pub fn start_keyboard_listener(app: tauri::AppHandle) {
     let sender_state = app.state::<crate::KeySender>();
     let mut running = sender_state.is_running.lock().unwrap();
-    
+
     if !*running {
         let tx_clone = sender_state.tx.clone();
         let running_clone = sender_state.is_running.clone();
-        
+
         #[cfg(target_os = "macos")]
         crate::macos_listener::start_macos_listener(tx_clone, running_clone);
 
         #[cfg(target_os = "windows")]
         crate::windows_listener::start_windows_listener(tx_clone, running_clone);
-        
+
         *running = true;
         log::info!("Keyboard listener started.");
     } else {
@@ -639,14 +639,14 @@ pub fn complete_onboarding(app: AppHandle) {
         state.save();
     }
     let _ = app.emit("state-update", ());
-    
+
     if let Err(e) = crate::tray::setup_tray(&app) {
         log::error!("Failed to setup tray during onboarding: {:?}", e);
     } else {
         log::info!("Tray setup successfully.");
     }
     crate::window::precreate_settings_window(&app);
-    
+
     log::info!("Starting keyboard listener...");
     start_keyboard_listener(app.clone());
 
@@ -701,10 +701,10 @@ pub fn set_hardware_acceleration(app: tauri::AppHandle, enabled: bool) {
 #[tauri::command]
 pub fn reset_settings(app: tauri::AppHandle) {
     let mut state = STATE.lock().unwrap();
-    
+
     // We want to keep has_onboarded so they don't see the tutorial again
     let has_onboarded = state.has_onboarded;
-    
+
     // Create a default config
     let shortcuts = std::collections::HashMap::new();
 
@@ -732,4 +732,18 @@ pub fn set_speed_volume_scaling(app: tauri::AppHandle, enabled: bool) {
     state.speed_volume_scaling = enabled;
     state.save();
     let _ = app.emit("state-update", ());
+}
+
+#[tauri::command]
+pub fn handle_trial_expired(app: AppHandle) {
+    // Hide tray icon if it exists
+    if let Some(tray) = app.tray_by_id("main") {
+        let _ = tray.set_visible(false);
+    }
+    
+    // Show dock icon
+    #[cfg(target_os = "macos")]
+    {
+        let _ = app.set_activation_policy(tauri::ActivationPolicy::Regular);
+    }
 }

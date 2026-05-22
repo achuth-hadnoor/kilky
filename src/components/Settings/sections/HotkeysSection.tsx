@@ -55,9 +55,9 @@ export function HotkeysSection({
       </div>
 
       <div className="space-y-4">
-        <div className="flex items-center justify-between p-4 bg-indigo-500/5 dark:bg-indigo-500/10 rounded-2xl border border-indigo-500/20">
+        <div className="flex items-center justify-between p-4 bg-red-500/5 dark:bg-red-500/10 rounded-2xl border border-red-500/20">
           <div className="flex items-center gap-4">
-            <div className="w-10 h-10 rounded-xl bg-indigo-500 flex items-center justify-center text-white shadow-lg">
+            <div className="w-10 h-10 rounded-xl bg-red-500 flex items-center justify-center text-white shadow-lg">
               <Zap className="w-5 h-5 fill-current" />
             </div>
             <div className="space-y-1">

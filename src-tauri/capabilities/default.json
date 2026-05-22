@@ -2,11 +2,7 @@
   "$schema": "../gen/schemas/desktop-schema.json",
   "identifier": "default",
   "description": "Capability for the main window",
-  "windows": [
-    "kliky_ui",
-    "settings",
-    "onboarding"
-  ],
+  "windows": ["kliky_ui", "settings", "onboarding", "playground"],
   "permissions": [
     "core:default",
     "core:window:allow-start-dragging",
@@ -19,6 +15,16 @@
     "process:allow-restart",
     "core:event:default",
     "core:window:allow-close",
-    "core:window:allow-hide"
+    "core:window:allow-hide",
+    "store:default",
+    {
+      "identifier": "http:default",
+      "allow": [
+        { "url": "http://localhost:3000/*" },
+        { "url": "http://localhost:3000" },
+        { "url": "https://kliky.achuth.dev/*" },
+        { "url": "https://kliky.achuth.dev" }
+      ]
+    }
   ]
 }

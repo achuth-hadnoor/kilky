@@ -7,10 +7,11 @@
 
 use tauri::{AppHandle, Manager, WebviewUrl, WebviewWindowBuilder};
 
-/// The two window types the application can display.
+/// The three window types the application can display.
 pub enum WindowType {
     Settings,
     Onboarding,
+    Playground,
 }
 
 /// Opens a window of the given `window_type`.
@@ -35,6 +36,13 @@ pub fn spawn_window_with_visibility(handle: &AppHandle, window_type: WindowType,
             500.0_f64,
             true,
         ),
+        WindowType::Playground => (
+            "playground",
+            WebviewUrl::App("index.html".into()),
+            900.0_f64,
+            600.0_f64,
+            true,
+        ),
         WindowType::Onboarding => (
             "onboarding",
             WebviewUrl::App("index.html#onboarding".into()),
@@ -56,16 +64,22 @@ pub fn spawn_window_with_visibility(handle: &AppHandle, window_type: WindowType,
     // Build the new window.
     #[allow(unused_mut)]
     let mut builder = WebviewWindowBuilder::new(handle, label, url)
-        .title("")                // Title bar text hidden; app uses custom drag region.
+        .title("") // Title bar text hidden; app uses custom drag region.
         .inner_size(width, height)
         .resizable(resizable)
         .transparent(true)
-        .visible(visible)         // Set visibility based on parameter
+        .visible(visible) // Set visibility based on parameter
         .visible_on_all_workspaces(true)
-        .skip_taskbar(matches!(window_type, WindowType::Settings))
+        .skip_taskbar(
+            matches!(window_type, WindowType::Settings)
+                || matches!(window_type, WindowType::Playground),
+        )
         .maximizable(false)
         .minimizable(false)
-        .always_on_top(matches!(window_type, WindowType::Settings));
+        .always_on_top(
+            matches!(window_type, WindowType::Settings)
+                || matches!(window_type, WindowType::Playground),
+        );
 
     // ---- macOS-specific: sidebar vibrancy + overlay title bar -----------
     #[cfg(target_os = "macos")]
