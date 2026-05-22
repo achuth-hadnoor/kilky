@@ -1,4 +1,6 @@
 import { LucideIcon } from 'lucide-react';
+import { invoke } from '@tauri-apps/api/core';
+import { TrialInfo } from '../../../lib/license';
 
 interface NavItem<T extends string = string> {
   id: T;
@@ -11,9 +13,11 @@ interface SidebarProps<T extends string = string> {
   navItems: ReadonlyArray<NavItem<T>>;
   activeTab: T;
   setActiveTab: (id: T) => void;
+  trialInfo?: TrialInfo | null;
+  isActivated?: boolean;
 }
 
-export function Sidebar<T extends string = string>({ navItems, activeTab, setActiveTab }: SidebarProps<T>) {
+export function Sidebar<T extends string = string>({ navItems, activeTab, setActiveTab, trialInfo, isActivated }: SidebarProps<T>) {
   const handleKeyDown = (e: React.KeyboardEvent, index: number) => {
     if (e.key === 'ArrowDown') {
       e.preventDefault();
@@ -64,6 +68,28 @@ export function Sidebar<T extends string = string>({ navItems, activeTab, setAct
           </button>
         ))}
       </nav>
+
+      {trialInfo && !isActivated && trialInfo.isTrialStarted && (
+        <div className="mt-auto p-4 rounded-xl bg-gradient-to-br from-orange-500/10 to-rose-500/10 border border-orange-500/20 dark:border-orange-500/10 shadow-sm relative overflow-hidden group transition-all duration-300 hover:shadow-orange-500/10">
+          <div className="absolute top-0 right-0 p-3 opacity-20 group-hover:opacity-40 transition-opacity">
+            <svg className="w-12 h-12 text-orange-500 transform translate-x-4 -translate-y-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
+            </svg>
+          </div>
+          <h3 className="text-sm font-bold text-orange-600 dark:text-orange-400 mb-1 relative z-10">
+            {trialInfo.daysLeft} Days Left
+          </h3>
+          <p className="text-[10px] text-orange-600/80 dark:text-orange-400/80 mb-4 relative z-10 leading-tight">
+            Your free trial is active. Upgrade to permanently unlock premium features.
+          </p>
+          <button 
+            onClick={() => invoke('show_onboarding')}
+            className="w-full py-2 px-3 rounded-lg bg-gradient-to-r from-orange-500 to-rose-500 hover:from-orange-600 hover:to-rose-600 text-white text-[10px] uppercase tracking-wider font-extrabold shadow-md shadow-orange-500/20 transition-all active:scale-[0.98] relative z-10"
+          >
+            Activate License
+          </button>
+        </div>
+      )}
 
     </aside>
   );
