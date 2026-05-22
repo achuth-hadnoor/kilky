@@ -3,7 +3,7 @@ import { getCurrentWindow } from "@tauri-apps/api/window";
 import "./App.css";
 import { Settings } from "./components/Settings/Settings";
 import { Onboarding } from "./components/Onboarding/Onboarding";
-import { Website } from "./components/Website/Website";
+import { Playground } from "./components/Playground/Playground";
 
 declare global {
   interface Window {
@@ -20,9 +20,10 @@ function App() {
     return getCurrentWindow().label;
   });
 
-  if (windowLabel === "website") {
-    return <Website />;
+  if (windowLabel === "playground") {
+    return <Playground />;
   }
+
 
   if (windowLabel === "settings") {
     return <Settings />;

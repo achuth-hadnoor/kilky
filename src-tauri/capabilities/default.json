@@ -5,7 +5,8 @@
   "windows": [
     "kliky_ui",
     "settings",
-    "onboarding"
+    "onboarding",
+    "playground"
   ],
   "permissions": [
     "core:default",

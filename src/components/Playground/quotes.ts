@@ -1,0 +1,22 @@
+export const QUOTES = [
+  "the clearest way into the universe is through a forest wilderness",
+  "in every walk with nature one receives far more than he seeks",
+  "the forest is not a resource for us it is life itself it is the only place for us to live",
+  "animals are such agreeable friends they ask no questions they pass no criticisms",
+  "a woodland in full color is awesome as a forest fire in magnitude at least but a single tree is like a dancing tongue of flame to warm the heart",
+  "the earth has music for those who listen",
+  "until one has loved an animal a part of one's soul remains unawakened",
+  "i go to nature to be soothed and healed and to have my senses put in order",
+  "what is a fish without a river what is a bird without a tree to rest in what is an endangered act without an environment to save",
+  "the woods are lovely dark and deep but i have promises to keep and miles to go before i sleep",
+  "if we can teach people about wildlife they will be touched share my wildlife with me because humans want to save things that they love",
+  "and into the forest i go to lose my mind and find my soul",
+  "an animal's eyes have the power to speak a great language",
+  "the greatness of a nation and its moral progress can be judged by the way its animals are treated",
+  "look deep into nature and then you will understand everything better",
+  "nature is not a place to visit it is home",
+  "between every two pines is a doorway to a new world",
+  "i felt my lungs inflate with the onrush of scenery air mountains trees people i thought this is what it is to be happy",
+  "the wild requires that we learn the terrain nod to all the plants and animals and birds ford the streams and cross the ridges and tell a good story when we get back home",
+  "if all the beasts were gone men would die from a great loneliness of spirit for whatever happens to the beasts also happens to the man"
+];

@@ -66,6 +66,7 @@ pub fn setup_tray(app: &tauri::AppHandle) -> tauri::Result<()> {
     )?;
 
     let settings_item = MenuItem::with_id(app, "settings", "Settings...", true, None::<&str>)?;
+    let typing_test_item = MenuItem::with_id(app, "playground", "Typing Test", true, None::<&str>)?;
     let quit_item     = MenuItem::with_id(app, "quit",     "Quit",        true, None::<&str>)?;
 
     // ---- Volume submenu --------------------------------------------------
@@ -105,6 +106,7 @@ pub fn setup_tray(app: &tauri::AppHandle) -> tauri::Result<()> {
     menu.append(&vol_submenu)?;
     menu.append(&pack_submenu)?;
     menu.append(&PredefinedMenuItem::separator(app)?)?;
+    menu.append(&typing_test_item)?;
     menu.append(&settings_item)?;
     menu.append(&quit_item)?;
 
@@ -173,6 +175,11 @@ fn handle_menu_event(
         // Open (or focus) the Settings window.
         "settings" => {
             crate::window::spawn_window(handle, crate::window::WindowType::Settings);
+        }
+
+        // Open the Typing Test playground window.
+        "playground" => {
+            crate::window::spawn_window(handle, crate::window::WindowType::Playground);
         }
 
         // Toggle the audio engine on/off.
