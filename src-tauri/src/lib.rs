@@ -94,6 +94,7 @@ pub fn run() {
             commands::reset_settings,
             commands::set_speed_volume_scaling,
             commands::set_show_key_in_tray,
+            commands::handle_trial_expired,
         ])
         .on_window_event(window::handle_window_event)
         // ---- Application setup ------------------------------------------

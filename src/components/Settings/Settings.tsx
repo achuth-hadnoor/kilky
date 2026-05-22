@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { check } from '@tauri-apps/plugin-updater';
 import { relaunch } from '@tauri-apps/plugin-process';
 import { message, ask } from '@tauri-apps/plugin-dialog';
@@ -12,6 +12,8 @@ import { HotkeysSection } from './sections/HotkeysSection';
 
 import { useSettings } from '../../hooks/useSettings';
 import { useShortcutRecorder } from '../../hooks/useShortcutRecorder';
+import { getTrialInfo, getIsActivated, TrialInfo } from '../../lib/license';
+import { invoke } from '@tauri-apps/api/core';
 
 import './Settings.css';
 import { AboutSection } from './sections/AboutSection';
@@ -27,6 +29,13 @@ type TabId = typeof NAV_ITEMS[number]['id'];
 
 export function Settings() {
   const [activeTab, setActiveTab] = useState<TabId>('general');
+  const [trialInfo, setTrialInfo] = useState<TrialInfo | null>(null);
+  const [isActivated, setIsActivated] = useState(false);
+
+  useEffect(() => {
+    getIsActivated().then(setIsActivated);
+    getTrialInfo().then(setTrialInfo);
+  }, []);
 
   const { state, setShortcuts, handlers } = useSettings();
   const recorder = useShortcutRecorder(
@@ -83,7 +92,18 @@ export function Settings() {
         setActiveTab={handleTabChange}
       />
 
-      <main className="flex-1 h-full bg-white/5 dark:bg-black/10 backdrop-blur-md rounded-2xl border border-black/5 dark:border-white/5 overflow-hidden flex flex-col min-h-0">
+      <main className="flex-1 h-full bg-white/5 dark:bg-black/10 backdrop-blur-md rounded-2xl border border-black/5 dark:border-white/5 overflow-hidden flex flex-col min-h-0 relative">
+        {trialInfo && !isActivated && trialInfo.isTrialStarted && (
+          <div className="bg-orange-500/10 text-orange-600 dark:text-orange-400 text-xs font-bold text-center py-2 w-full border-b border-orange-500/20 flex items-center justify-center gap-2 z-10 shrink-0">
+            Trial Version: {trialInfo.daysLeft} days left. 
+            <button 
+              onClick={() => invoke('show_onboarding')}
+              className="bg-orange-500 hover:bg-orange-600 text-white px-2 py-0.5 rounded ml-2 transition-colors"
+            >
+              Activate Now
+            </button>
+          </div>
+        )}
         <ScrollArea className="flex-1 overflow-y-auto">
           <div
             key={activeTab}

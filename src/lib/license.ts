@@ -69,3 +69,39 @@ export async function validateLicense(): Promise<boolean> {
     return false; // Assuming invalid if offline? Alternatively, cache validation
   }
 }
+
+export interface TrialInfo {
+  isTrialStarted: boolean;
+  isTrialActive: boolean;
+  daysLeft: number;
+}
+
+export async function getTrialInfo(): Promise<TrialInfo> {
+  const store = await getStore();
+  const startDateStr = await store.get<number>("trial-start-date");
+  
+  if (!startDateStr) {
+    return { isTrialStarted: false, isTrialActive: false, daysLeft: 7 };
+  }
+
+  const now = Date.now();
+  const daysPassed = (now - startDateStr) / (1000 * 60 * 60 * 24);
+  const daysLeft = Math.max(0, Math.ceil(7 - daysPassed));
+  
+  return {
+    isTrialStarted: true,
+    isTrialActive: daysLeft > 0,
+    daysLeft,
+  };
+}
+
+export async function startTrial(): Promise<void> {
+  const store = await getStore();
+  await store.set("trial-start-date", Date.now());
+  await store.save();
+}
+
+export async function getIsActivated(): Promise<boolean> {
+  const store = await getStore();
+  return (await store.get<boolean>("is-activated")) || false;
+}

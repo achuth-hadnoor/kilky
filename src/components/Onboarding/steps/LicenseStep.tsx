@@ -5,7 +5,15 @@ import { Button } from "@/components/ui/button";
 import { useState } from "react";
 import { activateLicense } from "@/lib/license";
 
-export function LicenseStep({ onSuccess }: { onSuccess?: () => void }) {
+export function LicenseStep({ 
+  onSuccess,
+  trialInfo,
+  onStartTrial
+}: { 
+  onSuccess?: () => void,
+  trialInfo?: { isTrialStarted: boolean; isTrialActive: boolean; daysLeft: number },
+  onStartTrial?: () => void
+}) {
   const [licenseKey, setLicenseKey] = useState("");
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState("");
@@ -38,12 +46,16 @@ export function LicenseStep({ onSuccess }: { onSuccess?: () => void }) {
             Activate Kliky
           </h1>
           <p className="text-xs text-neutral-500 max-w-xs mx-auto leading-relaxed">
-            Enter your license key to unlock premium features. If you don't have one, you can skip this step.
+            {trialInfo?.isTrialStarted
+              ? trialInfo?.isTrialActive
+                ? `You have ${trialInfo.daysLeft} days left in your free trial. Enter a license key to unlock permanently.`
+                : "Your 7-day free trial has expired. Please enter a license key to continue using Kliky."
+              : "Enter your license key to unlock premium features, or start a 7-day free trial!"}
           </p>
         </div>
 
         <div className="w-full space-y-3 mt-4">
-          <OnboardingCard className="flex flex-col gap-3 border-none  text-left">
+          <OnboardingCard className="flex flex-col gap-3 border-none text-left">
             <div className="space-y-1 gap-1 flex flex-col">
               <label className="text-xs font-bold dark:text-white tracking-wide">
                 License Key
@@ -55,7 +67,7 @@ export function LicenseStep({ onSuccess }: { onSuccess?: () => void }) {
                 value={licenseKey}
                 onChange={(e: React.ChangeEvent<HTMLInputElement>) => setLicenseKey(e.target.value)}
                 placeholder="XXXX-XXXX-XXXX-XXXX"
-                className="w-full text-center tracking-widest font-mono text-sm uppercase dark:text-white  border border-black/10 dark:border-white/10 focus-visible:ring-2 focus-visible:ring-indigo-500 rounded-md px-3 py-2 outline-none"
+                className="w-full text-center tracking-widest font-mono text-sm uppercase dark:text-white border border-black/10 dark:border-white/10 focus-visible:ring-2 focus-visible:ring-indigo-500 rounded-md px-3 py-2 outline-none"
                 disabled={isLoading}
               />
             </div>
@@ -67,6 +79,16 @@ export function LicenseStep({ onSuccess }: { onSuccess?: () => void }) {
               {isLoading && <Loader2 className="w-4 h-4 animate-spin" />}
               {isLoading ? "Verifying..." : "Verify License"}
             </Button>
+            
+            {trialInfo && !trialInfo.isTrialStarted && onStartTrial && (
+              <Button
+                variant="outline"
+                onClick={onStartTrial}
+                className="w-full rounded-xl dark:bg-neutral-800 bg-neutral-100 dark:hover:bg-neutral-700 hover:bg-neutral-200 border-none transition-all flex items-center justify-center"
+              >
+                Start 7-Day Free Trial
+              </Button>
+            )}
           </OnboardingCard>
         </div>
       </div>

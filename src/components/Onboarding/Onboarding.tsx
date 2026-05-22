@@ -2,7 +2,7 @@ import { useState, useEffect } from 'react';
 import { invoke } from '@tauri-apps/api/core';
 import { getCurrentWebviewWindow } from '@tauri-apps/api/webviewWindow';
 import { Button } from '@/components/ui/button';
-import { getStoredLicense } from '@/lib/license';
+import { getStoredLicense, getTrialInfo, startTrial, TrialInfo } from '@/lib/license';
 
 import { useSettings } from '../../hooks/useSettings';
 import { useShortcutRecorder } from '../../hooks/useShortcutRecorder';
@@ -16,16 +16,24 @@ import { LaunchConfirmationStep } from './steps/LaunchConfirmationStep';
 
 const TOTAL_STEPS = 6;
 
-export function Onboarding() {
-  const [step, setStep] = useState(1);
+export function Onboarding({ initialStep = 1, forceLicense = false }: { initialStep?: number, forceLicense?: boolean }) {
+  const [step, setStep] = useState(initialStep);
   const [hasLicense, setHasLicense] = useState(false);
+  const [trialInfo, setTrialInfo] = useState<TrialInfo | null>(null);
   const { state, setShortcuts, handlers } = useSettings();
 
   useEffect(() => {
     getStoredLicense().then((key) => {
       setHasLicense(!!key);
     });
+    getTrialInfo().then(setTrialInfo);
   }, []);
+
+  const handleStartTrial = async () => {
+    await startTrial();
+    setTrialInfo(await getTrialInfo());
+    setStep(3);
+  };
 
   const recorder = useShortcutRecorder(
     state.shortcuts,
@@ -109,7 +117,11 @@ export function Onboarding() {
         <div className="w-full flex-1 overflow-hidden min-h-0 flex flex-col" data-tauri-drag-region>
           {step === 1 && <WelcomeStep />}
 
-          {step === 2 && <LicenseStep onSuccess={() => { setHasLicense(true); setStep(3); }} />}
+          {step === 2 && <LicenseStep 
+            onSuccess={() => { setHasLicense(true); setStep(3); }} 
+            trialInfo={trialInfo || undefined}
+            onStartTrial={handleStartTrial}
+          />}
 
           {step === 3 && (
             <AccessibilityStep
@@ -168,7 +180,7 @@ export function Onboarding() {
         <div className="w-full flex items-center justify-between mt-auto pt-6 pb-2 px-6 shrink-0 border-t dark:border-white/5 border-black/5">
           {/* Back Button */}
           <div className="w-24">
-            {step > 1 && (
+            {step > 1 && !(forceLicense && step === 2) && (
               <Button
                 variant="ghost"
                 className="rounded-xl dark:bg-white/5 bg-black/5 dark:hover:bg-white/10 hover:bg-black/10 dark:text-white text-neutral-900 px-5 h-10 border dark:border-white/5 border-black/5 active:scale-[0.98] transition-all"
@@ -192,7 +204,7 @@ export function Onboarding() {
 
           {/* Next Button */}
           <div className="w-24 flex justify-end">
-            {step < TOTAL_STEPS && (
+            {step < TOTAL_STEPS && !(forceLicense && step === 2) && (
               <Button
                 className={`px-5 h-10 rounded-xl font-bold text-xs transition-all active:scale-[0.98] ${isContinueDisabled
                   ? 'dark:bg-zinc-800 bg-neutral-200 dark:text-zinc-500 text-neutral-400 cursor-not-allowed dark:border-zinc-800 border-neutral-200'

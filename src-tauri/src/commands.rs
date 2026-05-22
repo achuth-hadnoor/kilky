@@ -733,3 +733,17 @@ pub fn set_speed_volume_scaling(app: tauri::AppHandle, enabled: bool) {
     state.save();
     let _ = app.emit("state-update", ());
 }
+
+#[tauri::command]
+pub fn handle_trial_expired(app: AppHandle) {
+    // Hide tray icon if it exists
+    if let Some(tray) = app.tray_by_id("main") {
+        let _ = tray.set_visible(false);
+    }
+    
+    // Show dock icon
+    #[cfg(target_os = "macos")]
+    {
+        let _ = app.set_activation_policy(tauri::ActivationPolicy::Regular);
+    }
+}
