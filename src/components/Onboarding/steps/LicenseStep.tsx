@@ -36,7 +36,8 @@ export function LicenseStep({
     <StepContainer>
       <div className="flex flex-col items-center text-center space-y-6 flex-1 justify-center py-2 max-w-sm mx-auto">
         <div className="relative group mt-2">
-          <div className="w-16 h-16 dark:bg-neutral-900 bg-white rounded-2xl flex items-center justify-center border border-black/10 dark:border-white/10 shadow-lg">
+          <div className="absolute -inset-1 bg-gradient-to-r from-red-500 to-rose-500 rounded-2xl blur opacity-25 group-hover:opacity-40 transition duration-500"></div>
+          <div className="relative w-16 h-16 dark:bg-zinc-900 bg-white rounded-2xl flex items-center justify-center border border-red-500/20 shadow-xl">
             <Key className="w-8 h-8 text-red-500" />
           </div>
         </div>
@@ -55,40 +56,43 @@ export function LicenseStep({
         </div>
 
         <div className="w-full space-y-3 mt-4">
-          <OnboardingCard className="flex flex-col gap-3 border-none text-left">
-            <div className="space-y-1 gap-1 flex flex-col">
-              <label className="text-xs font-bold dark:text-white tracking-wide">
+          <OnboardingCard className="flex flex-col gap-4 border border-black/5 dark:border-white/5 bg-white/50 dark:bg-black/20 backdrop-blur-md shadow-xl text-left p-6">
+            <div className="space-y-1.5 flex flex-col">
+              <label className="text-xs font-bold dark:text-white tracking-wide uppercase text-black/60 dark:text-white/60">
                 License Key
               </label>
               {error && (
-                <p className="text-xs text-red-500 font-semibold">{error}</p>
+                <p className="text-xs text-red-500 font-bold bg-red-500/10 px-2 py-1 rounded-md">{error}</p>
               )}
               <input
                 value={licenseKey}
                 onChange={(e: React.ChangeEvent<HTMLInputElement>) => setLicenseKey(e.target.value)}
                 placeholder="XXXX-XXXX-XXXX-XXXX"
-                className="w-full text-center tracking-widest font-mono text-sm uppercase dark:text-white border border-black/10 dark:border-white/10 focus-visible:ring-2 focus-visible:ring-red-500 rounded-md px-3 py-2 outline-none"
+                className="w-full text-center tracking-widest font-mono text-sm uppercase dark:text-white border border-black/10 dark:border-white/10 bg-white dark:bg-zinc-900 focus-visible:ring-2 focus-visible:ring-red-500 rounded-xl px-4 py-3 outline-none transition-all"
                 disabled={isLoading}
               />
             </div>
-            <Button
-              onClick={handleVerify}
-              disabled={isLoading || !licenseKey.trim()}
-              className="w-full rounded-xl bg-red-500 hover:bg-red-600 text-white border-0 shadow-lg shadow-red-500/25 transition-all flex items-center justify-center gap-2"
-            >
-              {isLoading && <Loader2 className="w-4 h-4 animate-spin" />}
-              {isLoading ? "Verifying..." : "Verify License"}
-            </Button>
-
-            {trialInfo && !trialInfo.isTrialStarted && onStartTrial && (
+            
+            <div className="flex flex-col gap-2 pt-1">
               <Button
-                variant="outline"
-                onClick={onStartTrial}
-                className="w-full rounded-xl  bg-neutral-100 dark:text-white dark:bg-neutral-700 hover:bg-neutral-200 border-none transition-all flex items-center justify-center"
+                onClick={handleVerify}
+                disabled={isLoading || !licenseKey.trim()}
+                className="w-full h-11 rounded-xl bg-gradient-to-r from-red-500 to-rose-500 hover:from-red-600 hover:to-rose-600 text-white font-bold tracking-wide border-0 shadow-lg shadow-red-500/25 transition-all flex items-center justify-center gap-2 active:scale-[0.98]"
               >
-                Start 7-Day Free Trial
+                {isLoading && <Loader2 className="w-4 h-4 animate-spin" />}
+                {isLoading ? "Verifying..." : "Verify License"}
               </Button>
-            )}
+
+              {trialInfo && !trialInfo.isTrialStarted && onStartTrial && (
+                <Button
+                  variant="outline"
+                  onClick={onStartTrial}
+                  className="w-full h-11 rounded-xl bg-white dark:bg-zinc-900 border border-red-500/20 hover:border-red-500/40 text-red-600 dark:text-red-400 hover:bg-red-500/5 transition-all flex items-center justify-center font-bold tracking-wide active:scale-[0.98]"
+                >
+                  Start 7-Day Free Trial
+                </Button>
+              )}
+            </div>
           </OnboardingCard>
         </div>
       </div>
