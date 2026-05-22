@@ -53,7 +53,7 @@ function App() {
   }
 
   if (isLocked) {
-    return <Onboarding initialStep={2} forceLicense={true} />;
+    return <Onboarding initialStep={5} forceLicense={true} />;
   }
 
   if (windowLabel === "playground") {

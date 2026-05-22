@@ -30,7 +30,7 @@ export function Onboarding({ initialStep = 1, forceLicense = false }: { initialS
   const handleStartTrial = async () => {
     await startTrial();
     setTrialInfo(await getTrialInfo());
-    setStep(3);
+    setStep(6);
   };
 
   const recorder = useShortcutRecorder(
@@ -100,7 +100,7 @@ export function Onboarding({ initialStep = 1, forceLicense = false }: { initialS
   // ----- Render ----------------------------------------------------------
 
   const isMac = state.platformName === 'macos';
-  const isContinueDisabled = step === 3 && !state.hasPermission && isMac;
+  const isContinueDisabled = (step === 2 && !state.hasPermission && isMac) || (step === 5 && !hasLicense);
 
   return (
     <div
@@ -115,13 +115,7 @@ export function Onboarding({ initialStep = 1, forceLicense = false }: { initialS
         <div className="w-full flex-1 overflow-hidden min-h-0 flex flex-col" data-tauri-drag-region>
           {step === 1 && <WelcomeStep />}
 
-          {step === 2 && <LicenseStep 
-            onSuccess={() => { setHasLicense(true); setStep(3); }} 
-            trialInfo={trialInfo || undefined}
-            onStartTrial={handleStartTrial}
-          />}
-
-          {step === 3 && (
+          {step === 2 && (
             <AccessibilityStep
               hasPermission={state.hasPermission}
               onRequestPermission={requestPermission}
@@ -129,7 +123,7 @@ export function Onboarding({ initialStep = 1, forceLicense = false }: { initialS
             />
           )}
 
-          {step === 4 && (
+          {step === 3 && (
             <SoundSelectionStep
               enabled={state.enabled}
               enableKliky={enableKliky}
@@ -145,7 +139,7 @@ export function Onboarding({ initialStep = 1, forceLicense = false }: { initialS
             />
           )}
 
-          {step === 5 && (
+          {step === 4 && (
             <ShortcutSettingsStep
               shortcuts={state.shortcuts}
               recordingAction={recorder.recordingAction}
@@ -160,6 +154,12 @@ export function Onboarding({ initialStep = 1, forceLicense = false }: { initialS
               onHyperKeyToggle={handlers.handleHyperKeyToggle}
             />
           )}
+
+          {step === 5 && <LicenseStep 
+            onSuccess={() => { setHasLicense(true); setStep(6); }} 
+            trialInfo={trialInfo || undefined}
+            onStartTrial={handleStartTrial}
+          />}
 
           {step === 6 && (
             <LaunchConfirmationStep
@@ -178,11 +178,17 @@ export function Onboarding({ initialStep = 1, forceLicense = false }: { initialS
         <div className="w-full flex items-center justify-between mt-auto pt-6 pb-2 px-6 shrink-0 border-t dark:border-white/5 border-black/5">
           {/* Back Button */}
           <div className="w-24">
-            {step > 1 && !(forceLicense && step === 2) && (
+            {step > 1 && !(forceLicense && step === 5) && (
               <Button
                 variant="ghost"
                 className="rounded-xl dark:bg-white/5 bg-black/5 dark:hover:bg-white/10 hover:bg-black/10 dark:text-white text-neutral-900 px-5 h-10 border dark:border-white/5 border-black/5 active:scale-[0.98] transition-all"
-                onClick={() => setStep((s) => (s === 3 ? 1 : s - 1))}
+                onClick={() => setStep((s) => {
+                  if (s === 6) {
+                    const hasAccess = hasLicense || (trialInfo?.isTrialStarted && trialInfo?.isTrialActive);
+                    return hasAccess ? 4 : 5;
+                  }
+                  return s - 1;
+                })}
               >
                 <span className="text-xs font-semibold">Back</span>
               </Button>
@@ -202,16 +208,16 @@ export function Onboarding({ initialStep = 1, forceLicense = false }: { initialS
 
           {/* Next Button */}
           <div className="w-24 flex justify-end">
-            {step < TOTAL_STEPS && !(forceLicense && step === 2) && (
+            {step < TOTAL_STEPS && !(forceLicense && step === 5) && (
               <Button
                 className={`px-5 h-10 rounded-xl font-bold text-xs transition-all active:scale-[0.98] ${isContinueDisabled
                   ? 'dark:bg-zinc-800 bg-neutral-200 dark:text-zinc-500 text-neutral-400 cursor-not-allowed dark:border-zinc-800 border-neutral-200'
                   : 'dark:bg-white dark:hover:bg-zinc-200 dark:text-zinc-950 bg-neutral-950 hover:bg-neutral-800 text-white shadow-md dark:shadow-white/5 shadow-neutral-950/20'
                   }`}
                 onClick={() => setStep((s) => {
-                  if (s === 1) {
+                  if (s === 4) {
                     const hasAccess = hasLicense || (trialInfo?.isTrialStarted && trialInfo?.isTrialActive);
-                    return hasAccess ? 3 : 2;
+                    return hasAccess ? 6 : 5;
                   }
                   return s + 1;
                 })}
