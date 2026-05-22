@@ -1,5 +1,4 @@
-import React, { useState, useRef, useEffect, useCallback } from "react";
-import { getCurrentWindow } from "@tauri-apps/api/window";
+import React, { useState, useRef, useEffect } from "react";
 import { QUOTES } from "./quotes";
 
 interface HistoryItem {

@@ -8,28 +8,28 @@
 //!   2. Opens the audio sink and starts the audio worker thread.
 //!   3. Optionally starts the keyboard listener (skipped until onboarding is done).
 
-mod state;
 mod audio;
-mod tray;
+mod builtin_packs;
 mod commands;
+mod db;
+mod state;
+mod tray;
 mod window;
 mod worker;
-mod builtin_packs;
-mod db;
 
+#[cfg(target_os = "macos")]
+mod keys;
 #[cfg(target_os = "macos")]
 mod macos_listener;
 #[cfg(target_os = "windows")]
 mod windows_listener;
-#[cfg(target_os = "macos")]
-mod keys;
 
+use crate::state::{KeyEvent, KeySender, STATE};
 use log::{error, info};
 use rodio::DeviceSinkBuilder;
 use std::sync::{mpsc, Arc, Mutex};
 use tauri::Manager;
 use tauri_plugin_autostart::ManagerExt;
-use crate::state::{KeyEvent, KeySender, STATE};
 
 #[cfg_attr(mobile, tauri::mobile_entry_point)]
 pub fn run() {
@@ -39,6 +39,8 @@ pub fn run() {
     }));
 
     tauri::Builder::default()
+        .plugin(tauri_plugin_http::init())
+        .plugin(tauri_plugin_store::Builder::new().build())
         // ---- Plugin registrations ----------------------------------------
         .plugin(tauri_plugin_dialog::init())
         .plugin(tauri_plugin_fs::init())

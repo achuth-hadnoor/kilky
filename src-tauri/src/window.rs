@@ -64,16 +64,22 @@ pub fn spawn_window_with_visibility(handle: &AppHandle, window_type: WindowType,
     // Build the new window.
     #[allow(unused_mut)]
     let mut builder = WebviewWindowBuilder::new(handle, label, url)
-        .title("")                // Title bar text hidden; app uses custom drag region.
+        .title("") // Title bar text hidden; app uses custom drag region.
         .inner_size(width, height)
         .resizable(resizable)
         .transparent(true)
-        .visible(visible)         // Set visibility based on parameter
+        .visible(visible) // Set visibility based on parameter
         .visible_on_all_workspaces(true)
-        .skip_taskbar(matches!(window_type, WindowType::Settings) || matches!(window_type, WindowType::Playground))
+        .skip_taskbar(
+            matches!(window_type, WindowType::Settings)
+                || matches!(window_type, WindowType::Playground),
+        )
         .maximizable(false)
         .minimizable(false)
-        .always_on_top(matches!(window_type, WindowType::Settings) || matches!(window_type, WindowType::Playground));
+        .always_on_top(
+            matches!(window_type, WindowType::Settings)
+                || matches!(window_type, WindowType::Playground),
+        );
 
     // ---- macOS-specific: sidebar vibrancy + overlay title bar -----------
     #[cfg(target_os = "macos")]

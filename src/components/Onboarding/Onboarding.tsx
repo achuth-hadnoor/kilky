@@ -7,12 +7,13 @@ import { useSettings } from '../../hooks/useSettings';
 import { useShortcutRecorder } from '../../hooks/useShortcutRecorder';
 
 import { WelcomeStep } from './steps/WelcomeStep';
+import { LicenseStep } from './steps/LicenseStep';
 import { AccessibilityStep } from './steps/AccessibilityStep';
 import { SoundSelectionStep } from './steps/SoundSelectionStep';
 import { ShortcutSettingsStep } from './steps/ShortcutSettingsStep';
 import { LaunchConfirmationStep } from './steps/LaunchConfirmationStep';
 
-const TOTAL_STEPS = 5;
+const TOTAL_STEPS = 6;
 
 export function Onboarding() {
   const [step, setStep] = useState(1);
@@ -85,7 +86,7 @@ export function Onboarding() {
   // ----- Render ----------------------------------------------------------
 
   const isMac = state.platformName === 'macos';
-  const isContinueDisabled = step === 2 && !state.hasPermission && isMac;
+  const isContinueDisabled = step === 3 && !state.hasPermission && isMac;
 
   return (
     <div
@@ -100,7 +101,9 @@ export function Onboarding() {
         <div className="w-full flex-1 overflow-hidden min-h-0 flex flex-col" data-tauri-drag-region>
           {step === 1 && <WelcomeStep />}
 
-          {step === 2 && (
+          {step === 2 && <LicenseStep />}
+
+          {step === 3 && (
             <AccessibilityStep
               hasPermission={state.hasPermission}
               onRequestPermission={requestPermission}
@@ -108,7 +111,7 @@ export function Onboarding() {
             />
           )}
 
-          {step === 3 && (
+          {step === 4 && (
             <SoundSelectionStep
               enabled={state.enabled}
               enableKliky={enableKliky}
@@ -124,7 +127,7 @@ export function Onboarding() {
             />
           )}
 
-          {step === 4 && (
+          {step === 5 && (
             <ShortcutSettingsStep
               shortcuts={state.shortcuts}
               recordingAction={recorder.recordingAction}
@@ -140,7 +143,7 @@ export function Onboarding() {
             />
           )}
 
-          {step === 5 && (
+          {step === 6 && (
             <LaunchConfirmationStep
               activePack={state.activePack}
               volume={state.volume}
