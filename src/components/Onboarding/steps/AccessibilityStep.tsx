@@ -47,8 +47,8 @@ export function AccessibilityStep({
         {isMac ? (
           <OnboardingCard
             className={`space-y-4 border-none p-5 transition-all duration-500 relative overflow-hidden ${hasPermission
-                ? "dark:bg-emerald-500/10 bg-green-500/20 dark:border-emerald-500/20 border-green-500/20 dark:text-emerald-300 text-green-800"
-                : "dark:bg-amber-500/10 bg-amber-500/20 dark:border-amber-500/20 border-amber-500/30 dark:text-amber-300 text-amber-900"
+              ? "dark:bg-emerald-500/10 bg-green-500/20 dark:border-emerald-500/20 border-green-500/20 dark:text-emerald-300 text-green-800"
+              : "dark:bg-amber-500/10 bg-amber-500/20 dark:border-amber-500/20 border-amber-500/30 dark:text-amber-300 text-amber-900"
               }`}
           >
             {/* Glow backing */}
@@ -128,8 +128,8 @@ export function AccessibilityStep({
 
           <OnboardingCard
             className={`p-0 overflow-hidden bg-black/5 dark:bg-white/5 dark:border-zinc-800 border-zinc-300 relative h-36 group focus-within:ring-2 transition-all duration-300 ${hasPermission
-                ? "dark:focus-within:ring-emerald-500/30 focus-within:ring-green-500/30 dark:hover:border-emerald-500/20 hover:border-green-500/20"
-                : "dark:focus-within:ring-amber-500/20 focus-within:ring-amber-500/30 dark:hover:border-zinc-800 hover:border-zinc-300"
+              ? "dark:focus-within:ring-emerald-500/30 focus-within:ring-green-500/30 dark:hover:border-emerald-500/20 hover:border-green-500/20"
+              : "dark:focus-within:ring-amber-500/20 focus-within:ring-amber-500/30 dark:hover:border-zinc-800 hover:border-zinc-300"
               }`}
           >
             {/* Ghost Text Layer */}
@@ -143,10 +143,9 @@ export function AccessibilityStep({
               disabled={!hasPermission && isMac}
               value={typedText}
               onChange={(e) => setTypedText(e.target.value)}
-              placeholder={isMac && !hasPermission ? "Authorize permission to enable typing test here..." : "Type here to verify typing sounds in action..."}
               className={`absolute inset-0 w-full h-full p-4 bg-transparent text-xs font-medium leading-relaxed resize-none focus:outline-none whitespace-pre-wrap break-all ${hasPermission
-                  ? "text-green-600 dark:text-emerald-300 cursor-text"
-                  : "dark:text-neutral-500 text-neutral-400 cursor-not-allowed placeholder-neutral-400 dark:placeholder-neutral-600"
+                ? "text-green-600 dark:text-emerald-300 cursor-text"
+                : "dark:text-neutral-500 text-neutral-400 cursor-not-allowed placeholder-neutral-400 dark:placeholder-neutral-600"
                 }`}
               spellCheck={false}
             />
