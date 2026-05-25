@@ -4,6 +4,8 @@
 <dict>
     <key>NSAccessibilityUsageDescription</key>
     <string>This app requires accessibility permissions to listen for global keyboard events and play sounds.</string>
+    <key>NSInputMonitoringUsageDescription</key>
+    <string>This app requires input monitoring permission to detect key presses and play keyboard sounds.</string>
     <key>LSUIElement</key>
     <true/>
     <key>CFBundleDisplayName</key>

@@ -80,7 +80,7 @@ export function GeneralSection({
                   <AlertCircle className="w-4 h-4 text-zinc-400 dark:text-zinc-500" />
                 )}
                 <span className="text-[10px] uppercase tracking-widest font-bold text-zinc-500 dark:text-zinc-400">
-                  {hasPermission ? "Accessibility Access Enabled" : "Accessibility Access Required"}
+                  {hasPermission ? "Input Monitoring Enabled" : "Input Monitoring Required"}
                 </span>
               </div>
               <div className="flex flex-col">
@@ -88,7 +88,7 @@ export function GeneralSection({
                 <p className="text-xs text-black/40 dark:text-white/40 leading-tight">
                   {hasPermission
                     ? "Permissions are granted and Kliky can detect key presses."
-                    : "Kliky needs accessibility access to detect key presses."}
+                    : "Kliky needs Input Monitoring access to detect key presses."}
                 </p>
               </div>
             </div>
@@ -97,7 +97,10 @@ export function GeneralSection({
               disabled={hasPermission}
               onCheckedChange={(checked) => {
                 if (checked && !hasPermission) {
-                  invoke("request_permissions");
+                  void (async () => {
+                    await invoke("request_permissions");
+                    await invoke("start_keyboard_listener");
+                  })();
                 }
               }}
               className="focus-visible:ring-2 focus-visible:ring-red-500 dark:focus-visible:ring-white/80 focus-visible:ring-offset-2 dark:focus-visible:ring-offset-black/50"

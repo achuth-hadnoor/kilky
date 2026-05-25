@@ -21,6 +21,8 @@ mod worker;
 mod keys;
 #[cfg(target_os = "macos")]
 mod macos_listener;
+#[cfg(target_os = "macos")]
+mod macos_permissions;
 #[cfg(target_os = "windows")]
 mod windows_listener;
 
@@ -130,12 +132,12 @@ pub fn run() {
                     // Hide from Dock (menu-bar-only app).
                     app.set_activation_policy(tauri::ActivationPolicy::Accessory);
 
-                    // Prompt for accessibility permission if not yet granted.
-                    if !macos_accessibility_client::accessibility::application_is_trusted() {
-                        info!("Accessibility permission missing — prompting user…");
-                        let _ = macos_accessibility_client::accessibility::application_is_trusted_with_prompt();
+                    // Prompt for keyboard monitoring permission if not yet granted.
+                    if !crate::macos_permissions::has_keyboard_monitoring_access() {
+                        info!("Input Monitoring permission missing — prompting user…");
+                        let _ = crate::macos_permissions::request_keyboard_monitoring_access();
                     } else {
-                        info!("Accessibility permission confirmed.");
+                        info!("Input Monitoring permission confirmed.");
                     }
 
                     tray::setup_tray(app.handle())?;
@@ -162,13 +164,13 @@ pub fn run() {
             // Open the default audio output sink. This must succeed for the
             // app to function, so we panic with a descriptive message if it
             // fails.
-            let sink_handle = DeviceSinkBuilder::open_default_sink()
-                .expect("Failed to open default audio sink");
+            let sink_handle =
+                DeviceSinkBuilder::open_default_sink().expect("Failed to open default audio sink");
             let mixer = sink_handle.mixer().clone();
 
             let audio_state = crate::state::AudioState {
                 mixer: Arc::new(Mutex::new(mixer)),
-                sink:  Arc::new(Mutex::new(Some(sink_handle))),
+                sink: Arc::new(Mutex::new(Some(sink_handle))),
             };
             app.manage(audio_state);
 
@@ -176,7 +178,7 @@ pub fn run() {
 
             let (tx, rx) = mpsc::channel::<KeyEvent>();
             app.manage(KeySender {
-                tx:         tx.clone(),
+                tx: tx.clone(),
                 is_running: Arc::new(Mutex::new(false)),
             });
 
@@ -184,23 +186,10 @@ pub fn run() {
             worker::spawn_audio_worker(app.handle().clone(), rx);
 
             // Start the keyboard listener only after onboarding is complete
-            // so we don't request accessibility permissions prematurely.
+            // so we don't request Input Monitoring permission prematurely.
             if has_onboarded {
                 info!("User has onboarded — starting keyboard listener…");
-                let sender_state = app.state::<KeySender>();
-                let mut running  = sender_state.is_running.lock().unwrap();
-                if !*running {
-                    let tx_clone      = sender_state.tx.clone();
-                    let running_clone = sender_state.is_running.clone();
-
-                    #[cfg(target_os = "macos")]
-                    crate::macos_listener::start_macos_listener(tx_clone, running_clone);
-
-                    #[cfg(target_os = "windows")]
-                    crate::windows_listener::start_windows_listener(tx_clone, running_clone);
-
-                    *running = true;
-                }
+                commands::start_keyboard_listener(app.handle().clone());
             } else {
                 info!("Skipping keyboard listener until onboarding is complete.");
             }
@@ -222,8 +211,8 @@ pub fn run() {
                 }
 
                 info!("Background update checker initiated...");
-                use tauri_plugin_updater::UpdaterExt;
                 use tauri::Emitter;
+                use tauri_plugin_updater::UpdaterExt;
                 if let Ok(updater) = handle.updater() {
                     match updater.check().await {
                         Ok(Some(update)) => {
@@ -231,13 +220,19 @@ pub fn run() {
                             // Bring Settings window to focus (or spawn it if not created)
                             let w_handle = handle.clone();
                             tauri::async_runtime::spawn(async move {
-                                crate::window::spawn_window(&w_handle, crate::window::WindowType::Settings);
+                                crate::window::spawn_window(
+                                    &w_handle,
+                                    crate::window::WindowType::Settings,
+                                );
                                 // Allow some time for React app to mount and register the event listener
                                 tokio::time::sleep(std::time::Duration::from_millis(600)).await;
-                                let _ = w_handle.emit("update-available", serde_json::json!({
-                                    "version": update.version,
-                                    "body": update.body.clone()
-                                }));
+                                let _ = w_handle.emit(
+                                    "update-available",
+                                    serde_json::json!({
+                                        "version": update.version,
+                                        "body": update.body.clone()
+                                    }),
+                                );
                             });
                         }
                         Ok(None) => {
@@ -258,7 +253,7 @@ pub fn run() {
             // On exit, flush any remaining keystroke analytics that haven't
             // been written yet (we batch writes every 100 keystrokes).
             if let tauri::RunEvent::ExitRequested { .. } = event {
-                let state    = crate::state::STATE.lock().unwrap();
+                let state = crate::state::STATE.lock().unwrap();
                 let remaining = state.total_keystrokes % 100;
                 if remaining > 0 {
                     state.sync_keystrokes(remaining);
