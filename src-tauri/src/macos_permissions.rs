@@ -20,6 +20,13 @@ pub fn request_keyboard_monitoring_access() -> bool {
 }
 
 #[cfg(target_os = "macos")]
+pub fn open_keyboard_monitoring_settings() {
+    let _ = std::process::Command::new("open")
+        .arg("x-apple.systempreferences:com.apple.preference.security?Privacy_ListenEvent")
+        .spawn();
+}
+
+#[cfg(target_os = "macos")]
 fn has_listen_event_access() -> bool {
     unsafe { CGPreflightListenEventAccess() }
 }

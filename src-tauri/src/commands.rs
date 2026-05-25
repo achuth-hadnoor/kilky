@@ -587,7 +587,11 @@ pub fn request_permissions(app: tauri::AppHandle) -> bool {
         if let Some(window) = app.get_webview_window("onboarding") {
             let _ = window.set_always_on_top(false);
         }
-        crate::macos_permissions::request_keyboard_monitoring_access()
+        let granted = crate::macos_permissions::request_keyboard_monitoring_access();
+        if !granted {
+            crate::macos_permissions::open_keyboard_monitoring_settings();
+        }
+        granted
     }
     #[cfg(not(target_os = "macos"))]
     {
@@ -619,6 +623,20 @@ pub fn start_keyboard_listener(app: tauri::AppHandle) -> bool {
         if *running {
             log::info!("Keyboard listener already running — no-op.");
             return true;
+        }
+    }
+
+    #[cfg(target_os = "macos")]
+    if !crate::macos_permissions::has_keyboard_monitoring_access() {
+        log::warn!(
+            "Input Monitoring permission missing — requesting access before starting listener."
+        );
+        if !crate::macos_permissions::request_keyboard_monitoring_access() {
+            crate::macos_permissions::open_keyboard_monitoring_settings();
+            log::warn!(
+                "Keyboard listener requires System Settings > Privacy & Security > Input Monitoring."
+            );
+            return false;
         }
     }
 
