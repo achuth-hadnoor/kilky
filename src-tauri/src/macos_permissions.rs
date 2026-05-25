@@ -16,8 +16,7 @@ pub fn request_keyboard_monitoring_access() -> bool {
         return true;
     }
 
-    unsafe { CGRequestListenEventAccess() }
-    || has_listen_event_access()
+    (unsafe { CGRequestListenEventAccess() }) || has_listen_event_access()
 }
 
 #[cfg(target_os = "macos")]
