@@ -23,7 +23,8 @@
         { "url": "http://localhost:3000/*" },
         { "url": "http://localhost:3000" },
         { "url": "https://kliky.achuth.dev/*" },
-        { "url": "https://kliky.achuth.dev" }
+        { "url": "https://kliky.achuth.dev" },
+        { "url": "https://api.polar.sh/*" }
       ]
     }
   ]

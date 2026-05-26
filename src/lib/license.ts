@@ -10,23 +10,25 @@ async function getStore() {
   return _store;
 }
 
-const API_URL = import.meta.env.VITE_API_URL || "http://localhost:3000";
+const POLAR_API_URL = "https://api.polar.sh";
+const ORGANIZATION_ID = "546f69f9-2e28-4a9c-b9db-dff9377f5023";
 
 export async function activateLicense(key: string): Promise<boolean> {
   try {
-    // Some Polar license keys don't track individual device activations,
-    // so we just validate them instead.
-    const response = await fetch(`${API_URL}/api/license/validate`, {
+    const response = await fetch(`${POLAR_API_URL}/v1/customer-portal/license-keys/validate`, {
       method: "POST",
       headers: {
         "Content-Type": "application/json",
       },
-      body: JSON.stringify({ key }),
+      body: JSON.stringify({
+        key,
+        organization_id: ORGANIZATION_ID,
+      }),
     });
 
     if (!response.ok) {
       const errorData = await response.json().catch(() => null);
-      throw new Error(errorData?.error || "Failed to validate license");
+      throw new Error(errorData?.detail?.[0]?.msg || errorData?.error || "Failed to validate license");
     }
 
     const data = await response.json();
@@ -55,12 +57,15 @@ export async function validateLicense(): Promise<boolean> {
   if (!key) return false;
 
   try {
-    const response = await fetch(`${API_URL}/api/license/validate`, {
+    const response = await fetch(`${POLAR_API_URL}/v1/customer-portal/license-keys/validate`, {
       method: "POST",
       headers: {
         "Content-Type": "application/json",
       },
-      body: JSON.stringify({ key }),
+      body: JSON.stringify({
+        key,
+        organization_id: ORGANIZATION_ID,
+      }),
     });
 
     return response.ok;
