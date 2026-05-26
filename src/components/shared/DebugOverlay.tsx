@@ -49,7 +49,7 @@ export function DebugOverlay({ onClose }: { onClose: () => void }) {
 Debug Info:
 Bundle ID: ${debugInfo?.bundle_id}
 Sandboxed: ${debugInfo?.is_sandboxed}
-Trusted: ${debugInfo?.is_trusted}
+Input Monitoring: ${debugInfo?.is_trusted}
 Version: ${debugInfo?.version}
 
 Logs:
@@ -59,7 +59,7 @@ ${logs.join("\n")}
   };
 
   return (
-    <div className="fixed inset-0 z-[9999] bg-black/80 backdrop-blur-md flex flex-col p-6 animate-in fade-in duration-300">
+    <div className="fixed inset-0 z-9999 bg-black/80 backdrop-blur-md flex flex-col p-6 animate-in fade-in duration-300">
       <div className="flex items-center justify-between mb-6">
         <div className="flex items-center gap-2">
           <Terminal className="w-5 h-5 text-red-400" />
@@ -95,7 +95,7 @@ ${logs.join("\n")}
               </span>
             </div>
             <div className="flex items-center justify-between">
-              <span className="text-xs text-zinc-400">Accessibility:</span>
+              <span className="text-xs text-zinc-400">Input Monitoring:</span>
               <span className={`text-[10px] font-bold px-2 py-0.5 rounded ${debugInfo?.is_trusted ? 'bg-green-500/20 text-green-500' : 'bg-red-500/20 text-red-500'}`}>
                 {debugInfo?.is_trusted ? 'GRANTED' : 'DENIED'}
               </span>
@@ -131,7 +131,7 @@ ${logs.join("\n")}
             If the toggle won't turn on, run this in Terminal to clear the system cache for this app:
           </p>
           <code className="block bg-black/30 p-2 rounded text-[10px] font-mono text-red-300 select-all cursor-pointer">
-            tccutil reset Accessibility {debugInfo?.bundle_id}
+            tccutil reset ListenEvent {debugInfo?.bundle_id}
           </code>
         </div>
       </div>

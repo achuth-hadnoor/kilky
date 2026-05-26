@@ -587,7 +587,11 @@ pub fn request_permissions(app: tauri::AppHandle) -> bool {
         if let Some(window) = app.get_webview_window("onboarding") {
             let _ = window.set_always_on_top(false);
         }
-        macos_accessibility_client::accessibility::application_is_trusted_with_prompt()
+        let granted = crate::platform::macos::permissions::request_keyboard_monitoring_access();
+        if !granted {
+            crate::platform::macos::permissions::open_keyboard_monitoring_settings();
+        }
+        granted
     }
     #[cfg(not(target_os = "macos"))]
     {
@@ -600,7 +604,7 @@ pub fn request_permissions(app: tauri::AppHandle) -> bool {
 pub fn check_permissions() -> bool {
     #[cfg(target_os = "macos")]
     {
-        macos_accessibility_client::accessibility::application_is_trusted()
+        crate::platform::macos::permissions::has_keyboard_monitoring_access()
     }
     #[cfg(not(target_os = "macos"))]
     {
@@ -609,29 +613,61 @@ pub fn check_permissions() -> bool {
 }
 
 #[tauri::command]
-pub fn start_keyboard_listener(app: tauri::AppHandle) {
+pub fn start_keyboard_listener(app: tauri::AppHandle) -> bool {
     let sender_state = app.state::<crate::KeySender>();
-    let mut running = sender_state.is_running.lock().unwrap();
+    let tx_clone = sender_state.tx.clone();
+    let running_clone = sender_state.is_running.clone();
 
-    if !*running {
-        let tx_clone = sender_state.tx.clone();
-        let running_clone = sender_state.is_running.clone();
+    {
+        let running = running_clone.lock().unwrap();
+        if *running {
+            log::info!("Keyboard listener already running — no-op.");
+            return true;
+        }
+    }
 
-        #[cfg(target_os = "macos")]
-        crate::macos_listener::start_macos_listener(tx_clone, running_clone);
+    #[cfg(target_os = "macos")]
+    if !crate::platform::macos::permissions::has_keyboard_monitoring_access() {
+        log::warn!(
+            "Input Monitoring permission missing — requesting access before starting listener."
+        );
+        if !crate::platform::macos::permissions::request_keyboard_monitoring_access() {
+            crate::platform::macos::permissions::open_keyboard_monitoring_settings();
+            log::warn!(
+                "Keyboard listener requires System Settings > Privacy & Security > Input Monitoring."
+            );
+            return false;
+        }
+    }
 
-        #[cfg(target_os = "windows")]
-        crate::windows_listener::start_windows_listener(tx_clone, running_clone);
+    #[cfg(target_os = "macos")]
+    let started = crate::platform::macos::listener::start_macos_listener(tx_clone, running_clone.clone());
 
+    #[cfg(target_os = "windows")]
+    let started = {
+        crate::platform::windows::listener::start_windows_listener(tx_clone, running_clone.clone());
+        true
+    };
+
+    #[cfg(not(any(target_os = "macos", target_os = "windows")))]
+    let started = {
+        let _ = tx_clone;
+        false
+    };
+
+    if started {
+        let mut running = running_clone.lock().unwrap();
         *running = true;
         log::info!("Keyboard listener started.");
     } else {
-        log::info!("Keyboard listener already running — no-op.");
+        log::warn!("Keyboard listener did not start.");
     }
+
+    started
 }
 
 #[tauri::command]
-pub fn complete_onboarding(app: AppHandle) {
+pub async fn complete_onboarding(app: AppHandle) {
     log::info!("Completing onboarding...");
     {
         let mut state = STATE.lock().unwrap();
@@ -663,7 +699,7 @@ pub fn complete_onboarding(app: AppHandle) {
 }
 
 #[tauri::command]
-pub fn show_onboarding(app: AppHandle) {
+pub async fn show_onboarding(app: AppHandle) {
     #[cfg(target_os = "macos")]
     {
         let _ = app.set_activation_policy(tauri::ActivationPolicy::Regular);
@@ -740,7 +776,7 @@ pub fn handle_trial_expired(app: AppHandle) {
     if let Some(tray) = app.tray_by_id("main") {
         let _ = tray.set_visible(false);
     }
-    
+
     // Show dock icon
     #[cfg(target_os = "macos")]
     {

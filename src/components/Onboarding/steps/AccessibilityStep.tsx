@@ -30,7 +30,7 @@ export function AccessibilityStep({
   return (
     <StepContainer>
       <StepHeader
-        title="Accessibility Access"
+        title="Input Monitoring Access"
         description="Enable system permissions to allow key press listening"
         icon={
           hasPermission ? (
@@ -85,14 +85,14 @@ export function AccessibilityStep({
 
             <p className="text-xs text-neutral-500 leading-relaxed text-left relative z-10">
               {hasPermission
-                ? "Excellent! Accessibility permission is active. Cliky is ready to monitor keystrokes globally."
-                : "macOS requires you to enable Accessibility for Cliky in System Settings so it can play sounds system-wide."}
+                ? "Excellent! Input Monitoring is active. Cliky is ready to monitor keystrokes globally."
+                : "macOS requires you to enable Input Monitoring for Cliky in System Settings so it can play sounds system-wide."}
             </p>
 
             {!hasPermission && (
               <button
                 onClick={onRequestPermission}
-                className="w-full mt-2 py-3 px-4 rounded-xl bg-gradient-to-r from-amber-500 to-orange-600 hover:from-amber-600 hover:to-orange-700 text-white text-xs font-bold tracking-wide transition-all duration-300 dark:shadow-lg dark:shadow-orange-950/40 shadow-md shadow-orange-500/25 relative z-10 active:scale-[0.98]"
+                className="w-full mt-2 py-3 px-4 rounded-xl bg-linear-to-r from-amber-500 to-orange-600 hover:from-amber-600 hover:to-orange-700 text-white text-xs font-bold tracking-wide transition-all duration-300 dark:shadow-lg dark:shadow-orange-950/40 shadow-md shadow-orange-500/25 relative z-10 active:scale-[0.98]"
               >
                 Open System Settings
               </button>
@@ -151,7 +151,7 @@ export function AccessibilityStep({
             />
 
             <div className="absolute bottom-2 right-3 text-[9px] uppercase tracking-tighter font-extrabold dark:text-neutral-600 text-neutral-400 group-focus-within:opacity-0 transition-opacity">
-              {hasPermission ? "Start typing to test" : "Awaiting Accessibility Access"}
+              {hasPermission ? "Start typing to test" : "Awaiting Input Monitoring Access"}
             </div>
           </OnboardingCard>
         </div>

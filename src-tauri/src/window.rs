@@ -84,7 +84,14 @@ pub fn spawn_window_with_visibility(handle: &AppHandle, window_type: WindowType,
     // ---- macOS-specific: sidebar vibrancy + overlay title bar -----------
     #[cfg(target_os = "macos")]
     {
-        use tauri::window::{Effect, EffectState, EffectsBuilder};
+        use tauri::utils::config::WindowEffectsConfig;
+        use tauri::window::{Effect, EffectState};
+        let effects = WindowEffectsConfig {
+            effects: vec![Effect::Sidebar],
+            state: Some(EffectState::Active),
+            radius: None,
+            color: None,
+        };
         builder = builder
             .title_bar_style(tauri::TitleBarStyle::Overlay)
             .content_protected(true)
@@ -92,24 +99,21 @@ pub fn spawn_window_with_visibility(handle: &AppHandle, window_type: WindowType,
                 x: 40,
                 y: 60,
             }))
-            .effects(
-                EffectsBuilder::new()
-                    .effects(vec![Effect::Sidebar])
-                    .state(EffectState::Active)
-                    .build(),
-            );
+            .effects(effects);
     }
 
     // ---- Windows-specific: acrylic blur ----------------------------------
     #[cfg(target_os = "windows")]
     {
-        use tauri::window::{Effect, EffectState, EffectsBuilder};
-        builder = builder.effects(
-            EffectsBuilder::new()
-                .effects(vec![Effect::Acrylic])
-                .state(EffectState::Active)
-                .build(),
-        );
+        use tauri::utils::config::WindowEffectsConfig;
+        use tauri::window::{Effect, EffectState};
+        let effects = WindowEffectsConfig {
+            effects: vec![Effect::Acrylic],
+            state: Some(EffectState::Active),
+            radius: None,
+            color: None,
+        };
+        builder = builder.effects(effects);
     }
 
     let _ = builder.build();
