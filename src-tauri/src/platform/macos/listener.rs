@@ -1,22 +1,18 @@
 use crate::state::KeyEvent;
-#[cfg(target_os = "macos")]
 use core_foundation::runloop::{kCFRunLoopDefaultMode, CFRunLoop, CFRunLoopRun};
-#[cfg(target_os = "macos")]
 use core_graphics::event::{
     CGEventTap, CGEventTapLocation, CGEventTapOptions, CGEventTapPlacement, CGEventType, EventField,
 };
 use std::sync::atomic::{AtomicU64, Ordering};
-#[cfg(target_os = "macos")]
 use std::sync::mpsc::Sender;
 
-#[cfg(target_os = "macos")]
 pub fn start_macos_listener(
     tx: Sender<KeyEvent>,
     is_running: std::sync::Arc<std::sync::Mutex<bool>>,
 ) -> bool {
     use std::thread;
 
-    if !crate::macos_permissions::has_keyboard_monitoring_access() {
+    if !super::permissions::has_keyboard_monitoring_access() {
         log::warn!("Cannot start macOS keyboard listener without Input Monitoring permission.");
         return false;
     }

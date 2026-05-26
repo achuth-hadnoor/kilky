@@ -17,14 +17,7 @@ mod tray;
 mod window;
 mod worker;
 
-#[cfg(target_os = "macos")]
-mod keys;
-#[cfg(target_os = "macos")]
-mod macos_listener;
-#[cfg(target_os = "macos")]
-mod macos_permissions;
-#[cfg(target_os = "windows")]
-mod windows_listener;
+mod platform;
 
 use crate::state::{KeyEvent, KeySender, STATE};
 use log::{error, info};
@@ -133,9 +126,9 @@ pub fn run() {
                     app.set_activation_policy(tauri::ActivationPolicy::Accessory);
 
                     // Prompt for keyboard monitoring permission if not yet granted.
-                    if !crate::macos_permissions::has_keyboard_monitoring_access() {
+                    if !crate::platform::macos::permissions::has_keyboard_monitoring_access() {
                         info!("Input Monitoring permission missing — prompting user…");
-                        let _ = crate::macos_permissions::request_keyboard_monitoring_access();
+                        let _ = crate::platform::macos::permissions::request_keyboard_monitoring_access();
                     } else {
                         info!("Input Monitoring permission confirmed.");
                     }

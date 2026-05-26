@@ -587,9 +587,9 @@ pub fn request_permissions(app: tauri::AppHandle) -> bool {
         if let Some(window) = app.get_webview_window("onboarding") {
             let _ = window.set_always_on_top(false);
         }
-        let granted = crate::macos_permissions::request_keyboard_monitoring_access();
+        let granted = crate::platform::macos::permissions::request_keyboard_monitoring_access();
         if !granted {
-            crate::macos_permissions::open_keyboard_monitoring_settings();
+            crate::platform::macos::permissions::open_keyboard_monitoring_settings();
         }
         granted
     }
@@ -604,7 +604,7 @@ pub fn request_permissions(app: tauri::AppHandle) -> bool {
 pub fn check_permissions() -> bool {
     #[cfg(target_os = "macos")]
     {
-        crate::macos_permissions::has_keyboard_monitoring_access()
+        crate::platform::macos::permissions::has_keyboard_monitoring_access()
     }
     #[cfg(not(target_os = "macos"))]
     {
@@ -627,12 +627,12 @@ pub fn start_keyboard_listener(app: tauri::AppHandle) -> bool {
     }
 
     #[cfg(target_os = "macos")]
-    if !crate::macos_permissions::has_keyboard_monitoring_access() {
+    if !crate::platform::macos::permissions::has_keyboard_monitoring_access() {
         log::warn!(
             "Input Monitoring permission missing — requesting access before starting listener."
         );
-        if !crate::macos_permissions::request_keyboard_monitoring_access() {
-            crate::macos_permissions::open_keyboard_monitoring_settings();
+        if !crate::platform::macos::permissions::request_keyboard_monitoring_access() {
+            crate::platform::macos::permissions::open_keyboard_monitoring_settings();
             log::warn!(
                 "Keyboard listener requires System Settings > Privacy & Security > Input Monitoring."
             );
@@ -641,11 +641,11 @@ pub fn start_keyboard_listener(app: tauri::AppHandle) -> bool {
     }
 
     #[cfg(target_os = "macos")]
-    let started = crate::macos_listener::start_macos_listener(tx_clone, running_clone.clone());
+    let started = crate::platform::macos::listener::start_macos_listener(tx_clone, running_clone.clone());
 
     #[cfg(target_os = "windows")]
     let started = {
-        crate::windows_listener::start_windows_listener(tx_clone, running_clone.clone());
+        crate::platform::windows::listener::start_windows_listener(tx_clone, running_clone.clone());
         true
     };
 
@@ -667,7 +667,7 @@ pub fn start_keyboard_listener(app: tauri::AppHandle) -> bool {
 }
 
 #[tauri::command]
-pub fn complete_onboarding(app: AppHandle) {
+pub async fn complete_onboarding(app: AppHandle) {
     log::info!("Completing onboarding...");
     {
         let mut state = STATE.lock().unwrap();
@@ -699,7 +699,7 @@ pub fn complete_onboarding(app: AppHandle) {
 }
 
 #[tauri::command]
-pub fn show_onboarding(app: AppHandle) {
+pub async fn show_onboarding(app: AppHandle) {
     #[cfg(target_os = "macos")]
     {
         let _ = app.set_activation_policy(tauri::ActivationPolicy::Regular);

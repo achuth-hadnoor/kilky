@@ -1,13 +1,4 @@
-//! `windows_listener.rs` — Native Windows low-level keyboard listener.
-//!
-//! Responsibilities:
-//! - Register a global low-level keyboard hook (`WH_KEYBOARD_LL`) via `windows-sys`.
-//! - Run a dedicated thread message loop to receive events.
-//! - Capture modifier key state changes to build a unified modifier mask.
-//! - Map Windows Virtual Key (VK) codes to macOS virtual key codes to maintain unified key IDs.
-//! - Send decoded `KeyEvent` structs to the audio worker thread via channel.
-
-#![cfg(target_os = "windows")]
+//! `platform/windows/listener.rs` — Native Windows low-level keyboard listener.
 
 use crate::state::KeyEvent;
 use lazy_static::lazy_static;

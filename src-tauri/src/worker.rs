@@ -202,7 +202,7 @@ pub fn spawn_audio_worker(app_handle: AppHandle, rx: mpsc::Receiver<KeyEvent>) {
             #[cfg(target_os = "macos")]
             if is_down && show_key_in_tray {
                 let gen = TRAY_TITLE_GEN.fetch_add(1, Ordering::SeqCst) + 1;
-                if let Some(key_name) = crate::keys::get_key_name(keycode_raw) {
+                if let Some(key_name) = crate::platform::macos::keys::get_key_name(keycode_raw) {
                     if let Some(tray) = app_handle_clone.tray_by_id("main") {
                         let _ = tray.set_title(Some(key_name.to_string()));
 
