@@ -47,6 +47,7 @@ pub fn init_db() -> Result<()> {
 }
 
 pub fn save_config(config: &PersistentConfig) -> Result<()> {
+    let _ = init_db();
     let conn = Connection::open(get_db_path())?;
     if let Ok(json) = serde_json::to_string(config) {
         conn.execute(
@@ -71,6 +72,7 @@ pub fn load_config() -> Result<PersistentConfig> {
 }
 
 pub fn update_keystrokes(count: u64) -> Result<()> {
+    let _ = init_db();
     let conn = Connection::open(get_db_path())?;
     let today = chrono::Local::now().format("%Y-%m-%d").to_string();
 

@@ -193,10 +193,15 @@ impl AppState {
     /// Loads application state from the SQLite database, falling back to the
     /// legacy JSON file or compiled-in defaults if neither is available.
     pub fn load() -> Self {
-        // Ensure the DB schema exists before trying to read from it.
-        let _ = crate::db::init_db();
-
-        let config = crate::db::load_config().unwrap_or_else(|_| Self::load_from_json());
+        let db_path = crate::db::get_db_path();
+        
+        let config = if db_path.exists() {
+            // Ensure the DB schema exists before trying to read from it.
+            let _ = crate::db::init_db();
+            crate::db::load_config().unwrap_or_else(|_| Self::load_from_json())
+        } else {
+            Self::load_from_json()
+        };
 
         // Resolve the active pack runtime representation from the persisted type.
         let active_pack = match config.active_pack_type {
@@ -249,6 +254,10 @@ impl AppState {
 
     /// Persists the current state to SQLite.
     pub fn save(&self) {
+        if !self.has_onboarded {
+            return; // Do not create DB or save partial state until onboarding completes
+        }
+
         let config = PersistentConfig {
             enabled: self.enabled,
             volume: self.volume,
@@ -268,6 +277,9 @@ impl AppState {
 
     /// Writes a keystroke batch to the analytics DB table.
     pub fn sync_keystrokes(&self, count: u64) {
+        if !self.has_onboarded {
+            return; // Do not record analytics until onboarding completes
+        }
         let _ = crate::db::update_keystrokes(count);
     }
 }

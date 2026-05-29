@@ -2,13 +2,14 @@ import { useState, useEffect } from 'react';
 import { check } from '@tauri-apps/plugin-updater';
 import { relaunch } from '@tauri-apps/plugin-process';
 import { message, ask } from '@tauri-apps/plugin-dialog';
-import { Settings as SettingsIcon, Volume2, Keyboard, Info } from 'lucide-react';
+import { Settings as SettingsIcon, Volume2, Keyboard, Info, Zap } from 'lucide-react';
 import { ScrollArea } from '@/components/ui/scroll-area';
 
 import { Sidebar } from './sections/Sidebar';
 import { GeneralSection } from './sections/GeneralSection';
 import { AudioSection } from './sections/AudioSection';
 import { HotkeysSection } from './sections/HotkeysSection';
+import { AdvancedSection } from './sections/AdvancedSection';
 
 import { useSettings } from '../../hooks/useSettings';
 import { useShortcutRecorder } from '../../hooks/useShortcutRecorder';
@@ -21,6 +22,7 @@ const NAV_ITEMS = [
   { id: 'general', label: 'General', icon: SettingsIcon, color: 'bg-blue-500' },
   { id: 'audio', label: 'Sounds', icon: Volume2, color: 'bg-emerald-500' },
   { id: 'hotkeys', label: 'Hotkeys', icon: Keyboard, color: 'bg-amber-500' },
+  { id: 'advanced', label: 'Advanced', icon: Zap, color: 'bg-violet-500' },
   { id: 'about', label: 'About', icon: Info, color: 'bg-zinc-500' },
 ] as const;
 
@@ -140,6 +142,19 @@ export function Settings() {
                 setBackendRecording={recorder.setBackendRecording}
                 handleClearShortcut={recorder.handleClearShortcut}
                 hyperKeyEnabled={state.hyperKeyEnabled}
+              />
+            )}
+
+            {activeTab === 'advanced' && (
+              <AdvancedSection
+                isLoading={state.isLoading}
+                bufferSize={state.bufferSize}
+                handleBufferSizeChange={handlers.handleBufferSizeChange}
+                hardwareAcceleration={state.hardwareAcceleration}
+                handleHardwareAccelerationToggle={handlers.handleHardwareAccelerationToggle}
+                speedVolumeScaling={state.speedVolumeScaling}
+                handleSpeedScalingChange={handlers.handleSpeedScalingChange}
+                handleResetSettings={handlers.handleResetSettings}
               />
             )}
 

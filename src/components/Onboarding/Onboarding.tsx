@@ -91,7 +91,7 @@ export function Onboarding({ initialStep = 1, forceLicense = false }: { initialS
           <div className="absolute w-6 h-6 rounded-full bg-zinc-900 border border-white/10" />
         </div>
         <p className="mt-4 text-xs font-semibold text-zinc-400 tracking-wider animate-pulse uppercase">
-          Initializing Cliky...
+          Initializing Kliky...
         </p>
       </div>
     );

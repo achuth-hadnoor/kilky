@@ -38,9 +38,8 @@ export function AdvancedSection({
   handleBufferSizeChange,
   hardwareAcceleration,
   handleHardwareAccelerationToggle,
-  // Speed Scaling hidden for v2
-  // speedVolumeScaling,
-  // handleSpeedScalingChange,
+  speedVolumeScaling,
+  handleSpeedScalingChange,
   handleResetSettings,
 }: AdvancedSectionProps) {
   const [isChanging, setIsChanging] = useState(false);
@@ -58,7 +57,6 @@ export function AdvancedSection({
       </div>
 
       <div className="space-y-4">
-        {/* Speed-based Volume hidden for future release
         <div className="flex items-center justify-between p-4 bg-black/5 dark:bg-white/5 rounded-2xl border border-black/5 dark:border-white/5">
           <div className="space-y-1">
             <Label className="text-base">Speed-based Volume</Label>
@@ -67,9 +65,9 @@ export function AdvancedSection({
           <Switch
             checked={speedVolumeScaling}
             onCheckedChange={handleSpeedScalingChange}
+            className="focus-visible:ring-2 focus-visible:ring-red-500 dark:focus-visible:ring-white/80 focus-visible:ring-offset-2 dark:focus-visible:ring-offset-black/50"
           />
         </div>
-        */}
 
         <div className="flex items-center justify-between p-4 bg-black/5 dark:bg-white/5 rounded-2xl border border-black/5 dark:border-white/5">
           <div className="space-y-1">

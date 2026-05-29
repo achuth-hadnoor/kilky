@@ -182,6 +182,11 @@ export function useSettings() {
     await fetchState();
   }, [fetchState]);
 
+  const handleSpeedScalingChange = useCallback(async (enabled: boolean) => {
+    setSpeedVolumeScaling(enabled);
+    await invoke('set_speed_volume_scaling', { enabled });
+  }, []);
+
   const handlers = useMemo(() => ({
     handleToggle,
     handleAutoLaunchChange,
@@ -195,6 +200,7 @@ export function useSettings() {
     handleResetSettings,
     handleShowKeyInTrayToggle,
     handleHyperKeyToggle,
+    handleSpeedScalingChange,
   }), [
     handleToggle,
     handleAutoLaunchChange,
@@ -208,6 +214,7 @@ export function useSettings() {
     handleResetSettings,
     handleShowKeyInTrayToggle,
     handleHyperKeyToggle,
+    handleSpeedScalingChange,
   ]);
 
   return {

@@ -33,6 +33,8 @@ pub struct AppStateResponse {
     pub total_keystrokes: u64,
     pub session_keystrokes: u64,
     pub show_key_in_tray: bool,
+    pub speed_volume_scaling: bool,
+    pub audio_device: Option<String>,
 }
 
 #[tauri::command]
@@ -50,6 +52,8 @@ pub fn get_app_state() -> AppStateResponse {
         total_keystrokes: state.total_keystrokes,
         session_keystrokes: state.session_keystrokes,
         show_key_in_tray: state.show_key_in_tray,
+        speed_volume_scaling: state.speed_volume_scaling,
+        audio_device: state.audio_device.clone(),
     }
 }
 
@@ -456,7 +460,7 @@ pub fn set_vibrancy(_app: AppHandle, _enabled: bool) {
     // This is a placeholder as vibrancy usually needs to be set on window creation
     // or via a specific plugin like window-vibrancy.
     // For now, we'll just emit an event or log it.
-    println!("Vibrancy toggled: {}", _enabled);
+    log::info!("Vibrancy toggled: {}", _enabled);
 }
 
 #[tauri::command]
