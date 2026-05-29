@@ -24,7 +24,8 @@ export function AboutSection({ appVersion, handleCheckUpdates }: AboutSectionPro
 
   const handleSupport = async () => {
     // Replace this URL with your actual Polar.sh product or storefront URL
-    await openUrl('https://buy.polar.sh/polar_cl_O7avncCbfK2g8xhHOIF2cKRo1Gw9YsvmUVmja28WeJ3');
+    // await openUrl('https://buy.polar.sh/polar_cl_O7avncCbfK2g8xhHOIF2cKRo1Gw9YsvmUVmja28WeJ3');
+    await openUrl('https://kliky.achuth.dev');
   };
 
   const handleActivate = async () => {
@@ -60,7 +61,7 @@ export function AboutSection({ appVersion, handleCheckUpdates }: AboutSectionPro
         </div>
 
         <div className="flex gap-2">
-          <Button variant="outline" className="rounded-xl border-black/10 dark:border-white/10 px-6 cursor-pointer focus-visible:ring-2 focus-visible:ring-red-500 dark:focus-visible:ring-white/80 focus-visible:ring-offset-2 dark:focus-visible:ring-offset-black/50" onClick={() => openUrl('https://github.com/achuthhadnoor/kliky/releases')}>Release Notes</Button>
+          <Button variant="outline" className="rounded-xl border-black/10 dark:border-white/10 px-6 cursor-pointer focus-visible:ring-2 focus-visible:ring-red-500 dark:focus-visible:ring-white/80 focus-visible:ring-offset-2 dark:focus-visible:ring-offset-black/50" onClick={() => openUrl('https://github.com/achuthhadnoor/kliky-www/releases')}>Release Notes</Button>
           <Button
             variant="outline"
             className="rounded-xl border-black/10 dark:border-white/10 px-6 min-w-[160px] cursor-pointer focus-visible:ring-2 focus-visible:ring-red-500 dark:focus-visible:ring-white/80 focus-visible:ring-offset-2 dark:focus-visible:ring-offset-black/50"
