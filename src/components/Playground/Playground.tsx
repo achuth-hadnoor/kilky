@@ -1,5 +1,6 @@
 import React, { useState, useRef, useEffect } from "react";
-import { QUOTES } from "./quotes";
+import { QUOTES, COMMON_WORDS } from "./quotes";
+import { RefreshCw, Timer, FileText, CheckCircle2, AlertTriangle, BarChart2, Sparkles, Keyboard } from "lucide-react";
 
 interface HistoryItem {
   id: string;
@@ -7,15 +8,41 @@ interface HistoryItem {
   accuracy: number;
   strokes: number;
   date: string;
+  mode: string;
 }
 
 export function Playground() {
-  const [targetText, setTargetText] = useState(() => QUOTES[Math.floor(Math.random() * QUOTES.length)]);
-  const [text, setText] = useState("");
-  const [wpm, setWpm] = useState(0);
+  // Config state
+  const [mode, setMode] = useState<"time" | "words" | "quote">("time");
+  const [timeLimit, setTimeLimit] = useState<15 | 30 | 60>(30);
+  const [wordLimit, setWordLimit] = useState<10 | 25 | 50 | 100>(25);
+
+  // Engine state
+  const [words, setWords] = useState<string[]>([]);
+  const [typedWords, setTypedWords] = useState<string[]>([""]);
+  const [isTesting, setIsTesting] = useState(false);
+  const [isCompleted, setIsCompleted] = useState(false);
+  const [timeLeft, setTimeLeft] = useState(30);
+  const [startTime, setStartTime] = useState<number | null>(null);
+
+  // Live Metrics
+  const [liveWpm, setLiveWpm] = useState(0);
+  const [liveAccuracy, setLiveAccuracy] = useState(100);
+
+  // Stats storage
+  const [stats, setStats] = useState<{
+    wpm: number;
+    accuracy: number;
+    correctChars: number;
+    incorrectChars: number;
+    extraChars: number;
+    missedChars: number;
+    rawWpm: number;
+  } | null>(null);
+
   const [history, setHistory] = useState<HistoryItem[]>(() => {
     if (typeof window === "undefined") return [];
-    const saved = localStorage.getItem("kliky_typing_history");
+    const saved = localStorage.getItem("kliky_typing_history_v2");
     if (saved) {
       try {
         return JSON.parse(saved);
@@ -27,214 +54,532 @@ export function Playground() {
   });
 
   const textareaRef = useRef<HTMLTextAreaElement>(null);
+  const containerRef = useRef<HTMLDivElement>(null);
+  const timerIntervalRef = useRef<NodeJS.Timeout | null>(null);
 
-  // WPM Tracking variables
-  const startTimeRef = useRef<number | null>(null);
-
-  // Focus the input immediately on mount
-  useEffect(() => {
-    if (textareaRef.current) {
-      textareaRef.current.focus();
+  // Setup / reset helper
+  const handleReset = () => {
+    // Clear interval
+    if (timerIntervalRef.current) {
+      clearInterval(timerIntervalRef.current);
     }
+
+    setIsTesting(false);
+    setIsCompleted(false);
+    setStartTime(null);
+    setLiveWpm(0);
+    setLiveAccuracy(100);
+    setStats(null);
+
+    // Populate words based on mode
+    if (mode === "quote") {
+      const randomQuote = QUOTES[Math.floor(Math.random() * QUOTES.length)];
+      setWords(randomQuote.split(" "));
+    } else if (mode === "words") {
+      const generated: string[] = [];
+      for (let i = 0; i < wordLimit; i++) {
+        generated.push(COMMON_WORDS[Math.floor(Math.random() * COMMON_WORDS.length)]);
+      }
+      setWords(generated);
+    } else {
+      // Time mode - generate a large buffer of words
+      const generated: string[] = [];
+      for (let i = 0; i < 150; i++) {
+        generated.push(COMMON_WORDS[Math.floor(Math.random() * COMMON_WORDS.length)]);
+      }
+      setWords(generated);
+      setTimeLeft(timeLimit);
+    }
+
+    setTypedWords([""]);
+
+    // Focus input
+    setTimeout(() => {
+      textareaRef.current?.focus();
+    }, 20);
+  };
+
+  // Trigger reset on mode/limit changes
+  useEffect(() => {
+    handleReset();
+  }, [mode, timeLimit, wordLimit]);
+
+  // Focus input automatically on mount
+  useEffect(() => {
+    textareaRef.current?.focus();
   }, []);
 
-  const saveStats = (finalWpm: number, finalStrokes: number, finalAccuracy: number) => {
+  // Global reset keyboard shortcut (Tab)
+  useEffect(() => {
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if (e.key === "Tab") {
+        e.preventDefault();
+        handleReset();
+      }
+    };
+    window.addEventListener("keydown", handleKeyDown);
+    return () => window.removeEventListener("keydown", handleKeyDown);
+  }, [mode, timeLimit, wordLimit]);
+
+  // Handle active word index and active char index
+  const activeWordIndex = typedWords.length - 1;
+  const activeCharIndex = typedWords[activeWordIndex].length;
+
+  // Real-time calculation of WPM and Accuracy
+  const calculateLiveMetrics = (currentTyped: string[]) => {
+    if (!startTime) return;
+    const now = Date.now();
+    const elapsedMinutes = (now - startTime) / 60000;
+    if (elapsedMinutes <= 0.005) return;
+
+    let correctChars = 0;
+    let totalTypedChars = 0;
+
+    currentTyped.forEach((typedWord, wIdx) => {
+      const targetWord = words[wIdx] || "";
+      totalTypedChars += typedWord.length;
+
+      for (let cIdx = 0; cIdx < typedWord.length; cIdx++) {
+        if (targetWord[cIdx] === typedWord[cIdx]) {
+          correctChars++;
+        }
+      }
+      // Add space for completed words
+      if (wIdx < currentTyped.length - 1) {
+        correctChars++;
+        totalTypedChars++;
+      }
+    });
+
+    const calculatedWpm = Math.round((correctChars / 5) / elapsedMinutes);
+    const accuracy = totalTypedChars > 0 ? Math.round((correctChars / totalTypedChars) * 100) : 100;
+
+    setLiveWpm(calculatedWpm > 250 ? 250 : calculatedWpm);
+    setLiveAccuracy(accuracy);
+  };
+
+  // Start Test Timer
+  const startTimer = () => {
+    setIsTesting(true);
+    const start = Date.now();
+    setStartTime(start);
+
+    if (mode === "time") {
+      timerIntervalRef.current = setInterval(() => {
+        setTimeLeft((prev) => {
+          if (prev <= 1) {
+            if (timerIntervalRef.current) clearInterval(timerIntervalRef.current);
+            finishTest(timeLimit);
+            return 0;
+          }
+          return prev - 1;
+        });
+      }, 1000);
+    }
+  };
+
+  // Complete/Finish the test and compute stats
+  const finishTest = (finalTimeSec: number) => {
+    setIsTesting(false);
+    setIsCompleted(true);
+    if (timerIntervalRef.current) clearInterval(timerIntervalRef.current);
+
+    const durationMin = finalTimeSec / 60;
+
+    let correctChars = 0;
+    let incorrectChars = 0;
+    let extraChars = 0;
+    let missedChars = 0;
+    let totalTypedCount = 0;
+
+    typedWords.forEach((typedWord, wIdx) => {
+      const targetWord = words[wIdx] || "";
+      totalTypedCount += typedWord.length;
+
+      for (let cIdx = 0; cIdx < Math.max(targetWord.length, typedWord.length); cIdx++) {
+        if (cIdx < targetWord.length) {
+          if (cIdx < typedWord.length) {
+            if (typedWord[cIdx] === targetWord[cIdx]) {
+              correctChars++;
+            } else {
+              incorrectChars++;
+            }
+          } else {
+            missedChars++;
+          }
+        } else {
+          extraChars++;
+        }
+      }
+      // Add space character
+      if (wIdx < typedWords.length - 1) {
+        correctChars++;
+        totalTypedCount++;
+      }
+    });
+
+    const finalWpm = Math.round((correctChars / 5) / durationMin);
+    const rawWpm = Math.round((totalTypedCount / 5) / durationMin);
+    const finalAccuracy = totalTypedCount > 0 ? Math.round((correctChars / totalTypedCount) * 100) : 100;
+
+    const finalStats = {
+      wpm: finalWpm > 250 ? 250 : finalWpm,
+      accuracy: finalAccuracy,
+      correctChars,
+      incorrectChars,
+      extraChars,
+      missedChars,
+      rawWpm: rawWpm > 250 ? 250 : rawWpm
+    };
+
+    setStats(finalStats);
+
+    // Save to history
     const newItem: HistoryItem = {
       id: Date.now().toString(),
-      wpm: finalWpm,
-      accuracy: finalAccuracy,
-      strokes: finalStrokes,
-      date: new Date().toLocaleDateString() + " " + new Date().toLocaleTimeString()
+      wpm: finalStats.wpm,
+      accuracy: finalStats.accuracy,
+      strokes: totalTypedCount,
+      date: new Date().toLocaleDateString() + " " + new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
+      mode: `${mode} ${mode === "time" ? timeLimit + "s" : mode === "words" ? wordLimit + "w" : ""}`
     };
-    const newHistory = [newItem, ...history].slice(0, 10); // keep last 10
+
+    const newHistory = [newItem, ...history].slice(0, 10);
     setHistory(newHistory);
-    localStorage.setItem("kliky_typing_history", JSON.stringify(newHistory));
+    localStorage.setItem("kliky_typing_history_v2", JSON.stringify(newHistory));
   };
 
-  const handleTextChange = (e: React.ChangeEvent<HTMLTextAreaElement>) => {
+  const handleInputChange = (e: React.ChangeEvent<HTMLTextAreaElement>) => {
     const val = e.target.value;
 
-    // Prevent typing beyond the target text length
-    if (val.length > targetText.length) return;
-
-    setText(val);
-
-    if (val.length === 0) {
-      startTimeRef.current = null;
-      setWpm(0);
-      return;
+    // Start timer on first keystroke
+    if (!isTesting && !isCompleted && val.length > 0) {
+      startTimer();
     }
 
-    if (!startTimeRef.current && val.length === 1) {
-      startTimeRef.current = Date.now();
-    }
+    // Split words by spaces
+    const wordsTyped = val.split(" ");
 
-    let correctStrokes = 0;
-    for (let i = 0; i < val.length; i++) {
-      if (val[i] === targetText[i]) {
-        correctStrokes++;
+    // For non-time modes, check if we reached the end of the text
+    if (mode !== "time") {
+      if (wordsTyped.length > words.length && words.length > 0) {
+        return;
+      }
+      if (wordsTyped.length === words.length && words.length > 0) {
+        const lastWordTyped = wordsTyped[wordsTyped.length - 1];
+        const lastWordTarget = words[words.length - 1];
+        if (lastWordTyped.length === lastWordTarget.length) {
+          // Finished!
+          setTypedWords(wordsTyped);
+          finishTest((Date.now() - (startTime || Date.now())) / 1000);
+          return;
+        }
       }
     }
 
-    let currentWpm = 0;
-    if (startTimeRef.current) {
-      const minutesElapsed = (Date.now() - startTimeRef.current) / 60000;
-      if (minutesElapsed > 0.01) {
-        const calculatedWpm = Math.round((correctStrokes / 5) / minutesElapsed);
-        currentWpm = calculatedWpm > 250 ? 250 : calculatedWpm;
-        setWpm(currentWpm);
-      } else {
-        currentWpm = Math.round((correctStrokes / 5) * 60);
-        setWpm(currentWpm);
-      }
-    }
-
-    // Check completion
-    if (val.length === targetText.length && targetText.length > 0) {
-      const accuracy = Math.round((correctStrokes / targetText.length) * 100);
-      saveStats(currentWpm, val.length, accuracy);
-    }
-  };
-
-  const handleReset = () => {
-    setTargetText(QUOTES[Math.floor(Math.random() * QUOTES.length)]);
-    setText("");
-    setWpm(0);
-    startTimeRef.current = null;
-    if (textareaRef.current) {
-      textareaRef.current.focus();
-    }
+    setTypedWords(wordsTyped);
+    calculateLiveMetrics(wordsTyped);
   };
 
   const deleteHistory = () => {
     setHistory([]);
-    localStorage.removeItem("kliky_typing_history");
+    localStorage.removeItem("kliky_typing_history_v2");
   };
 
   return (
-    <div className="w-full h-screen bg-transparent p-6 flex flex-col font-sans text-foreground overflow-y-auto" data-tauri-drag-region>
-      {/* Title Bar Drag Region */}
-      {/* <div className="absolute top-0 left-0 right-0 h-10 z-50 flex justify-end px-4 items-center" data-tauri-drag-region>
-        <button
-          onClick={() => getCurrentWindow().hide()}
-          className="text-zinc-500 hover:text-zinc-300 w-6 h-6 rounded-full flex items-center justify-center transition-colors bg-white/5 hover:bg-white/10"
-        >
-          &times;
-        </button>
-      </div> */}
-
+    <div className="w-full h-screen bg-background p-6 flex flex-col font-mono text-muted-foreground overflow-y-auto selection:bg-[#ef4444]/30 selection:text-foreground" data-tauri-drag-region>
       <div className="max-w-4xl w-full mx-auto flex flex-col space-y-6 mt-6 z-10" data-tauri-drag-region>
-        <div className="flex items-center justify-between pb-3 border-b border-white/10" data-tauri-drag-region>
-          <div>
-            <h3 className="text-sm font-semibold tracking-wide uppercase text-zinc-400 font-mono flex items-center gap-2" data-tauri-drag-region>
-              <span className="w-2 h-2 rounded-full bg-red-500 animate-ping" />
-              Live Typing Sandbox
-            </h3>
-            <p className="text-[11px] text-zinc-500 font-mono mt-0.5" data-tauri-drag-region>
-              Type to hear your native mechanical switches
-            </p>
+        
+        {/* Navigation & Modes Header */}
+        <div className="flex flex-col md:flex-row md:items-center justify-between pb-3 border-b border-border gap-4" data-tauri-drag-region>
+          <div className="flex items-center gap-3">
+            <Keyboard className="w-6 h-6 text-[#ef4444]" />
+            <div>
+              <h3 className="text-sm font-semibold tracking-wider uppercase text-foreground flex items-center gap-2">
+                Kliky Sandbox
+              </h3>
+              <p className="text-[11px] text-muted-foreground/80 mt-0.5">
+                Type smoothly to feel the custom mechanical switches
+              </p>
+            </div>
           </div>
+
+          {/* Monkeytype Mode Switchers */}
+          {!isTesting && !isCompleted && (
+            <div className="flex items-center gap-1 bg-muted border border-border rounded-lg p-1 text-xs select-none">
+              <button
+                onClick={() => setMode("time")}
+                className={`px-3 py-1.5 rounded-md transition ${mode === "time" ? "bg-[#ef4444] text-white font-bold" : "hover:text-foreground text-muted-foreground"}`}
+              >
+                time
+              </button>
+              <button
+                onClick={() => setMode("words")}
+                className={`px-3 py-1.5 rounded-md transition ${mode === "words" ? "bg-[#ef4444] text-white font-bold" : "hover:text-foreground text-muted-foreground"}`}
+              >
+                words
+              </button>
+              <button
+                onClick={() => setMode("quote")}
+                className={`px-3 py-1.5 rounded-md transition ${mode === "quote" ? "bg-[#ef4444] text-white font-bold" : "hover:text-foreground text-muted-foreground"}`}
+              >
+                quote
+              </button>
+
+              {/* Sub-selectors */}
+              <div className="w-[1px] h-4 bg-border mx-2" />
+
+              {mode === "time" && (
+                <div className="flex items-center gap-1">
+                  {[15, 30, 60].map((t) => (
+                    <button
+                      key={t}
+                      onClick={() => setTimeLimit(t as 15 | 30 | 60)}
+                      className={`px-2 py-1 rounded transition ${timeLimit === t ? "text-[#ef4444] font-bold" : "hover:text-foreground text-muted-foreground"}`}
+                    >
+                      {t}
+                    </button>
+                  ))}
+                </div>
+              )}
+
+              {mode === "words" && (
+                <div className="flex items-center gap-1">
+                  {[10, 25, 50, 100].map((w) => (
+                    <button
+                      key={w}
+                      onClick={() => setWordLimit(w as 10 | 25 | 50 | 100)}
+                      className={`px-2 py-1 rounded transition ${wordLimit === w ? "text-[#ef4444] font-bold" : "hover:text-foreground text-muted-foreground"}`}
+                    >
+                      {w}
+                    </button>
+                  ))}
+                </div>
+              )}
+            </div>
+          )}
         </div>
 
-        {/* Glassmorphic Typing Test Area */}
-        <div className="flex-1 relative group" data-tauri-drag-region>
-          <div
-            className="w-full relative rounded-2xl bg-black/40 backdrop-blur-xl border border-white/10 p-6 lg:p-10 flex flex-col transition duration-300 focus-within:border-red-500/40 focus-within:ring-1 focus-within:ring-red-500/30 cursor-text group"
+        {/* Live Metrics Header (Floating while typing) */}
+        {isTesting && !isCompleted && (
+          <div className="flex flex-1 items-center gap-6 text-sm font-mono text-muted-foreground px-2 animate-fade-in">
+            {mode === "time" ? (
+              <span className="flex items-center gap-1.5 text-[#ef4444]">
+                <Timer className="w-4 h-4" />
+                {timeLeft}s
+              </span>
+            ) : (
+              <span className="flex items-center gap-1.5 text-[#ef4444]">
+                <FileText className="w-4 h-4" />
+                {activeWordIndex}/{words.length} words
+              </span>
+            )}
+            <span>WPM: <strong className="text-foreground">{liveWpm}</strong></span>
+            <span>Accuracy: <strong className="text-foreground">{liveAccuracy}%</strong></span>
+          </div>
+        )}
+
+        {/* Main Interface */}
+        {!isCompleted ? (
+          <div 
+            ref={containerRef}
+            className="relative w-full rounded-xl bg-card border border-border/80 p-8 flex flex-col focus-within:border-[#ef4444]/40 transition duration-300 min-h-[180px] justify-center cursor-text shadow-sm"
             onClick={() => textareaRef.current?.focus()}
           >
+            {/* Hidden Textarea */}
             <textarea
               ref={textareaRef}
-              value={text}
-              onChange={handleTextChange}
+              value={typedWords.join(" ")}
+              onChange={handleInputChange}
               className="absolute inset-0 opacity-0 resize-none z-10 w-full h-full cursor-text"
               spellCheck={false}
               autoCapitalize="off"
               autoComplete="off"
               autoCorrect="off"
+              disabled={isCompleted}
             />
 
-            <div className="flex-1 relative z-0 pointer-events-none font-mono text-xl lg:text-2xl leading-relaxed tracking-wide text-zinc-600 select-none break-words whitespace-pre-wrap" data-tauri-drag-region>
-              {targetText.split('').map((char, index) => {
-                let colorClass = "";
-                if (index < text.length) {
-                  colorClass = text[index] === char
-                    ? "text-zinc-200"
-                    : "text-red-500 bg-red-500/10 rounded-sm";
+            {/* Word list wrapper */}
+            <div className="relative z-0 pointer-events-none font-mono text-xl md:text-2xl leading-relaxed tracking-wide select-none break-words whitespace-pre-wrap flex flex-wrap gap-x-[0.55em] gap-y-[0.4em] transition-all duration-300">
+              {words.map((word, wordIdx) => {
+                const typedWord = typedWords[wordIdx] || "";
+                const isActiveWord = wordIdx === activeWordIndex;
+
+                // Build each character's class/span
+                const maxLen = Math.max(word.length, typedWord.length);
+                const chars = [];
+
+                for (let charIdx = 0; charIdx < maxLen; charIdx++) {
+                  const targetChar = word[charIdx];
+                  const typedChar = typedWord[charIdx];
+
+                  let colorClass = "text-muted-foreground/50 dark:text-muted-foreground/60";
+
+                  if (typedChar !== undefined) {
+                    if (targetChar !== undefined) {
+                      colorClass = typedChar === targetChar ? "text-foreground" : "text-red-500 border-b-2 border-red-500/30";
+                    } else {
+                      // Typed beyond target length
+                      colorClass = "text-red-600 bg-red-500/10 rounded-sm";
+                    }
+                  }
+
+                  const isCurrentCaret = isActiveWord && charIdx === activeCharIndex;
+
+                  chars.push(
+                    <span key={charIdx} className="relative inline-block">
+                      {isCurrentCaret && (
+                        <span className="absolute left-0 top-0.5 bottom-0.5 w-[2px] bg-[#ef4444] animate-pulse shadow-[0_0_8px_rgba(239,68,68,0.6)]" />
+                      )}
+                      <span className={`${colorClass} transition-colors duration-100`}>
+                        {targetChar || typedChar}
+                      </span>
+                    </span>
+                  );
                 }
 
-                const isCurrent = index === text.length;
+                // If caret is at the end of the current active word, render it here
+                const showTrailingCaret = isActiveWord && activeCharIndex >= word.length;
 
                 return (
-                  <span key={index} className="relative inline-block" data-tauri-drag-region>
-                    {isCurrent && (
-                      <span className="absolute left-0 top-0.5 bottom-0.5 w-[2px] bg-red-500 animate-pulse shadow-[0_0_8px_rgba(99,102,241,0.8)]" />
+                  <div
+                    key={wordIdx}
+                    className={`flex items-center transition duration-150 ${isActiveWord ? "text-foreground border-b border-border/40" : ""
+                      }`}
+                  >
+                    {chars}
+                    {showTrailingCaret && (
+                      <span className="relative inline-block w-[2px] h-[1.2em]">
+                        <span className="absolute left-0 top-0.5 bottom-0.5 w-[2px] bg-[#ef4444] animate-pulse shadow-[0_0_8px_rgba(239,68,68,0.6)]" />
+                      </span>
                     )}
-                    <span className={`${colorClass} transition-colors duration-75`}>{char}</span>
-                  </span>
+                  </div>
                 );
               })}
+            </div>
 
-              {text.length === targetText.length && targetText.length > 0 && (
-                <span className="relative inline-block" data-tauri-drag-region>
-                  <span className="absolute left-0 top-0.5 bottom-0.5 w-[2px] bg-red-500 animate-pulse shadow-[0_0_8px_rgba(99,102,241,0.8)]" />
+            {/* Quick Restart Hint */}
+            <div className="mt-8 flex items-center justify-between text-xs text-muted-foreground font-mono z-20 relative">
+              <div className="flex items-center gap-2">
+                <span className="bg-muted border border-border px-1.5 py-0.5 rounded text-muted-foreground">tab</span>
+                <span>or click restart to quick-reset</span>
+              </div>
+              <button
+                onClick={handleReset}
+                className="flex items-center gap-1 px-3 py-1.5 rounded-lg bg-secondary hover:bg-secondary/80 border border-border text-foreground transition cursor-pointer"
+              >
+                <RefreshCw className="w-3.5 h-3.5" />
+                Restart
+              </button>
+            </div>
+          </div>
+        ) : (
+          // Gorgeous Dashboard / Results Screen
+          <div className="w-full rounded-xl bg-card border border-border p-8 flex flex-col space-y-8 animate-fade-in shadow-sm">
+            <div className="flex items-center justify-between">
+              <div className="flex items-center gap-2">
+                <BarChart2 className="w-5 h-5 text-[#ef4444]" />
+                <h4 className="text-sm font-semibold tracking-wider uppercase text-foreground">Performance Summary</h4>
+              </div>
+              <span className="text-xs bg-[#ef4444]/10 text-[#ef4444] border border-[#ef4444]/20 px-2 py-1 rounded-md flex items-center gap-1">
+                <Sparkles className="w-3 h-3" /> completed
+              </span>
+            </div>
+
+            {/* Main Stats Display */}
+            <div className="grid grid-cols-2 md:grid-cols-4 gap-6">
+              <div className="bg-muted/40 border border-border rounded-xl p-5 flex flex-col justify-between">
+                <span className="text-[10px] uppercase tracking-wider text-muted-foreground font-semibold">Speed (WPM)</span>
+                <span className="text-4xl font-extrabold text-[#ef4444] mt-2 flex items-baseline gap-1">
+                  {stats?.wpm}
+                  <span className="text-xs text-muted-foreground font-normal">net</span>
                 </span>
-              )}
+              </div>
+
+              <div className="bg-muted/40 border border-border rounded-xl p-5 flex flex-col justify-between">
+                <span className="text-[10px] uppercase tracking-wider text-muted-foreground font-semibold">Accuracy</span>
+                <span className="text-4xl font-extrabold text-foreground mt-2 flex items-baseline gap-1">
+                  {stats?.accuracy}%
+                  <span className="text-xs text-muted-foreground font-normal">hit rate</span>
+                </span>
+              </div>
+
+              <div className="bg-muted/40 border border-border rounded-xl p-5 flex flex-col justify-between">
+                <span className="text-[10px] uppercase tracking-wider text-muted-foreground font-semibold">Raw Speed</span>
+                <span className="text-4xl font-extrabold text-muted-foreground/80 mt-2 flex items-baseline gap-1">
+                  {stats?.rawWpm}
+                  <span className="text-xs text-muted-foreground font-normal">wpm</span>
+                </span>
+              </div>
+
+              <div className="bg-muted/40 border border-border rounded-xl p-5 flex flex-col justify-between">
+                <span className="text-[10px] uppercase tracking-wider text-muted-foreground font-semibold">Strokes Details</span>
+                <div className="text-xs text-muted-foreground mt-2 space-y-1">
+                  <div className="flex justify-between">
+                    <span>Correct:</span>
+                    <span className="text-emerald-500 font-bold">{stats?.correctChars}</span>
+                  </div>
+                  <div className="flex justify-between">
+                    <span>Mistakes:</span>
+                    <span className="text-rose-500 font-bold">{stats?.incorrectChars}</span>
+                  </div>
+                  <div className="flex justify-between">
+                    <span>Missed/Extra:</span>
+                    <span>{stats?.missedChars || 0} / {stats?.extraChars || 0}</span>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            {/* Restart Option */}
+            <div className="flex justify-end gap-3">
+              <button
+                onClick={handleReset}
+                className="flex items-center gap-2 px-5 py-2.5 rounded-lg bg-[#ef4444] text-white font-bold hover:bg-[#ef4444]/90 transition cursor-pointer shadow-md"
+              >
+                <RefreshCw className="w-4 h-4" />
+                Practice Again
+              </button>
             </div>
           </div>
+        )}
 
-          <div className="mt-4 flex items-center justify-end space-x-2 z-20 relative" data-tauri-drag-region>
-            <button
-              onClick={handleReset}
-              className="px-4 py-2 rounded-lg bg-white/5 hover:bg-white/10 border border-white/10 text-xs font-mono text-zinc-300 hover:text-white transition cursor-pointer"
-            >
-              Restart Test
-            </button>
-          </div>
-        </div>
-
-        {/* Current Metrics */}
-        <div className="grid grid-cols-3 gap-4 font-mono" data-tauri-drag-region>
-          <div className="bg-black/40 backdrop-blur-xl border border-white/10 rounded-xl p-4 flex flex-col items-center justify-center text-center" data-tauri-drag-region>
-            <span className="text-[10px] uppercase tracking-wider text-zinc-500 font-semibold" data-tauri-drag-region>Speed</span>
-            <span className="text-2xl font-bold text-zinc-100 mt-1" data-tauri-drag-region>
-              {wpm} <span className="text-xs text-zinc-500 font-normal" data-tauri-drag-region>WPM</span>
-            </span>
-          </div>
-          <div className="bg-black/40 backdrop-blur-xl border border-white/10 rounded-xl p-4 flex flex-col items-center justify-center text-center" data-tauri-drag-region>
-            <span className="text-[10px] uppercase tracking-wider text-zinc-500 font-semibold" data-tauri-drag-region>Keys hit</span>
-            <span className="text-2xl font-bold text-zinc-100 mt-1" data-tauri-drag-region>
-              {text.length} <span className="text-xs text-zinc-500 font-normal" data-tauri-drag-region>strokes</span>
-            </span>
-          </div>
-          <div className="bg-black/40 backdrop-blur-xl border border-white/10 rounded-xl p-4 flex flex-col items-center justify-center text-center" data-tauri-drag-region>
-            <span className="text-[10px] uppercase tracking-wider text-zinc-500 font-semibold" data-tauri-drag-region>Latency</span>
-            <span className="text-2xl font-bold text-red-400 mt-1" data-tauri-drag-region>
-              &lt; 3<span className="text-xs font-normal" data-tauri-drag-region>ms</span>
-            </span>
-          </div>
-        </div>
-
-        {/* Previous Best Stats */}
+        {/* Previous Best Stats / History */}
         {history.length > 0 && (
-          <div className="mt-8 pt-6 border-t border-white/10" data-tauri-drag-region>
+          <div className="mt-8 pt-6 border-t border-border" data-tauri-drag-region>
             <div className="flex justify-between items-center mb-4" data-tauri-drag-region>
-              <h4 className="text-sm font-semibold tracking-wide uppercase text-zinc-400 font-mono" data-tauri-drag-region>Previous Best Stats</h4>
-              <button onClick={deleteHistory} className="text-xs text-red-400 hover:text-red-300 transition" data-tauri-drag-region>Clear History</button>
+              <h4 className="text-xs font-semibold tracking-wider uppercase text-foreground flex items-center gap-1.5">
+                <CheckCircle2 className="w-4 h-4 text-muted-foreground/80" />
+                Recent Practice Runs
+              </h4>
+              <button 
+                onClick={deleteHistory} 
+                className="text-xs text-rose-500 hover:text-rose-600 transition flex items-center gap-1"
+                data-tauri-drag-region
+              >
+                <AlertTriangle className="w-3.5 h-3.5" /> Clear History
+              </button>
             </div>
-            <div className="bg-black/20 rounded-xl border border-white/5 overflow-hidden" data-tauri-drag-region>
-              <table className="w-full text-left text-sm font-mono text-zinc-400" data-tauri-drag-region>
-                <thead className="bg-black/40 border-b border-white/5 text-[10px] uppercase" data-tauri-drag-region>
+            <div className="bg-card rounded-xl border border-border overflow-hidden shadow-sm" data-tauri-drag-region>
+              <table className="w-full text-left text-xs text-muted-foreground" data-tauri-drag-region>
+                <thead className="bg-muted border-b border-border text-[10px] uppercase tracking-wider text-muted-foreground font-bold" data-tauri-drag-region>
                   <tr>
-                    <th className="px-4 py-3 font-semibold" data-tauri-drag-region>Date</th>
-                    <th className="px-4 py-3 font-semibold text-right" data-tauri-drag-region>WPM</th>
-                    <th className="px-4 py-3 font-semibold text-right" data-tauri-drag-region>Accuracy</th>
+                    <th className="px-4 py-3" data-tauri-drag-region>Date</th>
+                    <th className="px-4 py-3" data-tauri-drag-region>Mode</th>
+                    <th className="px-4 py-3 text-right" data-tauri-drag-region>WPM</th>
+                    <th className="px-4 py-3 text-right" data-tauri-drag-region>Accuracy</th>
                   </tr>
                 </thead>
                 <tbody>
                   {history.map((item) => (
-                    <tr key={item.id} className="border-b border-white/5 last:border-0 hover:bg-white/5 transition" data-tauri-drag-region>
+                    <tr key={item.id} className="border-b border-border last:border-0 hover:bg-muted/50 transition text-muted-foreground" data-tauri-drag-region>
                       <td className="px-4 py-3" data-tauri-drag-region>{item.date}</td>
-                      <td className="px-4 py-3 text-right font-bold text-zinc-200" data-tauri-drag-region>{item.wpm}</td>
+                      <td className="px-4 py-3" data-tauri-drag-region>
+                        <span className="bg-muted border border-border px-1.5 py-0.5 rounded text-[10px]">
+                          {item.mode}
+                        </span>
+                      </td>
+                      <td className="px-4 py-3 text-right font-bold text-foreground" data-tauri-drag-region>{item.wpm}</td>
                       <td className="px-4 py-3 text-right" data-tauri-drag-region>{item.accuracy}%</td>
                     </tr>
                   ))}
