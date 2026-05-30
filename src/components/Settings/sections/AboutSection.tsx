@@ -1,15 +1,17 @@
 import { useState } from "react";
 import { Button } from "@/components/ui/button";
-import { Loader2, Heart, Key } from 'lucide-react';
-import { openUrl } from '@tauri-apps/plugin-opener';
-import { activateLicense } from '../../../lib/license';
+import { Loader2, Heart, Key, Cpu } from "lucide-react";
+import { openUrl } from "@tauri-apps/plugin-opener";
+import { activateLicense } from "../../../lib/license";
 
 interface AboutSectionProps {
   appVersion: string;
+  platformName: string;
+  isActivated: boolean;
   handleCheckUpdates: () => Promise<void>;
 }
 
-export function AboutSection({ appVersion, handleCheckUpdates }: AboutSectionProps) {
+export function AboutSection({ appVersion, platformName, isActivated, handleCheckUpdates }: AboutSectionProps) {
   const [isChecking, setIsChecking] = useState(false);
   const [licenseKey, setLicenseKey] = useState("");
   const [isActivating, setIsActivating] = useState(false);
@@ -23,9 +25,7 @@ export function AboutSection({ appVersion, handleCheckUpdates }: AboutSectionPro
   };
 
   const handleSupport = async () => {
-    // Replace this URL with your actual Polar.sh product or storefront URL
-    // await openUrl('https://buy.polar.sh/polar_cl_O7avncCbfK2g8xhHOIF2cKRo1Gw9YsvmUVmja28WeJ3');
-    await openUrl('https://kliky.achuth.dev');
+    await openUrl("https://kliky.achuth.dev");
   };
 
   const handleActivate = async () => {
@@ -46,109 +46,137 @@ export function AboutSection({ appVersion, handleCheckUpdates }: AboutSectionPro
   };
 
   return (
-    <div className="space-y-6 pb-8">
-      <div className="flex flex-col items-center pt-8 text-center space-y-6">
-        <div className="w-28 h-28 rounded-[32px] overflow-hidden shadow-2xl flex items-center justify-center bg-white dark:bg-zinc-900 border-4 border-black/5 dark:border-white/5">
+    <div className="space-y-6 pb-8 select-none">
+      
+      {/* Brand Header */}
+      <div className="flex flex-col items-center pt-6 text-center space-y-5">
+        <div className="w-24 h-24 rounded-[28px] overflow-hidden shadow-xl flex items-center justify-center bg-card border border-border/80 transition duration-300 hover:rotate-3">
           <img src="/icon.png" alt="Kliky Logo" className="w-full h-full object-cover" />
         </div>
-        <div className="flex flex-col gap-1">
-          <h3 className="text-4xl font-bold tracking-tighter">kliky</h3>
-          <p className="text-red-500 font-bold text-xs uppercase tracking-widest">Version {appVersion}</p>
+        <div className="space-y-1">
+          <h3 className="text-3xl font-extrabold tracking-tighter text-foreground">kliky</h3>
+          <span className="text-[10px] bg-red-500/10 text-red-500 border border-red-500/20 px-2 py-0.5 rounded-full font-mono font-bold uppercase tracking-wider">
+            v{appVersion}
+          </span>
         </div>
 
-        <div className="max-w-xs text-sm text-black/40 dark:text-white/40">
+        <p className="max-w-xs text-xs text-muted-foreground leading-relaxed">
           Handcrafted with precision for mechanical keyboard enthusiasts worldwide.
-        </div>
+        </p>
 
         <div className="flex gap-2">
-          <Button variant="outline" className="rounded-xl border-black/10 dark:border-white/10 px-6 cursor-pointer focus-visible:ring-2 focus-visible:ring-red-500 dark:focus-visible:ring-white/80 focus-visible:ring-offset-2 dark:focus-visible:ring-offset-black/50" onClick={() => openUrl('https://github.com/achuthhadnoor/kliky-www/releases')}>Release Notes</Button>
+          <Button 
+            variant="outline" 
+            className="rounded-xl px-5 h-10 border-border text-foreground hover:bg-secondary cursor-pointer focus-visible:ring-2 focus-visible:ring-red-500" 
+            onClick={() => openUrl("https://kliky.achuth.dev")}
+          >
+            Website
+          </Button>
           <Button
             variant="outline"
-            className="rounded-xl border-black/10 dark:border-white/10 px-6 min-w-[160px] cursor-pointer focus-visible:ring-2 focus-visible:ring-red-500 dark:focus-visible:ring-white/80 focus-visible:ring-offset-2 dark:focus-visible:ring-offset-black/50"
+            className="rounded-xl px-5 h-10 min-w-[150px] border-border text-foreground hover:bg-secondary cursor-pointer focus-visible:ring-2 focus-visible:ring-red-500"
             onClick={onCheck}
             disabled={isChecking}
           >
             {isChecking ? (
               <>
-                <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                <Loader2 className="mr-2 h-3.5 w-3.5 animate-spin text-red-500" />
                 Checking...
               </>
             ) : (
-              "Check for Updates"
+              "Check Updates"
             )}
           </Button>
         </div>
       </div>
 
-      <div className="p-6 bg-black/5 dark:bg-white/5 rounded-3xl border border-black/5 dark:border-white/5 flex flex-col items-center text-center space-y-4">
-        <div className="w-12 h-12 rounded-full bg-red-500/10 flex items-center justify-center border border-red-500/20 text-red-500">
-          <Key className="w-6 h-6" />
+      {/* License Activation Section */}
+      <div className="p-6 bg-card border border-border/60 rounded-2xl flex flex-col items-center text-center space-y-4 transition duration-200 hover:scale-[1.005] hover:shadow-xs">
+        <div className="w-10 h-10 rounded-xl bg-red-500/10 flex items-center justify-center border border-red-500/20 text-red-500">
+          <Key className="w-5 h-5" />
         </div>
         <div className="space-y-1 w-full max-w-sm">
-          <h4 className="font-semibold text-lg">Activate License</h4>
-          <p className="text-sm text-black/60 dark:text-white/60 mb-4">
+          <h4 className="font-bold text-base text-foreground">Activate License</h4>
+          <p className="text-xs text-muted-foreground">
             Enter your license key to permanently unlock all premium features.
           </p>
-          <div className="flex flex-col gap-2 mt-2">
-            {error && <p className="text-xs text-red-500 font-semibold">{error}</p>}
-            {success && <p className="text-xs text-emerald-500 font-semibold">Activated successfully! Reloading...</p>}
+          
+          <div className="flex flex-col gap-2 mt-4 text-left">
+            {error && (
+              <div className="bg-red-500/10 text-red-500 border border-red-500/20 text-xs px-3.5 py-2.5 rounded-xl text-center font-bold animate-pulse">
+                {error}
+              </div>
+            )}
+            {success && (
+              <div className="bg-emerald-500/10 text-emerald-500 border border-emerald-500/20 text-xs px-3.5 py-2.5 rounded-xl text-center font-bold">
+                Activated successfully! Reloading...
+              </div>
+            )}
+            
             <input
               value={licenseKey}
               onChange={(e) => setLicenseKey(e.target.value)}
               placeholder="XXXX-XXXX-XXXX-XXXX"
-              className="w-full text-center tracking-widest font-mono text-sm uppercase dark:text-white border border-black/10 dark:border-white/10 focus-visible:ring-2 focus-visible:ring-red-500 rounded-xl px-3 py-3 outline-none bg-white dark:bg-black/20"
+              className="w-full text-center tracking-widest font-mono text-xs uppercase text-foreground border border-border focus:border-red-500/60 focus:ring-2 focus:ring-red-500/10 rounded-xl px-3 py-3 outline-none bg-muted/30 transition-all placeholder:text-muted-foreground/40 placeholder:tracking-normal"
               disabled={isActivating || success}
             />
             <Button
-              className="w-full rounded-xl bg-neutral-900 hover:bg-black dark:bg-white dark:text-black dark:hover:bg-neutral-200 text-white transition-all flex items-center justify-center gap-2 mt-1"
+              className="w-full rounded-xl bg-red-500 hover:bg-red-600 text-white font-bold transition-all flex items-center justify-center gap-2 mt-1 shadow-sm h-10 border-0 cursor-pointer disabled:bg-red-500/50"
               onClick={handleActivate}
               disabled={isActivating || !licenseKey.trim() || success}
             >
-              {isActivating && <Loader2 className="w-4 h-4 animate-spin" />}
-              {isActivating ? "Verifying..." : "Verify Key"}
+              {isActivating && <Loader2 className="w-3.5 h-3.5 animate-spin" />}
+              {isActivating ? "Verifying License..." : "Activate Product"}
             </Button>
           </div>
         </div>
       </div>
 
-      <div className="p-6 bg-gradient-to-br from-red-500/10 to-red-500/10 dark:from-red-500/20 dark:to-red-500/20 rounded-3xl border border-red-500/20 dark:border-red-500/30 flex flex-col items-center text-center space-y-4">
-        <div className="w-12 h-12 rounded-full bg-red-500/20 flex items-center justify-center text-red-600 dark:text-red-400">
-          <Heart className="w-6 h-6 fill-current" />
+      {/* Support Card */}
+      <div className="p-6 bg-red-500/5 dark:bg-red-500/10 rounded-2xl border border-red-500/15 dark:border-red-500/20 flex flex-col items-center text-center space-y-4 transition duration-200 hover:scale-[1.005]">
+        <div className="w-10 h-10 rounded-xl bg-red-500/15 flex items-center justify-center text-red-500">
+          <Heart className="w-5 h-5 fill-current" />
         </div>
         <div className="space-y-1">
-          <h4 className="font-semibold text-lg">Support Kliky</h4>
-          <p className="text-sm text-black/60 dark:text-white/60 max-w-[260px]">
-            Kliky is fully free and open source. If you love the app, consider supporting its development!
+          <h4 className="font-bold text-base text-foreground">Support Kliky</h4>
+          <p className="text-xs text-muted-foreground max-w-[260px] leading-relaxed">
+            If you love the premium typing experience and want to support our active development, feel free to contribute!
           </p>
         </div>
         <Button
-          className="rounded-xl bg-red-500 hover:bg-red-600 text-white border-0 px-8 cursor-pointer shadow-lg shadow-red-500/25 transition-all hover:scale-105"
+          className="rounded-xl bg-red-500 hover:bg-red-600 text-white border-0 px-8 cursor-pointer shadow-md shadow-red-500/20 transition hover:scale-105 h-10"
           onClick={handleSupport}
         >
           Pay What You Want
         </Button>
       </div>
 
-      {/* <div className="p-6 bg-black/5 dark:bg-white/5 rounded-3xl border border-black/5 dark:border-white/5">
-        <div className="flex justify-between text-[11px] font-bold uppercase tracking-[0.2em] text-black/20 dark:text-white/20 mb-4">
-          <span>Diagnostics</span>
-          <span className="text-green-500">System Healthy</span>
+      {/* Diagnostics / Restoration Panel */}
+      <div className="p-6 bg-card border border-border/60 rounded-2xl transition duration-200 hover:scale-[1.005] hover:shadow-xs">
+        <div className="flex justify-between text-[10px] font-bold uppercase tracking-wider text-muted-foreground/80 mb-4">
+          <span className="flex items-center gap-1"><Cpu className="w-3.5 h-3.5" /> Diagnostics</span>
+          <span className="text-emerald-500 font-bold flex items-center gap-1.5">
+            <span className="w-1.5 h-1.5 bg-emerald-500 rounded-full animate-ping" /> System Active
+          </span>
         </div>
-        <div className="space-y-3 text-sm">
-          <div className="flex justify-between">
-            <span className="text-black/40 dark:text-white/40">Audio Engine</span>
-            <span className="font-mono">Rodio 0.17</span>
+        <div className="space-y-3.5 text-xs text-muted-foreground">
+          <div className="flex justify-between items-center border-b border-border/40 pb-2 last:border-0 last:pb-0">
+            <span>Platform</span>
+            <span className="font-mono font-semibold text-foreground bg-muted/80 px-2 py-0.5 rounded capitalize">{platformName}</span>
           </div>
-          <div className="flex justify-between">
-            <span className="text-black/40 dark:text-white/40">Platform</span>
-            <span className="font-mono">{platformName}</span>
-          </div>
-          <div className="flex justify-between">
-            <span className="text-black/40 dark:text-white/40">License</span>
-            <span className="font-mono text-red-500">Premium Lifetime</span>
+          <div className="flex justify-between items-center border-b border-border/40 pb-2 last:border-0 last:pb-0">
+            <span>License Status</span>
+            <span className={`font-mono font-bold px-2 py-0.5 rounded ${
+              isActivated 
+                ? "bg-emerald-500/10 text-emerald-500 border border-emerald-500/20" 
+                : "bg-red-500/10 text-red-500 border border-red-500/20"
+            }`}>
+              {isActivated ? "Premium Lifetime" : "Free Trial Mode"}
+            </span>
           </div>
         </div>
-      </div> */}
+      </div>
+
     </div>
   );
 }

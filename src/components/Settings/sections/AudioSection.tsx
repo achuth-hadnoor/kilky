@@ -47,10 +47,10 @@ export function AudioSection({
     <div className="space-y-8">
       <div>
         <h3 className="text-2xl font-semibold mb-2">Sound Profiles</h3>
-        <p className="text-sm text-black/40 dark:text-white/40">Select the acoustic profile that matches your setup.</p>
+        <p className="text-sm text-muted-foreground">Select the acoustic profile that matches your setup.</p>
       </div>
 
-      <div className="py-2 px-4 bg-black/5 dark:bg-white/5 rounded-2xl border border-black/5 dark:border-white/5">
+      <div className="py-2 px-4 bg-muted/40 rounded-2xl border border-border/50">
         <VolumeControl
           volume={volume}
           onVolumeUpdate={handleVolumeUpdate}

@@ -19,11 +19,11 @@ import './Settings.css';
 import { AboutSection } from './sections/AboutSection';
 
 const NAV_ITEMS = [
-  { id: 'general', label: 'General', icon: SettingsIcon, color: 'bg-blue-500' },
-  { id: 'audio', label: 'Sounds', icon: Volume2, color: 'bg-emerald-500' },
-  { id: 'hotkeys', label: 'Hotkeys', icon: Keyboard, color: 'bg-amber-500' },
-  { id: 'advanced', label: 'Advanced', icon: Zap, color: 'bg-violet-500' },
-  { id: 'about', label: 'About', icon: Info, color: 'bg-zinc-500' },
+  { id: 'general', label: 'General', icon: SettingsIcon, color: 'bg-red-500' },
+  { id: 'audio', label: 'Sounds', icon: Volume2, color: 'bg-red-500' },
+  { id: 'hotkeys', label: 'Hotkeys', icon: Keyboard, color: 'bg-red-500' },
+  { id: 'advanced', label: 'Advanced', icon: Zap, color: 'bg-red-500' },
+  { id: 'about', label: 'About', icon: Info, color: 'bg-red-500' },
 ] as const;
 
 type TabId = typeof NAV_ITEMS[number]['id'];
@@ -161,6 +161,8 @@ export function Settings() {
             {activeTab === 'about' && (
               <AboutSection
                 appVersion={state.appVersion}
+                platformName={state.platformName}
+                isActivated={isActivated}
                 handleCheckUpdates={handleCheckUpdates}
               />
             )}
