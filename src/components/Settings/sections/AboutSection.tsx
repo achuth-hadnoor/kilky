@@ -92,43 +92,60 @@ export function AboutSection({ appVersion, platformName, isActivated, handleChec
 
       {/* License Activation Section */}
       <div className="p-6 bg-card border border-border/60 rounded-2xl flex flex-col items-center text-center space-y-4 transition duration-200 hover:scale-[1.005] hover:shadow-xs">
-        <div className="w-10 h-10 rounded-xl bg-red-500/10 flex items-center justify-center border border-red-500/20 text-red-500">
+        <div className={`w-10 h-10 rounded-xl flex items-center justify-center border ${
+          isActivated 
+            ? "bg-emerald-500/10 border-emerald-500/20 text-emerald-500" 
+            : "bg-red-500/10 border-red-500/20 text-red-500"
+        }`}>
           <Key className="w-5 h-5" />
         </div>
         <div className="space-y-1 w-full max-w-sm">
-          <h4 className="font-bold text-base text-foreground">Activate License</h4>
+          <h4 className="font-bold text-base text-foreground">
+            {isActivated ? "License Active" : "Activate License"}
+          </h4>
           <p className="text-xs text-muted-foreground">
-            Enter your license key to permanently unlock all premium features.
+            {isActivated 
+              ? "Your Kliky premium lifetime license is active. Thank you for your support!" 
+              : "Enter your license key to permanently unlock all premium features."}
           </p>
           
-          <div className="flex flex-col gap-2 mt-4 text-left">
-            {error && (
-              <div className="bg-red-500/10 text-red-500 border border-red-500/20 text-xs px-3.5 py-2.5 rounded-xl text-center font-bold animate-pulse">
-                {error}
-              </div>
-            )}
-            {success && (
-              <div className="bg-emerald-500/10 text-emerald-500 border border-emerald-500/20 text-xs px-3.5 py-2.5 rounded-xl text-center font-bold">
-                Activated successfully! Reloading...
-              </div>
-            )}
-            
-            <input
-              value={licenseKey}
-              onChange={(e) => setLicenseKey(e.target.value)}
-              placeholder="XXXX-XXXX-XXXX-XXXX"
-              className="w-full text-center tracking-widest font-mono text-xs uppercase text-foreground border border-border focus:border-red-500/60 focus:ring-2 focus:ring-red-500/10 rounded-xl px-3 py-3 outline-none bg-muted/30 transition-all placeholder:text-muted-foreground/40 placeholder:tracking-normal"
-              disabled={isActivating || success}
-            />
-            <Button
-              className="w-full rounded-xl bg-red-500 hover:bg-red-600 text-white font-bold transition-all flex items-center justify-center gap-2 mt-1 shadow-sm h-10 border-0 cursor-pointer disabled:bg-red-500/50"
-              onClick={handleActivate}
-              disabled={isActivating || !licenseKey.trim() || success}
-            >
-              {isActivating && <Loader2 className="w-3.5 h-3.5 animate-spin" />}
-              {isActivating ? "Verifying License..." : "Activate Product"}
-            </Button>
-          </div>
+          {!isActivated && (
+            <div className="flex flex-col gap-2 mt-4 text-left">
+              {error && (
+                <div className="bg-red-500/10 text-red-500 border border-red-500/20 text-xs px-3.5 py-2.5 rounded-xl text-center font-bold animate-pulse">
+                  {error}
+                </div>
+              )}
+              {success && (
+                <div className="bg-emerald-500/10 text-emerald-500 border border-emerald-500/20 text-xs px-3.5 py-2.5 rounded-xl text-center font-bold">
+                  Activated successfully! Reloading...
+                </div>
+              )}
+              
+              <input
+                value={licenseKey}
+                onChange={(e) => setLicenseKey(e.target.value)}
+                placeholder="XXXX-XXXX-XXXX-XXXX"
+                className="w-full text-center tracking-widest font-mono text-xs uppercase text-foreground border border-border focus:border-red-500/60 focus:ring-2 focus:ring-red-500/10 rounded-xl px-3 py-3 outline-none bg-muted/30 transition-all placeholder:text-muted-foreground/40 placeholder:tracking-normal"
+                disabled={isActivating || success}
+              />
+              <Button
+                className="w-full rounded-xl bg-red-500 hover:bg-red-600 text-white font-bold transition-all flex items-center justify-center gap-2 mt-1 shadow-sm h-10 border-0 cursor-pointer disabled:bg-red-500/50"
+                onClick={handleActivate}
+                disabled={isActivating || !licenseKey.trim() || success}
+              >
+                {isActivating && <Loader2 className="w-3.5 h-3.5 animate-spin" />}
+                {isActivating ? "Verifying License..." : "Activate Product"}
+              </Button>
+            </div>
+          )}
+          
+          {isActivated && (
+            <div className="mt-4 inline-flex items-center gap-1.5 px-3.5 py-1.5 rounded-xl bg-emerald-500/10 text-emerald-500 border border-emerald-500/20 text-[10px] font-bold font-mono uppercase tracking-wider">
+              <span className="w-1.5 h-1.5 bg-emerald-500 rounded-full animate-pulse" />
+              Premium Lifetime Enabled
+            </div>
+          )}
         </div>
       </div>
 
