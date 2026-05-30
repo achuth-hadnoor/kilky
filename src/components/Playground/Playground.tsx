@@ -1,4 +1,4 @@
-import React, { useState, useRef, useEffect } from "react";
+import React, { useState, useRef, useEffect, useCallback } from "react";
 import { QUOTES, COMMON_WORDS } from "./quotes";
 import { RefreshCw, Timer, FileText, CheckCircle2, AlertTriangle, BarChart2, Sparkles, Keyboard } from "lucide-react";
 
@@ -18,7 +18,14 @@ export function Playground() {
   const [wordLimit, setWordLimit] = useState<10 | 25 | 50 | 100>(25);
 
   // Engine state
-  const [words, setWords] = useState<string[]>([]);
+  // Engine state
+  const [words, setWords] = useState<string[]>(() => {
+    const generated: string[] = [];
+    for (let i = 0; i < 150; i++) {
+      generated.push(COMMON_WORDS[Math.floor(Math.random() * COMMON_WORDS.length)]);
+    }
+    return generated;
+  });
   const [typedWords, setTypedWords] = useState<string[]>([""]);
   const [isTesting, setIsTesting] = useState(false);
   const [isCompleted, setIsCompleted] = useState(false);
@@ -58,7 +65,11 @@ export function Playground() {
   const timerIntervalRef = useRef<NodeJS.Timeout | null>(null);
 
   // Setup / reset helper
-  const handleReset = () => {
+  const handleReset = useCallback((
+    currentMode = mode,
+    currentTimeLimit = timeLimit,
+    currentWordLimit = wordLimit
+  ) => {
     // Clear interval
     if (timerIntervalRef.current) {
       clearInterval(timerIntervalRef.current);
@@ -72,12 +83,12 @@ export function Playground() {
     setStats(null);
 
     // Populate words based on mode
-    if (mode === "quote") {
+    if (currentMode === "quote") {
       const randomQuote = QUOTES[Math.floor(Math.random() * QUOTES.length)];
       setWords(randomQuote.split(" "));
-    } else if (mode === "words") {
+    } else if (currentMode === "words") {
       const generated: string[] = [];
-      for (let i = 0; i < wordLimit; i++) {
+      for (let i = 0; i < currentWordLimit; i++) {
         generated.push(COMMON_WORDS[Math.floor(Math.random() * COMMON_WORDS.length)]);
       }
       setWords(generated);
@@ -88,7 +99,7 @@ export function Playground() {
         generated.push(COMMON_WORDS[Math.floor(Math.random() * COMMON_WORDS.length)]);
       }
       setWords(generated);
-      setTimeLeft(timeLimit);
+      setTimeLeft(currentTimeLimit);
     }
 
     setTypedWords([""]);
@@ -97,12 +108,22 @@ export function Playground() {
     setTimeout(() => {
       textareaRef.current?.focus();
     }, 20);
+  }, [mode, timeLimit, wordLimit]);
+
+  const changeMode = (newMode: "time" | "words" | "quote") => {
+    setMode(newMode);
+    handleReset(newMode, timeLimit, wordLimit);
   };
 
-  // Trigger reset on mode/limit changes
-  useEffect(() => {
-    handleReset();
-  }, [mode, timeLimit, wordLimit]);
+  const changeTimeLimit = (newLimit: 15 | 30 | 60) => {
+    setTimeLimit(newLimit);
+    handleReset(mode, newLimit, wordLimit);
+  };
+
+  const changeWordLimit = (newLimit: 10 | 25 | 50 | 100) => {
+    setWordLimit(newLimit);
+    handleReset(mode, timeLimit, newLimit);
+  };
 
   // Focus input automatically on mount
   useEffect(() => {
@@ -119,7 +140,7 @@ export function Playground() {
     };
     window.addEventListener("keydown", handleKeyDown);
     return () => window.removeEventListener("keydown", handleKeyDown);
-  }, [mode, timeLimit, wordLimit]);
+  }, [handleReset]);
 
   // Handle active word index and active char index
   const activeWordIndex = typedWords.length - 1;
@@ -159,8 +180,9 @@ export function Playground() {
   };
 
   // Start Test Timer
-  const startTimer = () => {
+  const handleStartTimer = () => {
     setIsTesting(true);
+    // eslint-disable-next-line react-hooks/purity
     const start = Date.now();
     setStartTime(start);
 
@@ -254,7 +276,7 @@ export function Playground() {
 
     // Start timer on first keystroke
     if (!isTesting && !isCompleted && val.length > 0) {
-      startTimer();
+      handleStartTimer();
     }
 
     // Split words by spaces
@@ -308,19 +330,19 @@ export function Playground() {
           {!isTesting && !isCompleted && (
             <div className="flex items-center gap-1 bg-muted border border-border rounded-lg p-1 text-xs select-none">
               <button
-                onClick={() => setMode("time")}
+                onClick={() => changeMode("time")}
                 className={`px-3 py-1.5 rounded-md transition ${mode === "time" ? "bg-[#ef4444] text-white font-bold" : "hover:text-foreground text-muted-foreground"}`}
               >
                 time
               </button>
               <button
-                onClick={() => setMode("words")}
+                onClick={() => changeMode("words")}
                 className={`px-3 py-1.5 rounded-md transition ${mode === "words" ? "bg-[#ef4444] text-white font-bold" : "hover:text-foreground text-muted-foreground"}`}
               >
                 words
               </button>
               <button
-                onClick={() => setMode("quote")}
+                onClick={() => changeMode("quote")}
                 className={`px-3 py-1.5 rounded-md transition ${mode === "quote" ? "bg-[#ef4444] text-white font-bold" : "hover:text-foreground text-muted-foreground"}`}
               >
                 quote
@@ -334,7 +356,7 @@ export function Playground() {
                   {[15, 30, 60].map((t) => (
                     <button
                       key={t}
-                      onClick={() => setTimeLimit(t as 15 | 30 | 60)}
+                      onClick={() => changeTimeLimit(t as 15 | 30 | 60)}
                       className={`px-2 py-1 rounded transition ${timeLimit === t ? "text-[#ef4444] font-bold" : "hover:text-foreground text-muted-foreground"}`}
                     >
                       {t}
@@ -348,7 +370,7 @@ export function Playground() {
                   {[10, 25, 50, 100].map((w) => (
                     <button
                       key={w}
-                      onClick={() => setWordLimit(w as 10 | 25 | 50 | 100)}
+                      onClick={() => changeWordLimit(w as 10 | 25 | 50 | 100)}
                       className={`px-2 py-1 rounded transition ${wordLimit === w ? "text-[#ef4444] font-bold" : "hover:text-foreground text-muted-foreground"}`}
                     >
                       {w}
@@ -465,7 +487,7 @@ export function Playground() {
                 <span>or click restart to quick-reset</span>
               </div>
               <button
-                onClick={handleReset}
+                onClick={() => handleReset()}
                 className="flex items-center gap-1 px-3 py-1.5 rounded-lg bg-secondary hover:bg-secondary/80 border border-border text-foreground transition cursor-pointer"
               >
                 <RefreshCw className="w-3.5 h-3.5" />
@@ -534,7 +556,7 @@ export function Playground() {
             {/* Restart Option */}
             <div className="flex justify-end gap-3">
               <button
-                onClick={handleReset}
+                onClick={() => handleReset()}
                 className="flex items-center gap-2 px-5 py-2.5 rounded-lg bg-[#ef4444] text-white font-bold hover:bg-[#ef4444]/90 transition cursor-pointer shadow-md"
               >
                 <RefreshCw className="w-4 h-4" />

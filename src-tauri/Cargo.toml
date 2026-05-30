@@ -1,6 +1,6 @@
 [package]
 name = "kliky"
-version = "1.0.0"
+version = "1.3.0"
 description = "Kliky is a mechanical keyboard sound simulator for macOS and windows."
 authors = ["Achuth"]
 edition = "2021"
