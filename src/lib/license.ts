@@ -16,20 +16,27 @@ const ORGANIZATION_ID = "546f69f9-2e28-4a9c-b9db-dff9377f5023";
 
 export async function activateLicense(key: string): Promise<boolean> {
   try {
-    const response = await fetch(`${POLAR_API_URL}/v1/customer-portal/license-keys/validate`, {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
+    const response = await fetch(
+      `${POLAR_API_URL}/v1/customer-portal/license-keys/validate`,
+      {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          key,
+          organization_id: ORGANIZATION_ID,
+        }),
       },
-      body: JSON.stringify({
-        key,
-        organization_id: ORGANIZATION_ID,
-      }),
-    });
+    );
 
     if (!response.ok) {
       const errorData = await response.json().catch(() => null);
-      throw new Error(errorData?.detail?.[0]?.msg || errorData?.error || "Failed to validate license");
+      throw new Error(
+        errorData?.detail?.[0]?.msg ||
+          errorData?.error ||
+          "Failed to validate license",
+      );
     }
 
     const data = await response.json();
@@ -58,16 +65,19 @@ export async function validateLicense(): Promise<boolean> {
   if (!key) return false;
 
   try {
-    const response = await fetch(`${POLAR_API_URL}/v1/customer-portal/license-keys/validate`, {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
+    const response = await fetch(
+      `${POLAR_API_URL}/v1/customer-portal/license-keys/validate`,
+      {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          key,
+          organization_id: ORGANIZATION_ID,
+        }),
       },
-      body: JSON.stringify({
-        key,
-        organization_id: ORGANIZATION_ID,
-      }),
-    });
+    );
 
     return response.ok;
   } catch (error) {
@@ -85,15 +95,16 @@ export interface TrialInfo {
 export async function getTrialInfo(): Promise<TrialInfo> {
   const store = await getStore();
   const startDateStr = await store.get<number>("trial-start-date");
-  
+
   if (!startDateStr) {
+    // Simulate expired trial: 8 days ago
     return { isTrialStarted: false, isTrialActive: false, daysLeft: 7 };
   }
 
   const now = Date.now();
   const daysPassed = (now - startDateStr) / (1000 * 60 * 60 * 24);
   const daysLeft = Math.max(0, Math.ceil(7 - daysPassed));
-  
+
   return {
     isTrialStarted: true,
     isTrialActive: daysLeft > 0,

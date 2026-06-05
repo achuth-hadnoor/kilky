@@ -92,6 +92,17 @@ export function LicenseStep({
                   Start 7-Day Free Trial
                 </Button>
               )}
+              
+              {(!trialInfo || trialInfo.isTrialStarted) && (
+                <a
+                  href="https://kliky.app/buy"
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="text-xs text-center text-red-500 dark:text-red-400 hover:underline font-semibold mt-1"
+                >
+                  Don't have a license key? Buy one here
+                </a>
+              )}
             </div>
           </OnboardingCard>
         </div>

@@ -115,7 +115,12 @@ pub fn spawn_window_with_visibility(handle: &AppHandle, window_type: WindowType,
         builder = builder.effects(effects);
     }
 
-    let _ = builder.build();
+    if let Ok(window) = builder.build() {
+        if visible {
+            let _ = window.show();
+            let _ = window.set_focus();
+        }
+    }
 }
 
 /// Pre-creates the settings window in a hidden state so that it is ready to be shown instantly.

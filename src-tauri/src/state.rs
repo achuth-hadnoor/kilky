@@ -194,7 +194,7 @@ impl AppState {
     /// legacy JSON file or compiled-in defaults if neither is available.
     pub fn load() -> Self {
         let db_path = crate::db::get_db_path();
-        
+
         let config = if db_path.exists() {
             // Ensure the DB schema exists before trying to read from it.
             let _ = crate::db::init_db();
