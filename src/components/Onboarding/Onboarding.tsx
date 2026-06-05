@@ -2,7 +2,7 @@ import { useState, useEffect } from 'react';
 import { invoke } from '@tauri-apps/api/core';
 import { getCurrentWebviewWindow } from '@tauri-apps/api/webviewWindow';
 import { Button } from '@/components/ui/button';
-import { getIsActivated, getTrialInfo, startTrial, TrialInfo } from '@/lib/license';
+import { getIsActivated, getIsSetappBuild, getTrialInfo, startTrial, TrialInfo } from '@/lib/license';
 
 import { useSettings } from '../../hooks/useSettings';
 import { useShortcutRecorder } from '../../hooks/useShortcutRecorder';
@@ -14,23 +14,26 @@ import { SoundSelectionStep } from './steps/SoundSelectionStep';
 import { ShortcutSettingsStep } from './steps/ShortcutSettingsStep';
 import { LaunchConfirmationStep } from './steps/LaunchConfirmationStep';
 
-const TOTAL_STEPS = 6;
+
 
 export function Onboarding({ initialStep = 1, forceLicense = false }: { initialStep?: number, forceLicense?: boolean }) {
   const [step, setStep] = useState(initialStep);
   const [hasLicense, setHasLicense] = useState(false);
   const [trialInfo, setTrialInfo] = useState<TrialInfo | null>(null);
+  const [isSetappBuild, setIsSetappBuild] = useState(false);
   const { state, setShortcuts, handlers } = useSettings();
 
   useEffect(() => {
     getIsActivated().then(setHasLicense);
     getTrialInfo().then(setTrialInfo);
+    getIsSetappBuild().then(setIsSetappBuild);
   }, []);
 
   const handleStartTrial = async () => {
     await startTrial();
     setTrialInfo(await getTrialInfo());
-    setStep(6);
+    // For Setapp builds there is no license step (step 5 = LaunchConfirmation)
+    setStep(isSetappBuild ? 5 : 6);
   };
 
   const recorder = useShortcutRecorder(
@@ -100,7 +103,9 @@ export function Onboarding({ initialStep = 1, forceLicense = false }: { initialS
   // ----- Render ----------------------------------------------------------
 
   const isMac = state.platformName === 'macos';
-  const isContinueDisabled = (step === 2 && !state.hasPermission && isMac) || (step === 5 && !hasLicense);
+  // Setapp has no license gate; for normal builds, step 5 is the license step.
+  const totalSteps = isSetappBuild ? 5 : 6;
+  const isContinueDisabled = (step === 2 && !state.hasPermission && isMac) || (!isSetappBuild && step === 5 && !hasLicense);
 
   return (
     <div
@@ -155,13 +160,15 @@ export function Onboarding({ initialStep = 1, forceLicense = false }: { initialS
             />
           )}
 
-          {step === 5 && <LicenseStep 
-            onSuccess={() => { setHasLicense(true); setStep(6); }} 
+          {/* Setapp build: step 5 = LaunchConfirmation (no license step) */}
+          {/* Normal build: step 5 = LicenseStep, step 6 = LaunchConfirmation */}
+          {!isSetappBuild && step === 5 && <LicenseStep
+            onSuccess={() => { setHasLicense(true); setStep(6); }}
             trialInfo={trialInfo || undefined}
             onStartTrial={handleStartTrial}
           />}
 
-          {step === 6 && (
+          {(isSetappBuild ? step === 5 : step === 6) && (
             <LaunchConfirmationStep
               activePack={state.activePack}
               volume={state.volume}
@@ -197,7 +204,7 @@ export function Onboarding({ initialStep = 1, forceLicense = false }: { initialS
 
           {/* Progress dots */}
           <div className="flex justify-center gap-1.5">
-            {Array.from({ length: TOTAL_STEPS }, (_, i) => i + 1).map((s) => (
+            {Array.from({ length: totalSteps }, (_, i) => i + 1).map((s) => (
               <div
                 key={s}
                 className={`h-1.5 rounded-full duration-300 ${step === s ? 'w-6 bg-red-500' : 'w-1.5 bg-neutral-500'
@@ -208,7 +215,7 @@ export function Onboarding({ initialStep = 1, forceLicense = false }: { initialS
 
           {/* Next Button */}
           <div className="w-24 flex justify-end">
-            {step < TOTAL_STEPS && !(forceLicense && step === 5) && (
+            {step < totalSteps && !(forceLicense && step === 5) && (
               <Button
                 className={`px-5 h-10 rounded-xl font-bold text-xs transition-all active:scale-[0.98] ${isContinueDisabled
                   ? 'dark:bg-zinc-800 bg-neutral-200 dark:text-zinc-500 text-neutral-400 cursor-not-allowed dark:border-zinc-800 border-neutral-200'
@@ -216,6 +223,8 @@ export function Onboarding({ initialStep = 1, forceLicense = false }: { initialS
                   }`}
                 onClick={() => setStep((s) => {
                   if (s === 4) {
+                    // Setapp: skip license step entirely
+                    if (isSetappBuild) return 5;
                     const hasAccess = hasLicense || (trialInfo?.isTrialStarted && trialInfo?.isTrialActive);
                     return hasAccess ? 6 : 5;
                   }

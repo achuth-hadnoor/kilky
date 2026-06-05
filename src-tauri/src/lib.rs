@@ -12,6 +12,7 @@ mod audio;
 mod builtin_packs;
 mod commands;
 mod db;
+mod setapp;
 mod state;
 mod tray;
 mod window;
@@ -33,13 +34,22 @@ pub fn run() {
         error!("Panic occurred: {:?}", info);
     }));
 
-    tauri::Builder::default()
+    // Build the Tauri application. The updater plugin is conditionally included:
+    // it is excluded from Setapp builds because Setapp manages its own updates.
+    let mut builder = tauri::Builder::default()
         .plugin(tauri_plugin_http::init())
         .plugin(tauri_plugin_store::Builder::new().build())
         // ---- Plugin registrations ----------------------------------------
         .plugin(tauri_plugin_dialog::init())
-        .plugin(tauri_plugin_fs::init())
-        .plugin(tauri_plugin_updater::Builder::new().build())
+        .plugin(tauri_plugin_fs::init());
+
+    // Updater is disabled for Setapp builds — Setapp manages updates itself.
+    #[cfg(not(feature = "setapp"))]
+    {
+        builder = builder.plugin(tauri_plugin_updater::Builder::new().build());
+    }
+
+    builder
         .plugin(tauri_plugin_opener::init())
         .plugin(tauri_plugin_process::init())
         .plugin(tauri_plugin_autostart::init(
@@ -90,11 +100,27 @@ pub fn run() {
             commands::set_speed_volume_scaling,
             commands::set_show_key_in_tray,
             commands::handle_trial_expired,
+            commands::is_setapp_build,
         ])
         .on_window_event(window::handle_window_event)
         // ---- Application setup ------------------------------------------
         .setup(|app| {
             info!("Starting setup…");
+
+            // ---- Setapp entitlement check (Setapp builds only) -----------
+            // Verify that the user has an active Setapp subscription before
+            // the app starts. If the check fails, we log a warning. The stub
+            // always returns true until Setapp.framework is linked.
+            #[cfg(feature = "setapp")]
+            {
+                if !crate::setapp::verify_setapp_entitlement() {
+                    log::error!("Setapp entitlement check failed — subscription may be inactive.");
+                    // In a full integration, you would surface a dialog here
+                    // and exit, or let the Setapp framework handle the UI.
+                } else {
+                    info!("Setapp entitlement verified.");
+                }
+            }
 
             // Determine whether the user has completed onboarding. If not,
             // clear any stale shortcuts and disable autostart so the initial

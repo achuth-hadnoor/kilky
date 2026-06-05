@@ -10,6 +10,12 @@ build = "build.rs"
 name = "kliky_lib"
 crate-type = ["staticlib", "cdylib", "rlib"]
 
+[features]
+default = []
+# Enable this flag to produce a Setapp-distribution build.
+# Activated automatically by build.rs when KLIKY_SETAPP=1 env var is set.
+setapp = []
+
 [build-dependencies]
 tauri-build = { version = "2", features = [] }
 

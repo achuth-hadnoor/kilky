@@ -40,9 +40,42 @@ yarn install
 # Run in development mode
 yarn tauri dev
 
-# Build production bundle
-yarn tauri build
+# Build for direct download (Polar license + auto-updater)
+yarn tauri:build:direct
+
+# Build for Setapp distribution (no license gate, no updater)
+yarn tauri:build:setapp
 ```
+
+---
+
+## 📦 Distribution
+
+Kliky ships as two separate binaries from the same codebase, gated by a Cargo feature flag (`setapp`).
+
+| Channel | Command | Bundle ID | Updater | License Gate |
+|---|---|---|---|---|
+| **Direct Download** | `yarn tauri:build:direct` | `com.achuth.kliky` | GitHub Releases (Polar updater) | Polar.sh license key + 7-day trial |
+| **Setapp** | `yarn tauri:build:setapp` | `com.achuth.kliky-setapp` | Setapp (built-in) | None — managed by Setapp |
+
+The `KLIKY_SETAPP=1` environment variable activates the feature automatically via `build.rs`. No `--features` flag needed.
+
+### ✅ Setapp Integration — Next Steps
+
+The Setapp distribution build is fully wired and ready. The only remaining step is linking the real `Setapp.framework` once the vendor account is set up:
+
+1. **Create a Setapp vendor account** at [developer.setapp.com](https://developer.setapp.com)
+2. **Add your app** in the Setapp Developer Portal and download `Setapp.framework`
+3. **Place the framework** at `src-tauri/Frameworks/Setapp.framework`
+4. **Update `setapp.rs`** — replace the stub body with the real entitlement check:
+   ```rust
+   // In src-tauri/src/setapp.rs — replace the stub body with:
+   unsafe { msg_send![class!(STPManager), sharedManager canUseApplication] }
+   ```
+5. **Link the framework** in `Cargo.toml` under `[target.'cfg(feature = "setapp")'.dependencies]` using the `objc` crate or a `setapp-sys` crate
+6. **Submit for Setapp review** via the Developer Portal
+
+> **Reference:** [Setapp macOS SDK Integration Guide](https://docs.setapp.com/docs/integrate-setapp-framework-into-macos-app)
 
 ---
 

@@ -13,7 +13,7 @@ import { AdvancedSection } from './sections/AdvancedSection';
 
 import { useSettings } from '../../hooks/useSettings';
 import { useShortcutRecorder } from '../../hooks/useShortcutRecorder';
-import { getTrialInfo, getIsActivated, TrialInfo } from '../../lib/license';
+import { getTrialInfo, getIsActivated, getIsSetappBuild, TrialInfo } from '../../lib/license';
 
 import './Settings.css';
 import { AboutSection } from './sections/AboutSection';
@@ -32,10 +32,12 @@ export function Settings() {
   const [activeTab, setActiveTab] = useState<TabId>('general');
   const [trialInfo, setTrialInfo] = useState<TrialInfo | null>(null);
   const [isActivated, setIsActivated] = useState(false);
+  const [isSetappBuild, setIsSetappBuild] = useState(false);
 
   useEffect(() => {
     getIsActivated().then(setIsActivated);
     getTrialInfo().then(setTrialInfo);
+    getIsSetappBuild().then(setIsSetappBuild);
   }, []);
 
   const { state, setShortcuts, handlers } = useSettings();
@@ -163,6 +165,7 @@ export function Settings() {
                 appVersion={state.appVersion}
                 platformName={state.platformName}
                 isActivated={isActivated}
+                isSetappBuild={isSetappBuild}
                 handleCheckUpdates={handleCheckUpdates}
               />
             )}

@@ -787,3 +787,12 @@ pub fn handle_trial_expired(app: AppHandle) {
         let _ = app.set_activation_policy(tauri::ActivationPolicy::Regular);
     }
 }
+
+/// Returns `true` when this binary was compiled for Setapp distribution.
+///
+/// The frontend uses this to conditionally hide the Polar license gate and
+/// display Setapp-specific messaging in Settings > About.
+#[tauri::command]
+pub fn is_setapp_build() -> bool {
+    cfg!(feature = "setapp")
+}

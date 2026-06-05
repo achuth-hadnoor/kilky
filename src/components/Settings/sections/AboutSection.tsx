@@ -8,10 +8,11 @@ interface AboutSectionProps {
   appVersion: string;
   platformName: string;
   isActivated: boolean;
+  isSetappBuild: boolean;
   handleCheckUpdates: () => Promise<void>;
 }
 
-export function AboutSection({ appVersion, platformName, isActivated, handleCheckUpdates }: AboutSectionProps) {
+export function AboutSection({ appVersion, platformName, isActivated, isSetappBuild, handleCheckUpdates }: AboutSectionProps) {
   const [isChecking, setIsChecking] = useState(false);
   const [licenseKey, setLicenseKey] = useState("");
   const [isActivating, setIsActivating] = useState(false);
@@ -72,25 +73,46 @@ export function AboutSection({ appVersion, platformName, isActivated, handleChec
           >
             Website
           </Button>
-          <Button
-            variant="outline"
-            className="rounded-xl px-5 h-10 min-w-[150px] border-border text-foreground hover:bg-secondary cursor-pointer focus-visible:ring-2 focus-visible:ring-red-500"
-            onClick={onCheck}
-            disabled={isChecking}
-          >
-            {isChecking ? (
-              <>
-                <Loader2 className="mr-2 h-3.5 w-3.5 animate-spin text-red-500" />
-                Checking...
-              </>
-            ) : (
-              "Check Updates"
-            )}
-          </Button>
+          {/* Setapp manages its own updates — hide the updater button in Setapp builds */}
+          {!isSetappBuild && (
+            <Button
+              variant="outline"
+              className="rounded-xl px-5 h-10 min-w-[150px] border-border text-foreground hover:bg-secondary cursor-pointer focus-visible:ring-2 focus-visible:ring-red-500"
+              onClick={onCheck}
+              disabled={isChecking}
+            >
+              {isChecking ? (
+                <>
+                  <Loader2 className="mr-2 h-3.5 w-3.5 animate-spin text-red-500" />
+                  Checking...
+                </>
+              ) : (
+                "Check Updates"
+              )}
+            </Button>
+          )}
         </div>
       </div>
 
-      {/* License Activation Section */}
+      {/* License / Setapp Section */}
+      {isSetappBuild ? (
+        // Setapp build: replace the license key UI with a Setapp subscription badge
+        <div className="p-6 bg-card border border-border/60 rounded-2xl flex flex-col items-center text-center space-y-4 transition duration-200 hover:scale-[1.005] hover:shadow-xs">
+          <div className="w-10 h-10 rounded-xl flex items-center justify-center border bg-emerald-500/10 border-emerald-500/20 text-emerald-500">
+            <Key className="w-5 h-5" />
+          </div>
+          <div className="space-y-1">
+            <h4 className="font-bold text-base text-foreground">Setapp Subscription</h4>
+            <p className="text-xs text-muted-foreground">
+              Your access to Kliky is managed by your Setapp subscription.
+            </p>
+          </div>
+          <div className="inline-flex items-center gap-1.5 px-3.5 py-1.5 rounded-xl bg-emerald-500/10 text-emerald-500 border border-emerald-500/20 text-[10px] font-bold font-mono uppercase tracking-wider">
+            <span className="w-1.5 h-1.5 bg-emerald-500 rounded-full animate-pulse" />
+            Active via Setapp
+          </div>
+        </div>
+      ) : (
       <div className="p-6 bg-card border border-border/60 rounded-2xl flex flex-col items-center text-center space-y-4 transition duration-200 hover:scale-[1.005] hover:shadow-xs">
         <div className={`w-10 h-10 rounded-xl flex items-center justify-center border ${
           isActivated 
@@ -148,7 +170,7 @@ export function AboutSection({ appVersion, platformName, isActivated, handleChec
           )}
         </div>
       </div>
-
+      )}
       {/* Support Card */}
       <div className="p-6 bg-red-500/5 dark:bg-red-500/10 rounded-2xl border border-red-500/15 dark:border-red-500/20 flex flex-col items-center text-center space-y-4 transition duration-200 hover:scale-[1.005]">
         <div className="w-10 h-10 rounded-xl bg-red-500/15 flex items-center justify-center text-red-500">

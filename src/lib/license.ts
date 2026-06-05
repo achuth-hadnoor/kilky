@@ -1,5 +1,6 @@
 import { fetch } from "@tauri-apps/plugin-http";
 import { Store } from "@tauri-apps/plugin-store";
+import { invoke } from "@tauri-apps/api/core";
 
 let _store: Store | null = null;
 
@@ -107,6 +108,22 @@ export async function startTrial(): Promise<void> {
 }
 
 export async function getIsActivated(): Promise<boolean> {
+  // For Setapp builds, the subscription is managed by Setapp — always considered active.
+  if (await getIsSetappBuild()) return true;
   const store = await getStore();
   return (await store.get<boolean>("is-activated")) || false;
+}
+
+// Cache so the IPC call is only made once per session.
+let _isSetappBuild: boolean | null = null;
+
+/**
+ * Returns true when running the Setapp-distribution binary.
+ * Use this to hide Polar license UI and show Setapp-specific messaging.
+ */
+export async function getIsSetappBuild(): Promise<boolean> {
+  if (_isSetappBuild === null) {
+    _isSetappBuild = await invoke<boolean>("is_setapp_build");
+  }
+  return _isSetappBuild;
 }

@@ -11,7 +11,9 @@
     "lint": "eslint .",
     "type-check": "tsc",
     "preview": "vite preview",
-    "tauri": "dotenv -- tauri"
+    "tauri": "dotenv -- tauri",
+    "tauri:build:direct": "dotenv -- tauri build",
+    "tauri:build:setapp": "KLIKY_SETAPP=1 dotenv -- tauri build --config src-tauri/tauri.setapp.conf.json"
   },
   "dependencies": {
     "@fontsource-variable/geist": "^5.2.8",
