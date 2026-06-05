@@ -135,8 +135,20 @@ pub fn setup_tray(app: &tauri::AppHandle) -> tauri::Result<()> {
     let autostart_clone = autostart_item.clone();
     let mut tray_builder = TrayIconBuilder::with_id("main").menu(&menu);
 
-    if let Some(icon) = app.default_window_icon() {
-        tray_builder = tray_builder.icon(icon.clone());
+    // Use tray.png as a template icon on macOS so it adapts to light/dark themes
+    #[cfg(target_os = "macos")]
+    {
+        if let Ok(icon) = tauri::image::Image::from_bytes(include_bytes!("../icons/tray.png")) {
+            tray_builder = tray_builder.icon(icon).icon_as_template(true);
+        } else if let Some(icon) = app.default_window_icon() {
+            tray_builder = tray_builder.icon(icon.clone());
+        }
+    }
+    #[cfg(not(target_os = "macos"))]
+    {
+        if let Some(icon) = app.default_window_icon() {
+            tray_builder = tray_builder.icon(icon.clone());
+        }
     }
 
     let tray = tray_builder
