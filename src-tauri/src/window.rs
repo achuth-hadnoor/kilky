@@ -95,8 +95,8 @@ pub fn spawn_window_with_visibility(handle: &AppHandle, window_type: WindowType,
         builder = builder
             .title_bar_style(tauri::TitleBarStyle::Overlay)
             .traffic_light_position(tauri::Position::Physical(tauri::PhysicalPosition {
-                x: 40,
-                y: 60,
+                x: 20,
+                y: 30,
             }))
             .effects(effects);
     }
